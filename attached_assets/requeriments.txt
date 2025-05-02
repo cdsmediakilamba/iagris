@@ -1,0 +1,210 @@
+# Prompt para Desenvolvimento de Sistema de Gestão de Fazendas para Angola
+
+## Visão Geral do Projeto
+
+Desenvolver um sistema de gestão de fazendas completo (FarmManager Pro) como uma Progressive Web App (PWA) para operações agrícolas em Angola. O sistema deve ser bilíngue (Português de Portugal e Inglês), moderno, intuitivo e funcionar tanto online quanto offline.
+
+## Requisitos Funcionais Detalhados
+
+### 1. Sistema de Autenticação e Controlo de Acesso
+- Implementar sistema de login seguro com autenticação de dois fatores
+- Criar os seguintes níveis de acesso com permissões configuráveis:
+  - Administrador
+  - Gerente
+  - Funcionário
+  - Veterinário
+  - Agrónomo
+  - Consultor/Visitante
+- Desenvolver painel de administração para gestão de utilizadores e permissões
+- Implementar registro de logs de acesso e auditoria
+
+### 2. Sistema Multilíngue
+- Implementar sistema de tradução dinâmica entre Português (padrão) e Inglês
+- Criar interface de troca de idioma (botão/menu) em todas as telas
+- Garantir que todos os termos técnicos e específicos da agricultura sejam traduzidos corretamente
+- Armazenar dados em formato independente de idioma
+- Permitir que cada utilizador escolha seu idioma preferido no perfil
+
+### 3. Gestão de Animais
+- Criar cadastro completo de animais com:
+  - Sistema de identificação único (compatível com brincos, chips)
+  - Registo de espécie, raça, género, data de nascimento, peso
+  - Histórico genealógico e reprodutivo
+  - Galeria de fotos
+  - Valor económico e depreciação/valorização
+- Desenvolver módulo sanitário com:
+  - Calendário de vacinação com alertas automáticos
+  - Registo de tratamentos e medicações
+  - Histórico de doenças e intervenções veterinárias
+  - Relatórios de saúde do rebanho
+- Implementar controlo de eventos:
+  - Nascimentos com registo de progenitores
+  - Abates com registo de peso e rendimento
+  - Vendas com integração ao sistema financeiro
+  - Mortes com causa e relatório
+  - Extravios com protocolos de busca
+- Desenvolver relatórios de desempenho zootécnico
+- Criar sistema de rastreabilidade completa
+
+### 4. Gestão de Plantações
+- Desenvolver cadastro de áreas de plantio com:
+  - Georreferenciamento
+  - Características do solo
+  - Histórico de plantio
+- Implementar planeamento de cultivos:
+  - Calendário agrícola sazonal
+  - Rotação de culturas
+  - Previsão de plantio e colheita
+- Criar monitorização de:
+  - Crescimento e desenvolvimento
+  - Irrigação e pluviosidade
+  - Pragas e doenças
+  - Aplicação de defensivos e fertilizantes
+- Desenvolver controlo de colheita e armazenamento
+- Implementar relatórios de produtividade e comparativos
+
+### 5. Gestão de Insumos e Recursos
+- Criar inventário completo para:
+  - Rações e alimentos com controlo nutricional
+  - Medicamentos e vacinas com datas de validade
+  - Sementes e mudas com taxa de germinação
+  - Fertilizantes e corretivos
+  - Defensivos agrícolas
+  - Combustíveis e lubrificantes
+  - Ferramentas e equipamentos
+- Implementar:
+  - Controlo de stock com alertas de níveis mínimos
+  - Requisições internas
+  - Ordem de compra
+  - Recebimento de mercadorias
+  - Rastreabilidade de lotes
+- Desenvolver análise de consumo e eficiência
+
+### 6. Gestão Financeira
+- Criar módulos para:
+  - Orçamento por setor/atividade
+  - Controlo de despesas e receitas
+  - Fluxo de caixa
+  - Análise de custos de produção
+  - Precificação de produtos
+  - Margens e rentabilidade
+- Implementar:
+  - Dashboard financeiro
+  - Relatórios gerenciais
+  - Exportação para sistemas contábeis
+  - Análise de viabilidade de projetos
+
+### 7. Gestão de Tarefas e Pessoal
+- Desenvolver:
+  - Atribuição de tarefas com prioridades
+  - Calendário de atividades da fazenda
+  - Controlo de jornada de trabalho
+  - Avaliação de produtividade
+  - Sistema de comunicação interna
+- Implementar:
+  - Notificações e alertas de tarefas
+  - Confirmação de conclusão com registros
+  - Relatórios de eficiência operacional
+
+### 8. Dashboard e Relatórios
+- Criar dashboards personalizados por perfil de utilizador
+- Desenvolver relatórios:
+  - Operacionais (diários/semanais)
+  - Gerenciais (mensais)
+  - Estratégicos (trimestrais/anuais)
+- Implementar visualizações gráficas e exportação em múltiplos formatos
+
+## Requisitos Técnicos
+
+### Interface do Utilizador
+- Desenvolver UI moderna e responsiva usando Material Design ou similar
+- Criar layouts adaptáveis para desktop, tablet e smartphone
+- Implementar navegação intuitiva organizada por contexto
+- Usar paleta de cores apropriada ao contexto agrícola angolano
+- Criar iconografia clara e consistente
+- Desenvolver formulários com validação em tempo real
+- Implementar pesquisa global e filtros avançados
+
+### Arquitetura e Tecnologia
+- Desenvolver como Progressive Web App (PWA) com:
+  - Service workers para funcionalidade offline
+  - Sincronização de dados quando conectado
+  - Notificações push
+- Utilizar:
+  - Frontend: React ou Vue.js
+  - Backend: Node.js ou Django
+  - Banco de dados: PostgreSQL ou MongoDB
+  - Armazenamento local: IndexedDB
+  - APIs RESTful
+- Implementar:
+  - Autenticação JWT
+  - Criptografia de dados sensíveis
+  - Backups automáticos
+  - Logs de sistema e auditoria
+
+### Requisitos de Desempenho
+- Otimizar para conexões de internet instáveis
+- Garantir carregamento rápido mesmo em dispositivos de baixo desempenho
+- Minimizar uso de dados móveis
+- Implementar compressão e otimização de imagens
+- Desenvolver para funcionar com rede 3G
+
+### Segurança
+- Implementar:
+  - Autenticação segura com 2FA
+  - Autorização baseada em papéis
+  - Controle de acesso granular
+  - Proteção contra ataques comuns (XSS, CSRF, SQL Injection)
+  - Criptografia de dados em trânsito e armazenados
+  - Logs de segurança auditáveis
+
+## Adaptações Específicas para Angola
+
+- Incluir raças de gado comuns em Angola (N'Dama, Ankole, etc.)
+- Programar para culturas predominantes locais (milho, mandioca, sorgo, etc.)
+- Adaptar para padrões climáticos angolanos (estações seca e chuvosa)
+- Considerar pragas e doenças endêmicas da região
+- Incluir métricas e unidades de medida locais
+- Adaptar terminologia agrícola para o português de Angola
+- Considerar infraestrutura local (conectividade intermitente, energia)
+
+## Módulos Adicionais
+
+### Integração IoT
+- Prever integração com:
+  - Estações meteorológicas
+  - Sensores de solo
+  - Identificação animal eletrônica
+  - Drones para monitoramento de culturas
+  - Sistemas de irrigação automatizados
+
+### Módulo de Manutenção
+- Implementar:
+  - Cadastro de máquinas e equipamentos
+  - Plano de manutenção preventiva
+  - Registro de manutenções
+  - Controle de custos de manutenção
+  - Alertas de manutenção programada
+
+### Análise Preditiva
+- Desenvolver:
+  - Previsão de produtividade
+  - Detecção precoce de doenças
+  - Otimização de recursos
+  - Análise de tendências de mercado
+
+## Entregáveis Esperados
+
+1. Código fonte completo e documentado
+2. Base de dados estruturada com scripts de inicialização
+3. Documentação técnica e de usuário em português e inglês
+4. Manuais de treinamento para diferentes perfis de usuário
+5. Plano de implantação e migração de dados
+6. Estratégia de backup e recuperação
+7. Interface de administração para configurações do sistema
+
+## Considerações Finais
+
+O sistema deve ser desenvolvido seguindo metodologias ágeis, com entregas incrementais e validação constante com os usuários finais. Deve considerar a realidade local angolana, incluindo desafios de infraestrutura e adaptação cultural. O design deve ser intuitivo mesmo para usuários com pouca experiência tecnológica e o sistema deve evoluir facilmente com novas funcionalidades.
+
+Desenvolva este sistema completo, considerando todos os aspectos acima e criando uma solução robusta, escalável e adaptada ao contexto agrícola de Angola.
