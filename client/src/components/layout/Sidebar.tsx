@@ -1,0 +1,204 @@
+import React from 'react';
+import { useLanguage } from '@/context/LanguageContext';
+import { useLocation } from 'wouter';
+import { UserRole } from '@shared/schema';
+import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/use-auth';
+import {
+  Calendar,
+  LayoutDashboard,
+  CheckSquare,
+  Leaf,
+  PawPrint,
+  Warehouse,
+  Users,
+  DollarSign,
+  FileText,
+  ShieldAlert,
+  RefreshCw,
+  WifiOff
+} from 'lucide-react';
+
+interface SidebarProps {
+  isOpen: boolean;
+}
+
+export default function Sidebar({ isOpen }: SidebarProps) {
+  const { t } = useLanguage();
+  const [location, setLocation] = useLocation();
+  const { user } = useAuth();
+
+  const isAdmin = user?.role === UserRole.ADMIN;
+  const isManager = user?.role === UserRole.MANAGER || isAdmin;
+
+  const sidebarItems = [
+    {
+      title: t('common.dashboard'),
+      icon: <LayoutDashboard className="mr-4 h-5 w-5" />,
+      path: '/',
+      active: location === '/',
+    },
+    {
+      title: t('common.calendar'),
+      icon: <Calendar className="mr-4 h-5 w-5" />,
+      path: '/calendar',
+      active: location === '/calendar',
+    },
+    {
+      title: t('common.tasks'),
+      icon: <CheckSquare className="mr-4 h-5 w-5" />,
+      path: '/tasks',
+      active: location === '/tasks',
+    },
+    {
+      title: t('common.animals'),
+      icon: <PawPrint className="mr-4 h-5 w-5" />,
+      path: '/animals',
+      active: location === '/animals',
+    },
+    {
+      title: t('common.crops'),
+      icon: <Leaf className="mr-4 h-5 w-5" />,
+      path: '/crops',
+      active: location === '/crops',
+    },
+    {
+      title: t('common.inventory'),
+      icon: <Warehouse className="mr-4 h-5 w-5" />,
+      path: '/inventory',
+      active: location === '/inventory',
+    },
+    {
+      title: t('common.employees'),
+      icon: <Users className="mr-4 h-5 w-5" />,
+      path: '/employees',
+      active: location === '/employees',
+      show: isManager,
+    },
+    {
+      title: t('common.finance'),
+      icon: <DollarSign className="mr-4 h-5 w-5" />,
+      path: '/financial',
+      active: location === '/financial',
+      show: isManager,
+    },
+    {
+      title: t('common.reports'),
+      icon: <FileText className="mr-4 h-5 w-5" />,
+      path: '/reports',
+      active: location === '/reports',
+    },
+    {
+      title: t('common.admin'),
+      icon: <ShieldAlert className="mr-4 h-5 w-5" />,
+      path: '/admin',
+      active: location === '/admin',
+      show: isAdmin,
+    },
+    {
+      title: t('common.sync'),
+      icon: <RefreshCw className="mr-4 h-5 w-5" />,
+      path: '/sync',
+      active: location === '/sync',
+    },
+  ];
+
+  // Filter sidebar items based on user role
+  const filteredItems = sidebarItems.filter(item => item.show !== false);
+
+  return (
+    <aside className={cn(
+      "sidebar bg-white shadow-md lg:block fixed lg:relative z-20 h-full",
+      isOpen ? "open" : ""
+    )}>
+      <div className="h-full flex flex-col">
+        <div className="overflow-y-auto flex-grow">
+          <nav className="p-4">
+            <div className="mb-4">
+              <h2 className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                {t('common.dashboard')}
+              </h2>
+              {filteredItems.slice(0, 3).map((item, index) => (
+                <a
+                  key={index}
+                  href={item.path}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setLocation(item.path);
+                  }}
+                  className={cn(
+                    "flex items-center px-4 py-3 text-gray-900 rounded-md mb-1",
+                    item.active ? "bg-primary bg-opacity-10 text-primary font-medium border-l-4 border-primary" : "hover:bg-gray-100"
+                  )}
+                >
+                  {item.icon}
+                  <span>{item.title}</span>
+                </a>
+              ))}
+            </div>
+            
+            <div className="mb-4">
+              <h2 className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                {t('common.management')}
+              </h2>
+              {filteredItems.slice(3, 8).map((item, index) => (
+                <a
+                  key={index}
+                  href={item.path}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setLocation(item.path);
+                  }}
+                  className={cn(
+                    "flex items-center px-4 py-3 text-gray-900 rounded-md mb-1",
+                    item.active ? "bg-primary bg-opacity-10 text-primary font-medium border-l-4 border-primary" : "hover:bg-gray-100"
+                  )}
+                >
+                  {item.icon}
+                  <span>{item.title}</span>
+                </a>
+              ))}
+            </div>
+            
+            <div>
+              <h2 className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                {t('common.system')}
+              </h2>
+              {filteredItems.slice(8).map((item, index) => (
+                <a
+                  key={index}
+                  href={item.path}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setLocation(item.path);
+                  }}
+                  className={cn(
+                    "flex items-center px-4 py-3 text-gray-900 rounded-md mb-1",
+                    item.active ? "bg-primary bg-opacity-10 text-primary font-medium border-l-4 border-primary" : "hover:bg-gray-100"
+                  )}
+                >
+                  {item.icon}
+                  <span>{item.title}</span>
+                </a>
+              ))}
+            </div>
+          </nav>
+        </div>
+        
+        <div className="p-4 border-t border-gray-200">
+          <div className="bg-gray-100 rounded-md p-3">
+            <div className="flex items-center mb-2">
+              <WifiOff className="h-4 w-4 text-blue-500 mr-2" />
+              <span className="text-sm font-medium">
+                {t('common.offline')}
+              </span>
+            </div>
+            <p className="text-xs text-gray-500">
+              {t('common.offlineMessage')}
+            </p>
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
+}
