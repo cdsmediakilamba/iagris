@@ -110,7 +110,7 @@ export class MemStorage implements IStorage {
     });
     
     // Create initial super admin user
-    this.createUser({
+    const adminUser = this.createUser({
       username: "admin",
       password: "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",  // "password" hashed with SHA-256
       name: "Administrador Geral",
@@ -118,6 +118,171 @@ export class MemStorage implements IStorage {
       role: UserRole.SUPER_ADMIN,
       language: "pt",
       farmId: null // Super Admin não está vinculado a nenhuma fazenda específica
+    });
+    
+    // Create a farm admin user
+    const farmAdminUser = this.createUser({
+      username: "farmadmin",
+      password: "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",  // "password" hashed with SHA-256
+      name: "Administrador de Fazenda",
+      email: "farmadmin@iagris.com",
+      role: UserRole.FARM_ADMIN,
+      language: "pt",
+      farmId: null
+    });
+    
+    // Create a regular employee user
+    const employeeUser = this.createUser({
+      username: "employee",
+      password: "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",  // "password" hashed with SHA-256
+      name: "Funcionário Regular",
+      email: "employee@iagris.com",
+      role: UserRole.EMPLOYEE,
+      language: "pt",
+      farmId: null
+    });
+    
+    // Create a sample farm
+    const farm1 = this.createFarm({
+      name: "Fazenda Modelo",
+      location: "Luanda, Angola",
+      size: 1000,
+      createdBy: adminUser.id,
+      adminId: farmAdminUser.id,
+      description: "Uma fazenda modelo para demonstração do sistema",
+      coordinates: "-8.8368,13.2343",
+      type: "mixed"
+    });
+    
+    // Assign farm admin to the farm with admin role
+    this.assignUserToFarm({
+      userId: farmAdminUser.id,
+      farmId: farm1.id,
+      role: "admin"
+    });
+    
+    // Assign employee to the farm with member role
+    this.assignUserToFarm({
+      userId: employeeUser.id,
+      farmId: farm1.id,
+      role: "member"
+    });
+    
+    // Set different permissions for the employee
+    this.setUserPermission({
+      userId: employeeUser.id,
+      farmId: farm1.id,
+      module: SystemModule.ANIMALS,
+      accessLevel: AccessLevel.READ_ONLY
+    });
+    
+    this.setUserPermission({
+      userId: employeeUser.id,
+      farmId: farm1.id,
+      module: SystemModule.CROPS,
+      accessLevel: AccessLevel.FULL
+    });
+    
+    this.setUserPermission({
+      userId: employeeUser.id,
+      farmId: farm1.id,
+      module: SystemModule.INVENTORY,
+      accessLevel: AccessLevel.READ_ONLY
+    });
+    
+    this.setUserPermission({
+      userId: employeeUser.id,
+      farmId: farm1.id,
+      module: SystemModule.TASKS,
+      accessLevel: AccessLevel.FULL
+    });
+    
+    // Add some sample animals to the farm
+    this.createAnimal({
+      farmId: farm1.id,
+      identificationCode: "A001",
+      species: "Bovino",
+      breed: "Angus",
+      gender: "Macho",
+      status: "Ativo",
+      birthDate: new Date("2022-05-15"),
+      weight: 450,
+      lastVaccineDate: new Date("2023-10-10")
+    });
+    
+    this.createAnimal({
+      farmId: farm1.id,
+      identificationCode: "A002",
+      species: "Bovino",
+      breed: "Nelore",
+      gender: "Fêmea",
+      status: "Ativo",
+      birthDate: new Date("2021-03-22"),
+      weight: 380,
+      lastVaccineDate: new Date("2023-10-10")
+    });
+    
+    // Add some sample crops to the farm
+    this.createCrop({
+      farmId: farm1.id,
+      name: "Milho",
+      sector: "Setor A",
+      area: 50,
+      status: "Em crescimento",
+      plantingDate: new Date("2023-03-15"),
+      expectedHarvestDate: new Date("2023-07-15")
+    });
+    
+    this.createCrop({
+      farmId: farm1.id,
+      name: "Feijão",
+      sector: "Setor B",
+      area: 30,
+      status: "Em crescimento",
+      plantingDate: new Date("2023-04-10"),
+      expectedHarvestDate: new Date("2023-08-01")
+    });
+    
+    // Add some inventory items
+    this.createInventoryItem({
+      farmId: farm1.id,
+      name: "Ração para Bovinos",
+      category: "Alimentação",
+      quantity: 500,
+      unit: "kg",
+      minimumLevel: 100
+    });
+    
+    this.createInventoryItem({
+      farmId: farm1.id,
+      name: "Vacina Antirrábica",
+      category: "Medicamentos",
+      quantity: 50,
+      unit: "doses",
+      minimumLevel: 10
+    });
+    
+    // Add some tasks
+    this.createTask({
+      farmId: farm1.id,
+      title: "Alimentar os animais",
+      category: "Rotina",
+      dueDate: new Date(Date.now() + 86400000), // amanhã
+      status: "pendente",
+      description: "Realizar a alimentação diária dos bovinos",
+      priority: "alta",
+      assignedTo: employeeUser.id
+    });
+    
+    this.createTask({
+      farmId: farm1.id,
+      title: "Irrigar as plantações",
+      category: "Rotina",
+      dueDate: new Date(Date.now() + 86400000), // amanhã
+      status: "pendente",
+      description: "Realizar a irrigação das plantações de milho e feijão",
+      priority: "média",
+      assignedTo: employeeUser.id
     });
   }
 

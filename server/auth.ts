@@ -20,9 +20,6 @@ export function hashPassword(password: string) {
 // Função simplificada para comparar senhas usando SHA-256
 function comparePasswords(supplied: string, stored: string) {
   const hashedSupplied = hashPassword(supplied);
-  console.log('Comparing passwords:');
-  console.log('Supplied (hashed):', hashedSupplied);
-  console.log('Stored:', stored);
   return hashedSupplied === stored;
 }
 
