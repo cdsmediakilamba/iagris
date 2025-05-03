@@ -109,187 +109,320 @@ export class MemStorage implements IStorage {
       checkPeriod: 86400000 // Clear expired sessions every 24h
     });
     
-    // Create initial super admin user
-    const adminUser = this.createUser({
-      username: "admin",
-      password: "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",  // "password" hashed with SHA-256
-      name: "Administrador Geral",
-      email: "admin@iagris.com",
-      role: UserRole.SUPER_ADMIN,
-      language: "pt",
-      farmId: null // Super Admin não está vinculado a nenhuma fazenda específica
-    });
+    // Chamar inicialização de dados
+    this.initializeData();
+  }
+  
+  // Método para inicializar os dados (não asíncrono para o construtor)
+  private initializeData() {
+    try {
+      // Create initial super admin user
+      const adminUser = this.createUserSync({
+        username: "admin",
+        password: "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",  // "password" hashed with SHA-256
+        name: "Administrador Geral",
+        email: "admin@iagris.com",
+        role: UserRole.SUPER_ADMIN,
+        language: "pt",
+        farmId: null // Super Admin não está vinculado a nenhuma fazenda específica
+      });
+      
+      // Create a farm admin user
+      const farmAdminUser = this.createUserSync({
+        username: "farmadmin",
+        password: "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",  // "password" hashed with SHA-256
+        name: "Administrador de Fazenda",
+        email: "farmadmin@iagris.com",
+        role: UserRole.FARM_ADMIN,
+        language: "pt",
+        farmId: null
+      });
+      
+      // Create a regular employee user
+      const employeeUser = this.createUserSync({
+        username: "employee",
+        password: "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",  // "password" hashed with SHA-256
+        name: "Funcionário Regular",
+        email: "employee@iagris.com",
+        role: UserRole.EMPLOYEE,
+        language: "pt",
+        farmId: null
+      });
+      
+      // Create a sample farm
+      const farm1 = this.createFarmSync({
+        name: "Fazenda Modelo",
+        location: "Luanda, Angola",
+        size: 1000,
+        createdBy: adminUser.id,
+        adminId: farmAdminUser.id,
+        description: "Uma fazenda modelo para demonstração do sistema",
+        coordinates: "-8.8368,13.2343",
+        type: "mixed"
+      });
+      
+      // Log user e farm IDs
+      console.log("Users created:", { adminUser, farmAdminUser, employeeUser });
+      console.log("Farm created:", farm1);
+      console.log("User IDs:", { adminId: adminUser.id, farmAdminId: farmAdminUser.id, employeeId: employeeUser.id, farmId: farm1.id });
+      
+      // Assign farm admin to the farm with admin role
+      const farmAdminAssoc = this.assignUserToFarmSync({
+        userId: farmAdminUser.id,
+        farmId: farm1.id,
+        role: "admin"
+      });
+      console.log("Created farm admin association:", farmAdminAssoc);
+      
+      // Assign employee to the farm with member role
+      const employeeAssoc = this.assignUserToFarmSync({
+        userId: employeeUser.id,
+        farmId: farm1.id,
+        role: "member"
+      });
+      console.log("Created employee association:", employeeAssoc);
+      
+      // Verificar as associações
+      const allFarmUsers = Array.from(this.userFarms.values());
+      console.log("All farm-user associations:", allFarmUsers);
+      
+      // Set different permissions for the employee
+      this.setUserPermissionSync({
+        userId: employeeUser.id,
+        farmId: farm1.id,
+        module: SystemModule.ANIMALS,
+        accessLevel: AccessLevel.READ_ONLY
+      });
+      
+      this.setUserPermissionSync({
+        userId: employeeUser.id,
+        farmId: farm1.id,
+        module: SystemModule.CROPS,
+        accessLevel: AccessLevel.FULL
+      });
+      
+      this.setUserPermissionSync({
+        userId: employeeUser.id,
+        farmId: farm1.id,
+        module: SystemModule.INVENTORY,
+        accessLevel: AccessLevel.READ_ONLY
+      });
+      
+      this.setUserPermissionSync({
+        userId: employeeUser.id,
+        farmId: farm1.id,
+        module: SystemModule.TASKS,
+        accessLevel: AccessLevel.FULL
+      });
+      
+      // Add some sample animals to the farm
+      this.createAnimalSync({
+        farmId: farm1.id,
+        identificationCode: "A001",
+        species: "Bovino",
+        breed: "Angus",
+        gender: "Macho",
+        status: "Ativo",
+        birthDate: new Date("2022-05-15"),
+        weight: 450,
+        lastVaccineDate: new Date("2023-10-10")
+      });
+      
+      this.createAnimalSync({
+        farmId: farm1.id,
+        identificationCode: "A002",
+        species: "Bovino",
+        breed: "Nelore",
+        gender: "Fêmea",
+        status: "Ativo",
+        birthDate: new Date("2021-03-22"),
+        weight: 380,
+        lastVaccineDate: new Date("2023-10-10")
+      });
+      
+      // Add some sample crops to the farm
+      this.createCropSync({
+        farmId: farm1.id,
+        name: "Milho",
+        sector: "Setor A",
+        area: 50,
+        status: "Em crescimento",
+        plantingDate: new Date("2023-03-15"),
+        expectedHarvestDate: new Date("2023-07-15")
+      });
+      
+      this.createCropSync({
+        farmId: farm1.id,
+        name: "Feijão",
+        sector: "Setor B",
+        area: 30,
+        status: "Em crescimento",
+        plantingDate: new Date("2023-04-10"),
+        expectedHarvestDate: new Date("2023-08-01")
+      });
+      
+      // Add some inventory items
+      this.createInventoryItemSync({
+        farmId: farm1.id,
+        name: "Ração para Bovinos",
+        category: "Alimentação",
+        quantity: 500,
+        unit: "kg",
+        minimumLevel: 100
+      });
+      
+      this.createInventoryItemSync({
+        farmId: farm1.id,
+        name: "Vacina Antirrábica",
+        category: "Medicamentos",
+        quantity: 50,
+        unit: "doses",
+        minimumLevel: 10
+      });
+      
+      // Add some tasks
+      this.createTaskSync({
+        farmId: farm1.id,
+        title: "Alimentar os animais",
+        category: "Rotina",
+        dueDate: new Date(Date.now() + 86400000), // amanhã
+        status: "pendente",
+        description: "Realizar a alimentação diária dos bovinos",
+        priority: "alta",
+        assignedTo: employeeUser.id
+      });
+      
+      this.createTaskSync({
+        farmId: farm1.id,
+        title: "Irrigar as plantações",
+        category: "Rotina",
+        dueDate: new Date(Date.now() + 86400000), // amanhã
+        status: "pendente",
+        description: "Realizar a irrigação das plantações de milho e feijão",
+        priority: "média",
+        assignedTo: employeeUser.id
+      });
+    } catch (error) {
+      console.error("Error initializing data:", error);
+    }
+  }
+  
+  // Versões síncronas dos métodos para inicialização
+  private createUserSync(insertUser: InsertUser): User {
+    const id = this.userId++;
+    const user: User = { 
+      ...insertUser, 
+      id, 
+      createdAt: new Date(),
+      role: insertUser.role ?? UserRole.EMPLOYEE,
+      language: insertUser.language ?? "pt"
+    };
+    this.users.set(id, user);
+    return user;
+  }
+  
+  private createFarmSync(insertFarm: InsertFarm): Farm {
+    const id = this.farmId++;
+    const farm: Farm = { 
+      ...insertFarm, 
+      id, 
+      createdAt: new Date(),
+      size: insertFarm.size || null,
+      createdBy: insertFarm.createdBy || null,
+      adminId: insertFarm.adminId || null,
+      description: insertFarm.description || null,
+      coordinates: insertFarm.coordinates || null,
+      type: insertFarm.type || null
+    };
+    this.farms.set(id, farm);
+    return farm;
+  }
+  
+  private assignUserToFarmSync(userFarm: InsertUserFarm): UserFarm {
+    const id = this.userFarmId++;
+    const role = userFarm.role || 'member';
+    const newUserFarm: UserFarm = { ...userFarm, role, id, createdAt: new Date() };
+    this.userFarms.set(id, newUserFarm);
+    return newUserFarm;
+  }
+  
+  private setUserPermissionSync(permission: InsertUserPermission): UserPermission {
+    // Verificar se já existe uma permissão para esse usuário, módulo e fazenda
+    const existingPermission = Array.from(this.userPermissions.values()).find(
+      p => p.userId === permission.userId && 
+           p.farmId === permission.farmId && 
+           p.module === permission.module
+    );
     
-    // Create a farm admin user
-    const farmAdminUser = this.createUser({
-      username: "farmadmin",
-      password: "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",  // "password" hashed with SHA-256
-      name: "Administrador de Fazenda",
-      email: "farmadmin@iagris.com",
-      role: UserRole.FARM_ADMIN,
-      language: "pt",
-      farmId: null
-    });
-    
-    // Create a regular employee user
-    const employeeUser = this.createUser({
-      username: "employee",
-      password: "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",  // "password" hashed with SHA-256
-      name: "Funcionário Regular",
-      email: "employee@iagris.com",
-      role: UserRole.EMPLOYEE,
-      language: "pt",
-      farmId: null
-    });
-    
-    // Create a sample farm
-    const farm1 = this.createFarm({
-      name: "Fazenda Modelo",
-      location: "Luanda, Angola",
-      size: 1000,
-      createdBy: adminUser.id,
-      adminId: farmAdminUser.id,
-      description: "Uma fazenda modelo para demonstração do sistema",
-      coordinates: "-8.8368,13.2343",
-      type: "mixed"
-    });
-    
-    // Assign farm admin to the farm with admin role
-    const farmAdminAssoc = this.assignUserToFarm({
-      userId: farmAdminUser.id,
-      farmId: farm1.id,
-      role: "admin"
-    });
-    console.log("Created farm admin association:", farmAdminAssoc);
-    
-    // Assign employee to the farm with member role
-    const employeeAssoc = this.assignUserToFarm({
-      userId: employeeUser.id,
-      farmId: farm1.id,
-      role: "member"
-    });
-    console.log("Created employee association:", employeeAssoc);
-    
-    // Verificar as associações
-    const allFarmUsers = Array.from(this.userFarms.values());
-    console.log("All farm-user associations:", allFarmUsers);
-    
-    // Set different permissions for the employee
-    this.setUserPermission({
-      userId: employeeUser.id,
-      farmId: farm1.id,
-      module: SystemModule.ANIMALS,
-      accessLevel: AccessLevel.READ_ONLY
-    });
-    
-    this.setUserPermission({
-      userId: employeeUser.id,
-      farmId: farm1.id,
-      module: SystemModule.CROPS,
-      accessLevel: AccessLevel.FULL
-    });
-    
-    this.setUserPermission({
-      userId: employeeUser.id,
-      farmId: farm1.id,
-      module: SystemModule.INVENTORY,
-      accessLevel: AccessLevel.READ_ONLY
-    });
-    
-    this.setUserPermission({
-      userId: employeeUser.id,
-      farmId: farm1.id,
-      module: SystemModule.TASKS,
-      accessLevel: AccessLevel.FULL
-    });
-    
-    // Add some sample animals to the farm
-    this.createAnimal({
-      farmId: farm1.id,
-      identificationCode: "A001",
-      species: "Bovino",
-      breed: "Angus",
-      gender: "Macho",
-      status: "Ativo",
-      birthDate: new Date("2022-05-15"),
-      weight: 450,
-      lastVaccineDate: new Date("2023-10-10")
-    });
-    
-    this.createAnimal({
-      farmId: farm1.id,
-      identificationCode: "A002",
-      species: "Bovino",
-      breed: "Nelore",
-      gender: "Fêmea",
-      status: "Ativo",
-      birthDate: new Date("2021-03-22"),
-      weight: 380,
-      lastVaccineDate: new Date("2023-10-10")
-    });
-    
-    // Add some sample crops to the farm
-    this.createCrop({
-      farmId: farm1.id,
-      name: "Milho",
-      sector: "Setor A",
-      area: 50,
-      status: "Em crescimento",
-      plantingDate: new Date("2023-03-15"),
-      expectedHarvestDate: new Date("2023-07-15")
-    });
-    
-    this.createCrop({
-      farmId: farm1.id,
-      name: "Feijão",
-      sector: "Setor B",
-      area: 30,
-      status: "Em crescimento",
-      plantingDate: new Date("2023-04-10"),
-      expectedHarvestDate: new Date("2023-08-01")
-    });
-    
-    // Add some inventory items
-    this.createInventoryItem({
-      farmId: farm1.id,
-      name: "Ração para Bovinos",
-      category: "Alimentação",
-      quantity: 500,
-      unit: "kg",
-      minimumLevel: 100
-    });
-    
-    this.createInventoryItem({
-      farmId: farm1.id,
-      name: "Vacina Antirrábica",
-      category: "Medicamentos",
-      quantity: 50,
-      unit: "doses",
-      minimumLevel: 10
-    });
-    
-    // Add some tasks
-    this.createTask({
-      farmId: farm1.id,
-      title: "Alimentar os animais",
-      category: "Rotina",
-      dueDate: new Date(Date.now() + 86400000), // amanhã
-      status: "pendente",
-      description: "Realizar a alimentação diária dos bovinos",
-      priority: "alta",
-      assignedTo: employeeUser.id
-    });
-    
-    this.createTask({
-      farmId: farm1.id,
-      title: "Irrigar as plantações",
-      category: "Rotina",
-      dueDate: new Date(Date.now() + 86400000), // amanhã
-      status: "pendente",
-      description: "Realizar a irrigação das plantações de milho e feijão",
-      priority: "média",
-      assignedTo: employeeUser.id
-    });
+    if (existingPermission) {
+      // Atualizar permissão existente
+      existingPermission.accessLevel = permission.accessLevel;
+      this.userPermissions.set(existingPermission.id, existingPermission);
+      return existingPermission;
+    } else {
+      // Criar nova permissão
+      const id = this.userPermissionId++;
+      const newPermission: UserPermission = { ...permission, id, createdAt: new Date() };
+      this.userPermissions.set(id, newPermission);
+      return newPermission;
+    }
+  }
+  
+  private createAnimalSync(insertAnimal: InsertAnimal): Animal {
+    const id = this.animalId++;
+    const animal: Animal = { 
+      ...insertAnimal, 
+      id, 
+      createdAt: new Date(),
+      status: insertAnimal.status || "healthy",
+      birthDate: insertAnimal.birthDate || null,
+      weight: insertAnimal.weight || null,
+      lastVaccineDate: insertAnimal.lastVaccineDate || null
+    };
+    this.animals.set(id, animal);
+    return animal;
+  }
+  
+  private createCropSync(insertCrop: InsertCrop): Crop {
+    const id = this.cropId++;
+    const crop: Crop = { 
+      ...insertCrop, 
+      id, 
+      createdAt: new Date(),
+      status: insertCrop.status || "growing",
+      plantingDate: insertCrop.plantingDate || null,
+      expectedHarvestDate: insertCrop.expectedHarvestDate || null
+    };
+    this.crops.set(id, crop);
+    return crop;
+  }
+  
+  private createInventoryItemSync(insertItem: InsertInventory): Inventory {
+    const id = this.inventoryId++;
+    const item: Inventory = { 
+      ...insertItem, 
+      id, 
+      createdAt: new Date(),
+      minimumLevel: insertItem.minimumLevel || null
+    };
+    this.inventoryItems.set(id, item);
+    return item;
+  }
+  
+  private createTaskSync(insertTask: InsertTask): Task {
+    const id = this.taskId++;
+    const task: Task = { 
+      ...insertTask, 
+      id, 
+      createdAt: new Date(),
+      status: insertTask.status || "pending",
+      priority: insertTask.priority || "medium",
+      description: insertTask.description || null,
+      assignedTo: insertTask.assignedTo || null,
+      relatedId: insertTask.relatedId || null
+    };
+    this.taskItems.set(id, task);
+    return task;
   }
 
   // User operations
