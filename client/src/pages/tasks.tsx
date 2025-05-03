@@ -355,7 +355,7 @@ export default function Tasks() {
   return (
     <DashboardLayout>
       <div className="mb-6">
-        <h1 className="text-2xl font-medium text-gray-900 mb-4">{t('tasks.title')}</h1>
+        <h1 className="text-2xl font-medium text-gray-900 mb-4">{t('tasks.pageTitle')}</h1>
         
         <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
           {/* Search and farm select */}
@@ -578,7 +578,7 @@ export default function Tasks() {
         <CardHeader>
           <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
             <div className="flex justify-between items-center">
-              <CardTitle>{t('tasks.title')}</CardTitle>
+              <CardTitle>{t('tasks.pageTitle')}</CardTitle>
               <TabsList>
                 <TabsTrigger value="all">{t('common.all')}</TabsTrigger>
                 <TabsTrigger value="pending">{t('tasks.statuses.pending')}</TabsTrigger>
