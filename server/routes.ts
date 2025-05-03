@@ -2,14 +2,14 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
-import { UserRole } from "@shared/schema";
+import { UserRole, SystemModule, AccessLevel } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes
   setupAuth(app);
   
-  // Define middleware for role checking
-  const { checkRole } = app.locals;
+  // Define middleware for role and module access checking
+  const { checkRole, checkModuleAccess } = app.locals;
 
   // Farm routes
   app.get("/api/farms", async (req, res) => {
@@ -38,32 +38,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Animal routes
-  app.get("/api/farms/:farmId/animals", async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
-    
-    try {
-      const farmId = parseInt(req.params.farmId, 10);
-      const animals = await storage.getAnimalsByFarm(farmId);
-      res.json(animals);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch animals" });
+  app.get("/api/farms/:farmId/animals", 
+    checkModuleAccess(SystemModule.ANIMALS, AccessLevel.READ_ONLY), 
+    async (req, res) => {
+      try {
+        const farmId = parseInt(req.params.farmId, 10);
+        const animals = await storage.getAnimalsByFarm(farmId);
+        res.json(animals);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch animals" });
+      }
     }
-  });
+  );
 
-  app.post("/api/farms/:farmId/animals", async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
-    
-    try {
-      const farmId = parseInt(req.params.farmId, 10);
-      const newAnimal = await storage.createAnimal({
-        ...req.body,
-        farmId,
-      });
-      res.status(201).json(newAnimal);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to create animal" });
+  app.post("/api/farms/:farmId/animals", 
+    checkModuleAccess(SystemModule.ANIMALS, AccessLevel.FULL), 
+    async (req, res) => {
+      try {
+        const farmId = parseInt(req.params.farmId, 10);
+        const newAnimal = await storage.createAnimal({
+          ...req.body,
+          farmId,
+        });
+        res.status(201).json(newAnimal);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to create animal" });
+      }
     }
-  });
+  );
 
   // Crop routes
   app.get("/api/farms/:farmId/crops", async (req, res) => {

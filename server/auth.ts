@@ -1,11 +1,11 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
-import { Express } from "express";
+import { Express, Request, Response, NextFunction } from "express";
 import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
-import { User as SelectUser, UserRole } from "@shared/schema";
+import { User as SelectUser, UserRole, SystemModule, AccessLevel } from "@shared/schema";
 
 declare global {
   namespace Express {
@@ -125,13 +125,50 @@ export function setupAuth(app: Express) {
       }
       
       if (!roles.includes(req.user.role as UserRole)) {
-        return res.status(403).json({ message: "Not authorized" });
+        return res.status(403).json({ message: "Not authorized - insufficient role" });
       }
       
       next();
     };
   };
   
-  // Export middleware for role checks
+  // Middleware to check module access permission
+  const checkModuleAccess = (module: SystemModule, requiredLevel: AccessLevel) => {
+    return async (req: Express.Request, res: Express.Response, next: Express.NextFunction) => {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
+      // Super admin tem acesso a tudo
+      if (req.user.role === UserRole.SUPER_ADMIN) {
+        return next();
+      }
+      
+      // Verificar se a requisição tem um parâmetro farmId
+      const farmId = parseInt(req.params.farmId, 10) || parseInt(req.body.farmId, 10);
+      
+      if (!farmId) {
+        return res.status(400).json({ message: "Farm ID is required" });
+      }
+      
+      // Verificar se o usuário é admin da fazenda específica
+      const farm = await storage.getFarm(farmId);
+      if (req.user.role === UserRole.FARM_ADMIN && farm?.adminId === req.user.id) {
+        return next();
+      }
+      
+      // Verificar permissões específicas do módulo
+      const hasAccess = await storage.checkUserAccess(req.user.id, farmId, module, requiredLevel);
+      
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Not authorized - insufficient module permissions" });
+      }
+      
+      next();
+    };
+  };
+  
+  // Export middleware for access checks
   app.locals.checkRole = checkRole;
+  app.locals.checkModuleAccess = checkModuleAccess;
 }

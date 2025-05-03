@@ -134,7 +134,7 @@ export default function Tasks() {
   // Get all users for assigning tasks
   const { data: users } = useQuery({
     queryKey: ['/api/users'],
-    enabled: user?.role === UserRole.ADMIN || user?.role === UserRole.MANAGER,
+    enabled: user?.role === UserRole.SUPER_ADMIN || user?.role === UserRole.FARM_ADMIN || user?.role === UserRole.MANAGER,
   });
 
   // Task form schema

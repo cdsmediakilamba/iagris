@@ -326,7 +326,9 @@ export class MemStorage implements IStorage {
   // User-Farm operations
   async assignUserToFarm(userFarm: InsertUserFarm): Promise<UserFarm> {
     const id = this.userFarmId++;
-    const newUserFarm: UserFarm = { ...userFarm, id, createdAt: new Date() };
+    // Certifique-se de que o campo role está definido
+    const role = userFarm.role || 'member';
+    const newUserFarm: UserFarm = { ...userFarm, role, id, createdAt: new Date() };
     this.userFarms.set(id, newUserFarm);
     return newUserFarm;
   }

@@ -60,6 +60,7 @@ export const userFarms = pgTable("user_farms", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
   farmId: integer("farm_id").notNull(),
+  role: text("role").notNull().default("member"), // Papel do usuário na fazenda: admin, manager, worker, visitor, etc.
   createdAt: timestamp("created_at").defaultNow(),
 });
 
