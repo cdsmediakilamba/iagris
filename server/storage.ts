@@ -4,6 +4,9 @@ import { animals, type Animal, type InsertAnimal } from "@shared/schema";
 import { crops, type Crop, type InsertCrop } from "@shared/schema";
 import { inventory, type Inventory, type InsertInventory } from "@shared/schema";
 import { tasks, type Task, type InsertTask } from "@shared/schema";
+import { userFarms, type UserFarm, type InsertUserFarm } from "@shared/schema";
+import { userPermissions, type UserPermission, type InsertUserPermission } from "@shared/schema";
+import { UserRole, SystemModule, AccessLevel } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
 
@@ -16,12 +19,28 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, user: Partial<User>): Promise<User | undefined>;
+  getUsersByRole(role: UserRole): Promise<User[]>;
   
   // Farm operations
   getFarm(id: number): Promise<Farm | undefined>;
-  getFarmsByOwner(ownerId: number): Promise<Farm[]>;
+  getAllFarms(): Promise<Farm[]>;
+  getFarmsByCreator(creatorId: number): Promise<Farm[]>;
+  getFarmsByAdmin(adminId: number): Promise<Farm[]>;
+  getFarmsAccessibleByUser(userId: number): Promise<Farm[]>;
   createFarm(farm: InsertFarm): Promise<Farm>;
   updateFarm(id: number, farm: Partial<Farm>): Promise<Farm | undefined>;
+  
+  // User-Farm operations
+  assignUserToFarm(userFarm: InsertUserFarm): Promise<UserFarm>;
+  removeUserFromFarm(userId: number, farmId: number): Promise<boolean>;
+  getUserFarms(userId: number): Promise<UserFarm[]>;
+  getFarmUsers(farmId: number): Promise<UserFarm[]>;
+  
+  // User-Permission operations
+  getUserPermissions(userId: number, farmId: number): Promise<UserPermission[]>;
+  setUserPermission(permission: InsertUserPermission): Promise<UserPermission>;
+  updateUserPermission(id: number, permission: Partial<UserPermission>): Promise<UserPermission | undefined>;
+  checkUserAccess(userId: number, farmId: number, module: SystemModule, requiredLevel: AccessLevel): Promise<boolean>;
   
   // Animal operations
   getAnimal(id: number): Promise<Animal | undefined>;
@@ -61,8 +80,10 @@ export class MemStorage implements IStorage {
   private crops: Map<number, Crop>;
   private inventoryItems: Map<number, Inventory>;
   private taskItems: Map<number, Task>;
+  private userFarms: Map<number, UserFarm>;
+  private userPermissions: Map<number, UserPermission>;
   
-  sessionStore: session.SessionStore;
+  sessionStore: any; // Use any para evitar problemas com tipos
   
   // IDs for auto-increment
   private userId = 1;
@@ -71,6 +92,8 @@ export class MemStorage implements IStorage {
   private cropId = 1;
   private inventoryId = 1;
   private taskId = 1;
+  private userFarmId = 1;
+  private userPermissionId = 1;
 
   constructor() {
     this.users = new Map();

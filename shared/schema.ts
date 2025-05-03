@@ -13,6 +13,24 @@ export enum UserRole {
   CONSULTANT = "consultant"
 }
 
+// Define levels of access for modules
+export enum AccessLevel {
+  FULL = "full",               // Acesso completo
+  READ_ONLY = "read_only",     // Somente leitura
+  NONE = "none"                // Sem acesso
+}
+
+// Define system modules
+export enum SystemModule {
+  ANIMALS = "animals",
+  CROPS = "crops",
+  INVENTORY = "inventory",
+  TASKS = "tasks",
+  EMPLOYEES = "employees",
+  FINANCIAL = "financial",
+  REPORTS = "reports"
+}
+
 // User table schema
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -42,7 +60,16 @@ export const userFarms = pgTable("user_farms", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
   farmId: integer("farm_id").notNull(),
-  accessLevel: text("access_level").notNull(), // Define quais módulos o usuário pode acessar
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Permissões de acesso aos módulos para cada usuário em cada fazenda
+export const userPermissions = pgTable("user_permissions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  farmId: integer("farm_id").notNull(),
+  module: text("module").notNull(), // Usar o enum SystemModule
+  accessLevel: text("access_level").notNull(), // Usar o enum AccessLevel
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -112,6 +139,16 @@ export const insertFarmSchema = createInsertSchema(farms).omit({
   createdAt: true,
 });
 
+export const insertUserFarmSchema = createInsertSchema(userFarms).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertUserPermissionSchema = createInsertSchema(userPermissions).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertAnimalSchema = createInsertSchema(animals).omit({
   id: true,
   createdAt: true,
@@ -138,6 +175,12 @@ export type User = typeof users.$inferSelect;
 
 export type InsertFarm = z.infer<typeof insertFarmSchema>;
 export type Farm = typeof farms.$inferSelect;
+
+export type InsertUserFarm = z.infer<typeof insertUserFarmSchema>;
+export type UserFarm = typeof userFarms.$inferSelect;
+
+export type InsertUserPermission = z.infer<typeof insertUserPermissionSchema>;
+export type UserPermission = typeof userPermissions.$inferSelect;
 
 export type InsertAnimal = z.infer<typeof insertAnimalSchema>;
 export type Animal = typeof animals.$inferSelect;
