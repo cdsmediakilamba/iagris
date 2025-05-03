@@ -21,7 +21,7 @@ import { Animal } from '@shared/schema';
 import { format } from 'date-fns';
 
 interface AnimalHealthTableProps {
-  animals: Animal[];
+  animals?: Animal[];
   isLoading?: boolean;
 }
 
@@ -119,19 +119,19 @@ export default function AnimalHealthTable({ animals, isLoading = false }: Animal
               </TableRow>
             </TableHeader>
             <TableBody>
-              {animals.length > 0 ? (
+              {animals && animals.length > 0 ? (
                 animals.map((animal) => (
                   <TableRow key={animal.id} className="hover:bg-gray-50">
                     <TableCell className="font-medium">{animal.identificationCode}</TableCell>
                     <TableCell>
                       <div className="flex items-center">
                         <PawPrint className="h-4 w-4 text-gray-500 mr-2" />
-                        <span>{t(`animals.${animal.species.toLowerCase()}`)}</span>
+                        <span>{animal.species ? t(`animals.${animal.species.toLowerCase()}`) : animal.species || t('common.unknown')}</span>
                       </div>
                     </TableCell>
                     <TableCell>{animal.breed}</TableCell>
                     <TableCell>{formatDate(animal.lastVaccineDate)}</TableCell>
-                    <TableCell>{getStatusBadge(animal.status)}</TableCell>
+                    <TableCell>{getStatusBadge(animal.status || 'unknown')}</TableCell>
                   </TableRow>
                 ))
               ) : (

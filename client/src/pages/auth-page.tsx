@@ -35,10 +35,11 @@ export default function AuthPage() {
   const [activeTab, setActiveTab] = useState<string>('login');
   
   // Redirect if already logged in
-  if (user) {
-    setLocation('/');
-    return null;
-  }
+  React.useEffect(() => {
+    if (user) {
+      setLocation('/');
+    }
+  }, [user, setLocation]);
 
   // Login form setup
   const loginForm = useForm<z.infer<typeof loginSchema>>({
