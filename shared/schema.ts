@@ -50,8 +50,11 @@ export const farms = pgTable("farms", {
   name: text("name").notNull(),
   location: text("location").notNull(),
   size: integer("size"), // Tamanho em hectares (opcional)
-  createdBy: integer("created_by").notNull(), // ID do usuário admin que criou a fazenda
-  adminId: integer("admin_id").notNull(), // ID do usuário administrador da fazenda
+  createdBy: integer("created_by"), // ID do usuário admin que criou a fazenda
+  adminId: integer("admin_id"), // ID do usuário administrador da fazenda
+  description: text("description"), // Descrição da fazenda
+  coordinates: text("coordinates"), // Coordenadas geográficas
+  type: text("type"), // Tipo de fazenda (crops, livestock, mixed)
   createdAt: timestamp("created_at").defaultNow(),
 });
 

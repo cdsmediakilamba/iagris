@@ -324,6 +324,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Farm-User association routes
+  // Rota para verificar as associações de usuários a fazendas
+  app.get("/api/user/farms", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
+    
+    try {
+      console.log("Get user farms for user:", req.user.id);
+      const userFarms = await storage.getUserFarms(req.user.id);
+      console.log("User farms:", userFarms);
+      res.json(userFarms);
+    } catch (error) {
+      console.error("Error fetching user farms:", error);
+      res.status(500).json({ message: "Failed to fetch user farms" });
+    }
+  });
+  
   app.post("/api/farms/:farmId/users", checkRole([UserRole.SUPER_ADMIN, UserRole.FARM_ADMIN]), async (req, res) => {
     try {
       const farmId = parseInt(req.params.farmId, 10);

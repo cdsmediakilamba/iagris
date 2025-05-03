@@ -155,18 +155,24 @@ export class MemStorage implements IStorage {
     });
     
     // Assign farm admin to the farm with admin role
-    this.assignUserToFarm({
+    const farmAdminAssoc = this.assignUserToFarm({
       userId: farmAdminUser.id,
       farmId: farm1.id,
       role: "admin"
     });
+    console.log("Created farm admin association:", farmAdminAssoc);
     
     // Assign employee to the farm with member role
-    this.assignUserToFarm({
+    const employeeAssoc = this.assignUserToFarm({
       userId: employeeUser.id,
       farmId: farm1.id,
       role: "member"
     });
+    console.log("Created employee association:", employeeAssoc);
+    
+    // Verificar as associações
+    const allFarmUsers = Array.from(this.userFarms.values());
+    console.log("All farm-user associations:", allFarmUsers);
     
     // Set different permissions for the employee
     this.setUserPermission({
