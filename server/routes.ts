@@ -68,129 +68,154 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // Crop routes
-  app.get("/api/farms/:farmId/crops", async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
-    
-    try {
-      const farmId = parseInt(req.params.farmId, 10);
-      const crops = await storage.getCropsByFarm(farmId);
-      res.json(crops);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch crops" });
+  app.get("/api/farms/:farmId/crops", 
+    checkModuleAccess(SystemModule.CROPS, AccessLevel.READ_ONLY), 
+    async (req, res) => {
+      try {
+        const farmId = parseInt(req.params.farmId, 10);
+        const crops = await storage.getCropsByFarm(farmId);
+        res.json(crops);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch crops" });
+      }
     }
-  });
+  );
 
-  app.post("/api/farms/:farmId/crops", async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
-    
-    try {
-      const farmId = parseInt(req.params.farmId, 10);
-      const newCrop = await storage.createCrop({
-        ...req.body,
-        farmId,
-      });
-      res.status(201).json(newCrop);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to create crop" });
+  app.post("/api/farms/:farmId/crops", 
+    checkModuleAccess(SystemModule.CROPS, AccessLevel.FULL), 
+    async (req, res) => {
+      try {
+        const farmId = parseInt(req.params.farmId, 10);
+        const newCrop = await storage.createCrop({
+          ...req.body,
+          farmId,
+        });
+        res.status(201).json(newCrop);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to create crop" });
+      }
     }
-  });
+  );
 
   // Inventory routes
-  app.get("/api/farms/:farmId/inventory", async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
-    
-    try {
-      const farmId = parseInt(req.params.farmId, 10);
-      const inventory = await storage.getInventoryByFarm(farmId);
-      res.json(inventory);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch inventory" });
+  app.get("/api/farms/:farmId/inventory", 
+    checkModuleAccess(SystemModule.INVENTORY, AccessLevel.READ_ONLY), 
+    async (req, res) => {
+      try {
+        const farmId = parseInt(req.params.farmId, 10);
+        const inventory = await storage.getInventoryByFarm(farmId);
+        res.json(inventory);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch inventory" });
+      }
     }
-  });
+  );
 
-  app.get("/api/farms/:farmId/inventory/critical", async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
-    
-    try {
-      const farmId = parseInt(req.params.farmId, 10);
-      const criticalItems = await storage.getCriticalInventory(farmId);
-      res.json(criticalItems);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch critical inventory" });
+  app.get("/api/farms/:farmId/inventory/critical", 
+    checkModuleAccess(SystemModule.INVENTORY, AccessLevel.READ_ONLY), 
+    async (req, res) => {
+      try {
+        const farmId = parseInt(req.params.farmId, 10);
+        const criticalItems = await storage.getCriticalInventory(farmId);
+        res.json(criticalItems);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch critical inventory" });
+      }
     }
-  });
+  );
 
-  app.post("/api/farms/:farmId/inventory", async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
-    
-    try {
-      const farmId = parseInt(req.params.farmId, 10);
-      const newItem = await storage.createInventoryItem({
-        ...req.body,
-        farmId,
-      });
-      res.status(201).json(newItem);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to create inventory item" });
+  app.post("/api/farms/:farmId/inventory", 
+    checkModuleAccess(SystemModule.INVENTORY, AccessLevel.FULL), 
+    async (req, res) => {
+      try {
+        const farmId = parseInt(req.params.farmId, 10);
+        const newItem = await storage.createInventoryItem({
+          ...req.body,
+          farmId,
+        });
+        res.status(201).json(newItem);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to create inventory item" });
+      }
     }
-  });
+  );
 
   // Task routes
-  app.get("/api/farms/:farmId/tasks", async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
-    
-    try {
-      const farmId = parseInt(req.params.farmId, 10);
-      const tasks = await storage.getTasksByFarm(farmId);
-      res.json(tasks);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch tasks" });
-    }
-  });
-
-  app.get("/api/farms/:farmId/tasks/pending", async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
-    
-    try {
-      const farmId = parseInt(req.params.farmId, 10);
-      const pendingTasks = await storage.getPendingTasks(farmId);
-      res.json(pendingTasks);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch pending tasks" });
-    }
-  });
-
-  app.post("/api/farms/:farmId/tasks", async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
-    
-    try {
-      const farmId = parseInt(req.params.farmId, 10);
-      const newTask = await storage.createTask({
-        ...req.body,
-        farmId,
-      });
-      res.status(201).json(newTask);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to create task" });
-    }
-  });
-
-  app.patch("/api/tasks/:taskId", async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
-    
-    try {
-      const taskId = parseInt(req.params.taskId, 10);
-      const updatedTask = await storage.updateTask(taskId, req.body);
-      
-      if (!updatedTask) {
-        return res.status(404).json({ message: "Task not found" });
+  app.get("/api/farms/:farmId/tasks", 
+    checkModuleAccess(SystemModule.TASKS, AccessLevel.READ_ONLY), 
+    async (req, res) => {
+      try {
+        const farmId = parseInt(req.params.farmId, 10);
+        const tasks = await storage.getTasksByFarm(farmId);
+        res.json(tasks);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch tasks" });
       }
-      
-      res.json(updatedTask);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to update task" });
     }
-  });
+  );
+
+  app.get("/api/farms/:farmId/tasks/pending", 
+    checkModuleAccess(SystemModule.TASKS, AccessLevel.READ_ONLY), 
+    async (req, res) => {
+      try {
+        const farmId = parseInt(req.params.farmId, 10);
+        const pendingTasks = await storage.getPendingTasks(farmId);
+        res.json(pendingTasks);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch pending tasks" });
+      }
+    }
+  );
+
+  app.post("/api/farms/:farmId/tasks", 
+    checkModuleAccess(SystemModule.TASKS, AccessLevel.FULL), 
+    async (req, res) => {
+      try {
+        const farmId = parseInt(req.params.farmId, 10);
+        const newTask = await storage.createTask({
+          ...req.body,
+          farmId,
+        });
+        res.status(201).json(newTask);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to create task" });
+      }
+    }
+  );
+
+  app.patch("/api/tasks/:taskId", 
+    async (req, res) => {
+      if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
+      
+      try {
+        // First, we need to get the task to determine its farm
+        const taskId = parseInt(req.params.taskId, 10);
+        const task = await storage.getTask(taskId);
+        
+        if (!task) {
+          return res.status(404).json({ message: "Task not found" });
+        }
+        
+        // Check if user has permission to update tasks on this farm
+        const hasAccess = await storage.checkUserAccess(
+          req.user!.id, 
+          task.farmId, 
+          SystemModule.TASKS, 
+          AccessLevel.FULL
+        );
+        
+        if (!hasAccess) {
+          return res.status(403).json({ message: "You don't have permission to update tasks" });
+        }
+        
+        // Update the task
+        const updatedTask = await storage.updateTask(taskId, req.body);
+        res.json(updatedTask);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to update task" });
+      }
+    }
+  );
 
   // User management routes (admin only)
   app.get("/api/users", checkRole([UserRole.SUPER_ADMIN, UserRole.FARM_ADMIN]), async (req, res) => {

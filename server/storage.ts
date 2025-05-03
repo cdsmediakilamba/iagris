@@ -70,7 +70,7 @@ export interface IStorage {
   updateTask(id: number, task: Partial<Task>): Promise<Task | undefined>;
   
   // Session store
-  sessionStore: session.SessionStore;
+  sessionStore: any; // Using any to avoid type issues with SessionStore
 }
 
 export class MemStorage implements IStorage {
