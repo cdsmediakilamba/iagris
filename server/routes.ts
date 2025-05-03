@@ -16,15 +16,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
     
     try {
+      console.log("User requesting farms:", req.user);
       // Super admin pode ver todas as fazendas
       if (req.user.role === UserRole.SUPER_ADMIN) {
+        console.log("User is SUPER_ADMIN, getting all farms");
         const farms = await storage.getAllFarms();
+        console.log("All farms:", farms);
         return res.json(farms);
       }
       
+      console.log("Getting farms accessible by user:", req.user.id);
       const farms = await storage.getFarmsAccessibleByUser(req.user.id);
+      console.log("Accessible farms:", farms);
       res.json(farms);
     } catch (error) {
+      console.error("Error fetching farms:", error);
       res.status(500).json({ message: "Failed to fetch farms" });
     }
   });
