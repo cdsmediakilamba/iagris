@@ -112,7 +112,7 @@ export class MemStorage implements IStorage {
     // Create initial super admin user
     this.createUser({
       username: "admin",
-      password: "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8.e142cfdca3e9f8877cf5e30fbf825d3d",  // "password" hashed
+      password: "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",  // "password" hashed with SHA-256
       name: "Administrador Geral",
       email: "admin@iagris.com",
       role: UserRole.SUPER_ADMIN,

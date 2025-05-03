@@ -2,8 +2,7 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Express, Request, Response, NextFunction } from "express";
 import session from "express-session";
-import { scrypt, randomBytes, timingSafeEqual } from "crypto";
-import { promisify } from "util";
+import { createHash } from "crypto";
 import { storage } from "./storage";
 import { User as SelectUser, UserRole, SystemModule, AccessLevel } from "@shared/schema";
 
@@ -13,37 +12,18 @@ declare global {
   }
 }
 
-const scryptAsync = promisify(scrypt);
-
-export async function hashPassword(password: string) {
-  const salt = randomBytes(16).toString("hex");
-  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
-  return `${buf.toString("hex")}.${salt}`;
+// Usando uma abordagem mais simples com SHA-256 para o hash da senha
+export function hashPassword(password: string) {
+  return createHash('sha256').update(password).digest('hex');
 }
 
-async function comparePasswords(supplied: string, stored: string) {
-  try {
-    const [hashed, salt] = stored.split(".");
-    
-    if (!hashed || !salt) {
-      console.error("Invalid stored password format");
-      return false;
-    }
-    
-    const hashedBuf = Buffer.from(hashed, "hex");
-    const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
-    
-    // Verificar se os buffers têm o mesmo tamanho
-    if (hashedBuf.length !== suppliedBuf.length) {
-      console.error(`Buffer length mismatch: ${hashedBuf.length} vs ${suppliedBuf.length}`);
-      return false;
-    }
-    
-    return timingSafeEqual(hashedBuf, suppliedBuf);
-  } catch (error) {
-    console.error("Error comparing passwords:", error);
-    return false;
-  }
+// Função simplificada para comparar senhas usando SHA-256
+function comparePasswords(supplied: string, stored: string) {
+  const hashedSupplied = hashPassword(supplied);
+  console.log('Comparing passwords:');
+  console.log('Supplied (hashed):', hashedSupplied);
+  console.log('Stored:', stored);
+  return hashedSupplied === stored;
 }
 
 export function setupAuth(app: Express) {
@@ -67,7 +47,7 @@ export function setupAuth(app: Express) {
   passport.use(
     new LocalStrategy(async (username, password, done) => {
       const user = await storage.getUserByUsername(username);
-      if (!user || !(await comparePasswords(password, user.password))) {
+      if (!user || !comparePasswords(password, user.password)) {
         return done(null, false);
       } else {
         return done(null, user);
@@ -90,7 +70,7 @@ export function setupAuth(app: Express) {
 
       const user = await storage.createUser({
         ...req.body,
-        password: await hashPassword(req.body.password),
+        password: hashPassword(req.body.password),
       });
 
       // Don't send password in response
