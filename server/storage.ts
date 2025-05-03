@@ -102,19 +102,22 @@ export class MemStorage implements IStorage {
     this.crops = new Map();
     this.inventoryItems = new Map();
     this.taskItems = new Map();
+    this.userFarms = new Map();
+    this.userPermissions = new Map();
     
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000 // Clear expired sessions every 24h
     });
     
-    // Create initial admin user
+    // Create initial super admin user
     this.createUser({
       username: "admin",
       password: "$2b$10$PeVI8WE.QI6g5.vXnONQ9ORNqGdBc9AYe9XVLLmUGDBssBZKcZBk2", // "password"
-      name: "Administrator",
-      email: "admin@farmmanager.com",
-      role: "admin",
-      language: "pt"
+      name: "Administrador Geral",
+      email: "admin@iagris.com",
+      role: UserRole.SUPER_ADMIN,
+      language: "pt",
+      farmId: null // Super Admin não está vinculado a nenhuma fazenda específica
     });
   }
 
@@ -129,9 +132,22 @@ export class MemStorage implements IStorage {
     );
   }
 
+  async getUsersByRole(role: UserRole): Promise<User[]> {
+    return Array.from(this.users.values()).filter(
+      (user) => user.role === role
+    );
+  }
+
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.userId++;
-    const user: User = { ...insertUser, id, createdAt: new Date() };
+    const user: User = { 
+      ...insertUser, 
+      id, 
+      createdAt: new Date(),
+      // Garante que os valores obrigatórios estejam definidos
+      role: insertUser.role ?? UserRole.EMPLOYEE,
+      language: insertUser.language ?? "pt"
+    };
     this.users.set(id, user);
     return user;
   }
@@ -150,15 +166,54 @@ export class MemStorage implements IStorage {
     return this.farms.get(id);
   }
   
-  async getFarmsByOwner(ownerId: number): Promise<Farm[]> {
+  async getAllFarms(): Promise<Farm[]> {
+    return Array.from(this.farms.values());
+  }
+  
+  async getFarmsByCreator(creatorId: number): Promise<Farm[]> {
     return Array.from(this.farms.values()).filter(
-      (farm) => farm.owner === ownerId
+      (farm) => farm.createdBy === creatorId
     );
+  }
+  
+  async getFarmsByAdmin(adminId: number): Promise<Farm[]> {
+    return Array.from(this.farms.values()).filter(
+      (farm) => farm.adminId === adminId
+    );
+  }
+  
+  async getFarmsAccessibleByUser(userId: number): Promise<Farm[]> {
+    // Obtém o usuário
+    const user = this.users.get(userId);
+    if (!user) return [];
+    
+    // Super admin pode ver todas as fazendas
+    if (user.role === UserRole.SUPER_ADMIN) {
+      return this.getAllFarms();
+    }
+    
+    // Farm admin vê apenas as fazendas que administra
+    if (user.role === UserRole.FARM_ADMIN) {
+      return this.getFarmsByAdmin(userId);
+    }
+    
+    // Outros usuários veem as fazendas às quais estão associados
+    const userFarms = Array.from(this.userFarms.values())
+      .filter(uf => uf.userId === userId)
+      .map(uf => uf.farmId);
+    
+    return Array.from(this.farms.values())
+      .filter(farm => userFarms.includes(farm.id));
   }
   
   async createFarm(insertFarm: InsertFarm): Promise<Farm> {
     const id = this.farmId++;
-    const farm: Farm = { ...insertFarm, id, createdAt: new Date() };
+    const farm: Farm = { 
+      ...insertFarm, 
+      id, 
+      createdAt: new Date(),
+      size: insertFarm.size || null
+    };
     this.farms.set(id, farm);
     return farm;
   }
@@ -261,6 +316,113 @@ export class MemStorage implements IStorage {
     return updatedItem;
   }
 
+  // User-Farm operations
+  async assignUserToFarm(userFarm: InsertUserFarm): Promise<UserFarm> {
+    const id = this.userFarmId++;
+    const newUserFarm: UserFarm = { ...userFarm, id, createdAt: new Date() };
+    this.userFarms.set(id, newUserFarm);
+    return newUserFarm;
+  }
+  
+  async removeUserFromFarm(userId: number, farmId: number): Promise<boolean> {
+    const userFarm = Array.from(this.userFarms.values()).find(
+      uf => uf.userId === userId && uf.farmId === farmId
+    );
+    
+    if (!userFarm) return false;
+    
+    this.userFarms.delete(userFarm.id);
+    
+    // Também remover todas as permissões desse usuário nessa fazenda
+    const permissionsToRemove = Array.from(this.userPermissions.values())
+      .filter(p => p.userId === userId && p.farmId === farmId);
+    
+    for (const permission of permissionsToRemove) {
+      this.userPermissions.delete(permission.id);
+    }
+    
+    return true;
+  }
+  
+  async getUserFarms(userId: number): Promise<UserFarm[]> {
+    return Array.from(this.userFarms.values()).filter(
+      uf => uf.userId === userId
+    );
+  }
+  
+  async getFarmUsers(farmId: number): Promise<UserFarm[]> {
+    return Array.from(this.userFarms.values()).filter(
+      uf => uf.farmId === farmId
+    );
+  }
+  
+  // User-Permission operations
+  async getUserPermissions(userId: number, farmId: number): Promise<UserPermission[]> {
+    return Array.from(this.userPermissions.values()).filter(
+      p => p.userId === userId && p.farmId === farmId
+    );
+  }
+  
+  async setUserPermission(permission: InsertUserPermission): Promise<UserPermission> {
+    // Verificar se já existe uma permissão para esse usuário, módulo e fazenda
+    const existingPermission = Array.from(this.userPermissions.values()).find(
+      p => p.userId === permission.userId && 
+           p.farmId === permission.farmId && 
+           p.module === permission.module
+    );
+    
+    if (existingPermission) {
+      // Atualizar permissão existente
+      existingPermission.accessLevel = permission.accessLevel;
+      this.userPermissions.set(existingPermission.id, existingPermission);
+      return existingPermission;
+    } else {
+      // Criar nova permissão
+      const id = this.userPermissionId++;
+      const newPermission: UserPermission = { ...permission, id, createdAt: new Date() };
+      this.userPermissions.set(id, newPermission);
+      return newPermission;
+    }
+  }
+  
+  async updateUserPermission(id: number, permission: Partial<UserPermission>): Promise<UserPermission | undefined> {
+    const existingPermission = this.userPermissions.get(id);
+    if (!existingPermission) return undefined;
+    
+    const updatedPermission = { ...existingPermission, ...permission };
+    this.userPermissions.set(id, updatedPermission);
+    return updatedPermission;
+  }
+  
+  async checkUserAccess(userId: number, farmId: number, module: SystemModule, requiredLevel: AccessLevel): Promise<boolean> {
+    // Super admin tem acesso completo a tudo
+    const user = await this.getUser(userId);
+    if (user?.role === UserRole.SUPER_ADMIN) return true;
+    
+    // Verificar se o usuário é admin da fazenda
+    const farm = await this.getFarm(farmId);
+    if (farm?.adminId === userId) return true;
+    
+    // Verificar permissões específicas
+    const permissions = await this.getUserPermissions(userId, farmId);
+    const modulePermission = permissions.find(p => p.module === module);
+    
+    if (!modulePermission) return false;
+    
+    // Verificar o nível de acesso
+    switch (requiredLevel) {
+      case AccessLevel.FULL:
+        return modulePermission.accessLevel === AccessLevel.FULL;
+      case AccessLevel.READ_ONLY:
+        return modulePermission.accessLevel === AccessLevel.FULL || 
+               modulePermission.accessLevel === AccessLevel.READ_ONLY;
+      case AccessLevel.NONE:
+        return true; // Qualquer nível de acesso é suficiente para NONE
+      default:
+        return false;
+    }
+  }
+  
   // Task operations
   async getTask(id: number): Promise<Task | undefined> {
     return this.taskItems.get(id);

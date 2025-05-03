@@ -209,7 +209,7 @@ export const en = {
     confirmDelete: 'Are you sure you want to delete this item?',
   },
   tasks: {
-    title: 'Task Management',
+    pageTitle: 'Task Management',
     addTask: 'Add Task',
     editTask: 'Edit Task',
     title: 'Title',

@@ -209,7 +209,7 @@ export const pt = {
     confirmDelete: 'Tem certeza que deseja excluir este item?',
   },
   tasks: {
-    title: 'Gestão de Tarefas',
+    pageTitle: 'Gestão de Tarefas',
     addTask: 'Adicionar Tarefa',
     editTask: 'Editar Tarefa',
     title: 'Título',
