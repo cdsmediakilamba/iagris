@@ -4,9 +4,10 @@ import { z } from "zod";
 
 // Define user roles for the system
 export enum UserRole {
-  ADMIN = "admin",
-  MANAGER = "manager",
-  EMPLOYEE = "employee",
+  SUPER_ADMIN = "super_admin", // Administrator geral do sistema
+  FARM_ADMIN = "farm_admin",   // Administrador de uma fazenda específica
+  MANAGER = "manager",         // Gerente com permissões amplas
+  EMPLOYEE = "employee",       // Funcionário regular
   VETERINARIAN = "veterinarian",
   AGRONOMIST = "agronomist",
   CONSULTANT = "consultant"
@@ -21,6 +22,7 @@ export const users = pgTable("users", {
   email: text("email").notNull(),
   role: text("role").notNull().default(UserRole.EMPLOYEE),
   language: text("language").notNull().default("pt"),
+  farmId: integer("farm_id"), // NULL para super_admin (pode ver todas as fazendas)
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -29,7 +31,18 @@ export const farms = pgTable("farms", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   location: text("location").notNull(),
-  owner: integer("owner").notNull(),
+  size: integer("size"), // Tamanho em hectares (opcional)
+  createdBy: integer("created_by").notNull(), // ID do usuário admin que criou a fazenda
+  adminId: integer("admin_id").notNull(), // ID do usuário administrador da fazenda
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Relação entre usuários e fazendas (muitos para muitos)
+export const userFarms = pgTable("user_farms", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  farmId: integer("farm_id").notNull(),
+  accessLevel: text("access_level").notNull(), // Define quais módulos o usuário pode acessar
   createdAt: timestamp("created_at").defaultNow(),
 });
 

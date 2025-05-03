@@ -1,6 +1,6 @@
 export const en = {
   common: {
-    appName: 'FarmManager Pro',
+    appName: 'Iagris',
     dashboard: 'Dashboard',
     calendar: 'Calendar',
     tasks: 'Tasks',
@@ -59,7 +59,7 @@ export const en = {
     alreadyHaveAccount: 'Already have an account?',
     createAccount: 'Create account',
     loginToAccount: 'Login to your account',
-    welcome: 'Welcome to FarmManager Pro',
+    welcome: 'Welcome to Iagris',
     subTitle: 'Complete farm management system for Angola',
     loginFailed: 'Username or password incorrect',
     registerFailed: 'Registration failed. Please try again.',

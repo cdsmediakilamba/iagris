@@ -1,6 +1,6 @@
 export const pt = {
   common: {
-    appName: 'FarmManager Pro',
+    appName: 'Iagris',
     dashboard: 'Dashboard',
     calendar: 'Calendário',
     tasks: 'Tarefas',
@@ -59,7 +59,7 @@ export const pt = {
     alreadyHaveAccount: 'Já tem uma conta?',
     createAccount: 'Criar conta',
     loginToAccount: 'Entrar na sua conta',
-    welcome: 'Bem-vindo ao FarmManager Pro',
+    welcome: 'Bem-vindo ao Iagris',
     subTitle: 'Sistema completo de gestão para fazendas em Angola',
     loginFailed: 'Nome de usuário ou senha incorretos',
     registerFailed: 'Falha ao registrar. Tente novamente.',
