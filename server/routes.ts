@@ -34,6 +34,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch farms" });
     }
   });
+  
+  // Rota para obter detalhes de uma fazenda específica
+  app.get("/api/farms/:farmId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
+    
+    try {
+      const farmId = parseInt(req.params.farmId, 10);
+      
+      // Obter a fazenda
+      const farm = await storage.getFarm(farmId);
+      if (!farm) {
+        return res.status(404).json({ message: "Farm not found" });
+      }
+      
+      // Verificar se o usuário tem acesso a esta fazenda
+      if (req.user.role === UserRole.SUPER_ADMIN) {
+        // Super admin tem acesso a todas as fazendas
+        return res.json(farm);
+      }
+      
+      // Para outros usuários, verificar permissões
+      const farms = await storage.getFarmsAccessibleByUser(req.user.id);
+      const hasAccess = farms.some(f => f.id === farmId);
+      
+      if (!hasAccess) {
+        return res.status(403).json({ message: "You don't have permission to access this farm" });
+      }
+      
+      res.json(farm);
+    } catch (error) {
+      console.error("Error fetching farm:", error);
+      res.status(500).json({ message: "Failed to fetch farm details" });
+    }
+  });
 
   app.post("/api/farms", async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
