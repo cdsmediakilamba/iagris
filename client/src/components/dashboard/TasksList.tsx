@@ -4,10 +4,17 @@ import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/context/LanguageContext';
 import { AlertCircle, Droplet, Package } from 'lucide-react';
 import { Task } from '@shared/schema';
-import { formatRelativeTime } from '@/lib/i18n';
+import { formatDistanceToNow } from 'date-fns';
+import { pt, enUS } from 'date-fns/locale';
+
+// Define locales for date formatting
+const locales = {
+  pt: pt,
+  en: enUS
+};
 
 interface TasksListProps {
-  tasks: Task[];
+  tasks?: Task[];
   isLoading?: boolean;
 }
 
@@ -29,21 +36,41 @@ export default function TasksList({ tasks, isLoading = false }: TasksListProps) 
   };
 
   // Function to format the due date
-  const formatDueDate = (dueDate: Date) => {
-    const today = new Date();
-    const tomorrow = new Date();
-    tomorrow.setDate(today.getDate() + 1);
+  const formatDueDate = (dueDate: Date | null | undefined) => {
+    if (!dueDate) {
+      return t('common.notSet');
+    }
     
-    const dueDateTime = new Date(dueDate).setHours(0, 0, 0, 0);
-    const todayTime = today.setHours(0, 0, 0, 0);
-    const tomorrowTime = tomorrow.setHours(0, 0, 0, 0);
-    
-    if (dueDateTime === todayTime) {
-      return t('common.today');
-    } else if (dueDateTime === tomorrowTime) {
-      return t('common.tomorrow');
-    } else {
-      return formatRelativeTime(dueDate, new Date(), language);
+    try {
+      const today = new Date();
+      const tomorrow = new Date();
+      tomorrow.setDate(today.getDate() + 1);
+      
+      // Make sure dueDate is a valid Date object
+      const dueDateObj = new Date(dueDate);
+      if (isNaN(dueDateObj.getTime())) {
+        return t('common.invalidDate');
+      }
+      
+      const dueDateTime = dueDateObj.setHours(0, 0, 0, 0);
+      const todayTime = today.setHours(0, 0, 0, 0);
+      const tomorrowTime = tomorrow.setHours(0, 0, 0, 0);
+      
+      if (dueDateTime === todayTime) {
+        return t('common.today');
+      } else if (dueDateTime === tomorrowTime) {
+        return t('common.tomorrow');
+      } else {
+        // Use formatDate from date-fns directly to avoid issues
+        const formatDistanceToNowOptions = { 
+          addSuffix: true,
+          locale: locales[language] 
+        };
+        return formatDistanceToNow(dueDateObj, formatDistanceToNowOptions);
+      }
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return t('common.invalidDate');
     }
   };
 
@@ -89,7 +116,7 @@ export default function TasksList({ tasks, isLoading = false }: TasksListProps) 
         </Button>
       </CardHeader>
       <CardContent className="space-y-3 pb-3">
-        {tasks.length > 0 ? (
+        {tasks && tasks.length > 0 ? (
           tasks.map((task) => (
             <div key={task.id} className="flex items-center bg-gray-50 p-3 rounded-md">
               <div className="mr-3">
