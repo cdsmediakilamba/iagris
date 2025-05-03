@@ -6,7 +6,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { insertUserSchema, UserRole } from '@shared/schema';
+import { insertUserSchema, insertFarmSchema, UserRole, Farm } from '@shared/schema';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { formatDate } from '@/lib/i18n';
@@ -85,6 +85,10 @@ import {
   Trash2,
   Edit,
   User,
+  HomeIcon,
+  MapPin,
+  Globe,
+  Info,
 } from 'lucide-react';
 import { useLocation } from 'wouter';
 
@@ -94,10 +98,13 @@ export default function Admin() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [userDialogOpen, setUserDialogOpen] = useState(false);
+  const [farmDialogOpen, setFarmDialogOpen] = useState(false);
+  const [farmSearchTerm, setFarmSearchTerm] = useState('');
+  const [selectedFarm, setSelectedFarm] = useState<number | null>(null);
 
-  // Ensure only admins can access this page
-  if (user?.role !== UserRole.ADMIN) {
+  // Ensure only super admins can access this page
+  if (user?.role !== UserRole.SUPER_ADMIN) {
     setLocation('/');
     return null;
   }
@@ -149,7 +156,49 @@ export default function Admin() {
         description: t('common.success'),
       });
       form.reset();
-      setDialogOpen(false);
+      setUserDialogOpen(false);
+    },
+    onError: (error) => {
+      toast({
+        title: t('common.error'),
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+  
+  // Get farms
+  const { data: farms, isLoading: isLoadingFarms } = useQuery<Farm[]>({
+    queryKey: ['/api/farms'],
+  });
+
+  // Create farm form
+  const farmForm = useForm<z.infer<typeof insertFarmSchema>>({
+    resolver: zodResolver(insertFarmSchema),
+    defaultValues: {
+      name: '',
+      location: '',
+      size: 0,
+      description: '',
+      type: 'mixed',
+      coordinates: '',
+    },
+  });
+
+  // Create farm mutation
+  const createFarmMutation = useMutation({
+    mutationFn: async (farmData: z.infer<typeof insertFarmSchema>) => {
+      const response = await apiRequest('POST', '/api/farms', farmData);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/farms'] });
+      toast({
+        title: t('admin.farmAdded'),
+        description: t('common.success'),
+      });
+      farmForm.reset();
+      setFarmDialogOpen(false);
     },
     onError: (error) => {
       toast({
