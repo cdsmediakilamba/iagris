@@ -43,6 +43,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -237,8 +238,12 @@ export default function Admin() {
         </p>
       </div>
 
-      <Tabs defaultValue="users" className="space-y-6">
+      <Tabs defaultValue="farms" className="space-y-6">
         <TabsList>
+          <TabsTrigger value="farms" className="flex items-center">
+            <HomeIcon className="h-4 w-4 mr-2" />
+            {t('admin.farmManagement')}
+          </TabsTrigger>
           <TabsTrigger value="users" className="flex items-center">
             <Users className="h-4 w-4 mr-2" />
             {t('admin.userManagement')}
@@ -261,6 +266,243 @@ export default function Admin() {
           </TabsTrigger>
         </TabsList>
 
+        {/* Farm Management Tab */}
+        <TabsContent value="farms">
+          <Card>
+            <CardHeader>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <CardTitle>{t('admin.farmManagement')}</CardTitle>
+                <div className="flex gap-4 w-full sm:w-auto">
+                  <div className="relative w-full sm:w-64">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder={t('common.search')}
+                      className="pl-8"
+                      value={farmSearchTerm}
+                      onChange={(e) => setFarmSearchTerm(e.target.value)}
+                    />
+                  </div>
+                  <Dialog open={farmDialogOpen} onOpenChange={setFarmDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        {t('admin.addFarm')}
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[600px]">
+                      <DialogHeader>
+                        <DialogTitle>{t('admin.addFarm')}</DialogTitle>
+                      </DialogHeader>
+                      <Form {...farmForm}>
+                        <form onSubmit={farmForm.handleSubmit((data) => createFarmMutation.mutate(data))} className="space-y-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <FormField
+                              control={farmForm.control}
+                              name="name"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>{t('common.name')}</FormLabel>
+                                  <FormControl>
+                                    <Input {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={farmForm.control}
+                              name="location"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>{t('common.location')}</FormLabel>
+                                  <FormControl>
+                                    <Input {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <FormField
+                              control={farmForm.control}
+                              name="size"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>{t('farms.size')} (ha)</FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      type="number" 
+                                      {...field} 
+                                      onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={farmForm.control}
+                              name="type"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>{t('farms.type')}</FormLabel>
+                                  <Select
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value}
+                                  >
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder={t('farms.type')} />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value="crop">{t('farms.types.crop')}</SelectItem>
+                                      <SelectItem value="livestock">{t('farms.types.livestock')}</SelectItem>
+                                      <SelectItem value="mixed">{t('farms.types.mixed')}</SelectItem>
+                                      <SelectItem value="dairy">{t('farms.types.dairy')}</SelectItem>
+                                      <SelectItem value="poultry">{t('farms.types.poultry')}</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          <FormField
+                            control={farmForm.control}
+                            name="description"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>{t('common.description')}</FormLabel>
+                                <FormControl>
+                                  <Input {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={farmForm.control}
+                            name="coordinates"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>{t('farms.coordinates')}</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="latitude,longitude" />
+                                </FormControl>
+                                <FormDescription>
+                                  {t('farms.coordinatesFormat')}
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <DialogFooter>
+                            <DialogClose asChild>
+                              <Button variant="outline">{t('common.cancel')}</Button>
+                            </DialogClose>
+                            <Button type="submit" disabled={createFarmMutation.isPending}>
+                              {createFarmMutation.isPending ? (
+                                <>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  {t('common.loading')}
+                                </>
+                              ) : (
+                                t('common.save')
+                              )}
+                            </Button>
+                          </DialogFooter>
+                        </form>
+                      </Form>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {isLoadingFarms ? (
+                <div className="flex justify-center items-center h-64">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : farms && farms.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {farms
+                    .filter(farm => farm.name.toLowerCase().includes(farmSearchTerm.toLowerCase()) || 
+                                    farm.location.toLowerCase().includes(farmSearchTerm.toLowerCase()))
+                    .map((farm) => (
+                      <Card 
+                        key={farm.id} 
+                        className={`overflow-hidden cursor-pointer transition-all ${
+                          selectedFarm === farm.id ? 'ring-2 ring-primary' : 'hover:shadow-md'
+                        }`}
+                        onClick={() => setSelectedFarm(farm.id)}
+                      >
+                        <div className="bg-gradient-to-r from-primary-600 to-primary-700 p-4 text-white">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="font-bold text-xl">{farm.name}</h3>
+                              <div className="flex items-center mt-1">
+                                <MapPin className="h-4 w-4 mr-1" />
+                                <span className="text-sm">{farm.location}</span>
+                              </div>
+                            </div>
+                            <Badge variant="outline" className="border-white text-white">
+                              {t(`farms.types.${farm.type || 'mixed'}`)}
+                            </Badge>
+                          </div>
+                        </div>
+                        <CardContent className="p-4">
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-500">{t('farms.size')}:</span>
+                              <span className="font-medium">{farm.size} ha</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-500">{t('common.createdOn')}:</span>
+                              <span className="font-medium">{formatDate(farm.createdAt ? new Date(farm.createdAt) : new Date(), 'P', language)}</span>
+                            </div>
+                            {farm.description && (
+                              <div className="pt-2 border-t border-gray-100">
+                                <p className="text-sm text-gray-600">{farm.description}</p>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                        <div className="p-4 bg-gray-50 border-t flex justify-between">
+                          <Button variant="outline" size="sm" className="text-xs">
+                            <Info className="h-3.5 w-3.5 mr-1" />
+                            {t('common.details')}
+                          </Button>
+                          <Button size="sm" className="text-xs">
+                            <Globe className="h-3.5 w-3.5 mr-1" />
+                            {t('common.visit')}
+                          </Button>
+                        </div>
+                      </Card>
+                    ))}
+                </div>
+              ) : (
+                <div className="text-center py-10">
+                  <HomeIcon className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">{t('farms.noFarms')}</h3>
+                  <p className="mt-1 text-sm text-gray-500">{t('farms.startCreating')}</p>
+                  <div className="mt-6">
+                    <Button onClick={() => setFarmDialogOpen(true)}>
+                      <PlusCircle className="h-4 w-4 mr-2" />
+                      {t('admin.addFarm')}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* User Management Tab */}
         <TabsContent value="users">
           <Card>
@@ -277,7 +519,7 @@ export default function Admin() {
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
                   </div>
-                  <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                  <Dialog open={userDialogOpen} onOpenChange={setUserDialogOpen}>
                     <DialogTrigger asChild>
                       <Button>
                         <PlusCircle className="mr-2 h-4 w-4" />
