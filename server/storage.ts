@@ -182,6 +182,13 @@ export class MemStorage implements IStorage {
     );
   }
   
+  async getFarmsByOwner(userId: number): Promise<Farm[]> {
+    // Considera o usuário como dono da fazenda se for o criador ou administrador
+    return Array.from(this.farms.values()).filter(
+      (farm) => farm.createdBy === userId || farm.adminId === userId
+    );
+  }
+  
   async getFarmsAccessibleByUser(userId: number): Promise<Farm[]> {
     // Obtém o usuário
     const user = this.users.get(userId);
@@ -361,6 +368,10 @@ export class MemStorage implements IStorage {
     return Array.from(this.userPermissions.values()).filter(
       p => p.userId === userId && p.farmId === farmId
     );
+  }
+  
+  async getUserPermission(id: number): Promise<UserPermission | undefined> {
+    return this.userPermissions.get(id);
   }
   
   async setUserPermission(permission: InsertUserPermission): Promise<UserPermission> {

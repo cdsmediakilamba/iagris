@@ -191,20 +191,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // User management routes (admin only)
-  app.get("/api/users", checkRole([UserRole.ADMIN]), async (req, res) => {
+  app.get("/api/users", checkRole([UserRole.SUPER_ADMIN, UserRole.FARM_ADMIN]), async (req, res) => {
     try {
-      // This is a placeholder since we don't have a method to get all users in our storage
-      // In a real app, you would implement this in the storage class
-      const users = Array.from(Array(10).keys()).map(id => {
-        return storage.getUser(id);
-      });
+      let users = [];
       
-      const resolvedUsers = await Promise.all(users);
-      const filteredUsers = resolvedUsers.filter(Boolean);
+      if (req.user.role === UserRole.SUPER_ADMIN) {
+        // Super admin can see all users
+        // This would be implemented with a getAllUsers method in a production app
+        // For now using a simple loop as placeholder
+        const usersPromises = Array.from(Array(20).keys()).map(id => {
+          return storage.getUser(id);
+        });
+        
+        const resolvedUsers = await Promise.all(usersPromises);
+        users = resolvedUsers.filter(Boolean);
+      } else if (req.user.role === UserRole.FARM_ADMIN) {
+        // Farm admins can only see users from their farms
+        const userFarms = await storage.getUserFarms(req.user.id);
+        const farmIds = userFarms.map(uf => uf.farmId);
+        
+        // Get all users for each farm
+        const userPromises = [];
+        for (const farmId of farmIds) {
+          const farmUsers = await storage.getFarmUsers(farmId);
+          for (const farmUser of farmUsers) {
+            userPromises.push(storage.getUser(farmUser.userId));
+          }
+        }
+        
+        const resolvedUsers = await Promise.all(userPromises);
+        // Remove duplicates by user ID
+        const userMap = new Map();
+        resolvedUsers.filter(Boolean).forEach(user => {
+          if (user) userMap.set(user.id, user);
+        });
+        users = Array.from(userMap.values());
+      }
       
       // Remove passwords from response
-      const sanitizedUsers = filteredUsers.map(user => {
-        if (!user) return null;
+      const sanitizedUsers = users.map(user => {
         const { password, ...userWithoutPassword } = user;
         return userWithoutPassword;
       });
@@ -215,11 +240,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/users", checkRole([UserRole.ADMIN]), async (req, res) => {
+  app.post("/api/users", checkRole([UserRole.SUPER_ADMIN, UserRole.FARM_ADMIN]), async (req, res) => {
     try {
       const existingUser = await storage.getUserByUsername(req.body.username);
       if (existingUser) {
         return res.status(400).json({ message: "Username already exists" });
+      }
+
+      // Validation for role assignment
+      if (req.user.role === UserRole.FARM_ADMIN && req.body.role === UserRole.SUPER_ADMIN) {
+        return res.status(403).json({ message: "Farm administrators cannot create super admin accounts" });
       }
 
       const newUser = await storage.createUser({
@@ -227,12 +257,220 @@ export async function registerRoutes(app: Express): Promise<Server> {
         password: await hashPassword(req.body.password),
       });
       
+      // If the user creating is a farm admin, automatically assign the new user to their farm
+      if (req.user.role === UserRole.FARM_ADMIN && req.body.farmId) {
+        // First check if the farm admin has access to this farm
+        const userFarms = await storage.getUserFarms(req.user.id);
+        const hasFarmAccess = userFarms.some(uf => uf.farmId === req.body.farmId);
+        
+        if (!hasFarmAccess) {
+          return res.status(403).json({ message: "You don't have access to assign users to this farm" });
+        }
+        
+        // Assign the new user to the farm
+        await storage.assignUserToFarm({
+          userId: newUser.id,
+          farmId: req.body.farmId,
+          role: req.body.farmRole || 'member'
+        });
+      }
+      
       // Don't send password in response
       const { password, ...userWithoutPassword } = newUser;
       
       res.status(201).json(userWithoutPassword);
     } catch (error) {
       res.status(500).json({ message: "Failed to create user" });
+    }
+  });
+  
+  // Farm-User association routes
+  app.post("/api/farms/:farmId/users", checkRole([UserRole.SUPER_ADMIN, UserRole.FARM_ADMIN]), async (req, res) => {
+    try {
+      const farmId = parseInt(req.params.farmId, 10);
+      
+      // Ensure the farm exists
+      const farm = await storage.getFarm(farmId);
+      if (!farm) {
+        return res.status(404).json({ message: "Farm not found" });
+      }
+      
+      // Check if the current user has admin access to this farm
+      if (req.user.role === UserRole.FARM_ADMIN) {
+        const userFarms = await storage.getUserFarms(req.user.id);
+        const hasFarmAccess = userFarms.some(uf => uf.farmId === farmId);
+        
+        if (!hasFarmAccess) {
+          return res.status(403).json({ message: "You don't have admin access to this farm" });
+        }
+      }
+      
+      // Check if the user exists
+      const user = await storage.getUser(req.body.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Check if the user is already assigned to this farm
+      const userFarms = await storage.getUserFarms(req.body.userId);
+      const alreadyAssigned = userFarms.some(uf => uf.farmId === farmId);
+      
+      if (alreadyAssigned) {
+        return res.status(400).json({ message: "User is already assigned to this farm" });
+      }
+      
+      // Assign the user to the farm
+      const userFarm = await storage.assignUserToFarm({
+        userId: req.body.userId,
+        farmId,
+        role: req.body.role || 'member'
+      });
+      
+      res.status(201).json(userFarm);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to assign user to farm" });
+    }
+  });
+  
+  app.delete("/api/farms/:farmId/users/:userId", checkRole([UserRole.SUPER_ADMIN, UserRole.FARM_ADMIN]), async (req, res) => {
+    try {
+      const farmId = parseInt(req.params.farmId, 10);
+      const userId = parseInt(req.params.userId, 10);
+      
+      // Ensure the farm exists
+      const farm = await storage.getFarm(farmId);
+      if (!farm) {
+        return res.status(404).json({ message: "Farm not found" });
+      }
+      
+      // Check if the current user has admin access to this farm
+      if (req.user.role === UserRole.FARM_ADMIN) {
+        const userFarms = await storage.getUserFarms(req.user.id);
+        const hasFarmAccess = userFarms.some(uf => uf.farmId === farmId);
+        
+        if (!hasFarmAccess) {
+          return res.status(403).json({ message: "You don't have admin access to this farm" });
+        }
+      }
+      
+      // Check if the user exists and is assigned to the farm
+      const userFarms = await storage.getUserFarms(userId);
+      const isAssigned = userFarms.some(uf => uf.farmId === farmId);
+      
+      if (!isAssigned) {
+        return res.status(404).json({ message: "User is not assigned to this farm" });
+      }
+      
+      // Don't allow removing the original farm admin/creator
+      if (farm.adminId === userId || farm.createdBy === userId) {
+        return res.status(403).json({ message: "Cannot remove the farm admin or creator" });
+      }
+      
+      // Remove the user from the farm
+      const removed = await storage.removeUserFromFarm(userId, farmId);
+      
+      if (removed) {
+        res.status(200).json({ message: "User removed from farm" });
+      } else {
+        res.status(500).json({ message: "Failed to remove user from farm" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to process request" });
+    }
+  });
+  
+  // User permissions routes
+  app.get("/api/farms/:farmId/users/:userId/permissions", checkRole([UserRole.SUPER_ADMIN, UserRole.FARM_ADMIN]), async (req, res) => {
+    try {
+      const farmId = parseInt(req.params.farmId, 10);
+      const userId = parseInt(req.params.userId, 10);
+      
+      // Check if the current user has admin access to this farm
+      if (req.user.role === UserRole.FARM_ADMIN) {
+        const userFarms = await storage.getUserFarms(req.user.id);
+        const hasFarmAccess = userFarms.some(uf => uf.farmId === farmId);
+        
+        if (!hasFarmAccess) {
+          return res.status(403).json({ message: "You don't have admin access to this farm" });
+        }
+      }
+      
+      // Get the user's permissions for this farm
+      const permissions = await storage.getUserPermissions(userId, farmId);
+      res.json(permissions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch permissions" });
+    }
+  });
+  
+  app.post("/api/permissions", checkRole([UserRole.SUPER_ADMIN, UserRole.FARM_ADMIN]), async (req, res) => {
+    try {
+      const { userId, farmId, module, accessLevel } = req.body;
+      
+      // Check if the current user has admin access to this farm
+      if (req.user.role === UserRole.FARM_ADMIN) {
+        const userFarms = await storage.getUserFarms(req.user.id);
+        const hasFarmAccess = userFarms.some(uf => uf.farmId === farmId);
+        
+        if (!hasFarmAccess) {
+          return res.status(403).json({ message: "You don't have admin access to this farm" });
+        }
+      }
+      
+      // Check if the user is assigned to the farm
+      const userFarms = await storage.getUserFarms(userId);
+      const isAssigned = userFarms.some(uf => uf.farmId === farmId);
+      
+      if (!isAssigned) {
+        return res.status(400).json({ message: "User is not assigned to this farm" });
+      }
+      
+      // Create or update the permission
+      const permission = await storage.setUserPermission({
+        userId,
+        farmId,
+        module,
+        accessLevel
+      });
+      
+      res.status(201).json(permission);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to set permission" });
+    }
+  });
+  
+  app.patch("/api/permissions/:id", checkRole([UserRole.SUPER_ADMIN, UserRole.FARM_ADMIN]), async (req, res) => {
+    try {
+      const permissionId = parseInt(req.params.id, 10);
+      const { accessLevel } = req.body;
+      
+      // Get the existing permission
+      const existingPermission = await storage.getUserPermission(permissionId);
+      
+      if (!existingPermission) {
+        return res.status(404).json({ message: "Permission not found" });
+      }
+      
+      // Check if the current user has admin access to this farm
+      if (req.user.role === UserRole.FARM_ADMIN) {
+        const userFarms = await storage.getUserFarms(req.user.id);
+        const hasFarmAccess = userFarms.some(uf => uf.farmId === existingPermission.farmId);
+        
+        if (!hasFarmAccess) {
+          return res.status(403).json({ message: "You don't have admin access to this farm" });
+        }
+      }
+      
+      // Update the permission
+      const updatedPermission = await storage.updateUserPermission(permissionId, { accessLevel });
+      
+      if (updatedPermission) {
+        res.json(updatedPermission);
+      } else {
+        res.status(404).json({ message: "Permission not found" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update permission" });
     }
   });
 
