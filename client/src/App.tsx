@@ -29,13 +29,13 @@ function Router() {
       <ProtectedRoute 
         path="/employees" 
         component={Employees} 
-        allowedRoles={[UserRole.ADMIN, UserRole.MANAGER]} 
+        allowedRoles={[UserRole.SUPER_ADMIN, UserRole.FARM_ADMIN, UserRole.MANAGER]} 
       />
       <ProtectedRoute path="/settings" component={Settings} />
       <ProtectedRoute 
         path="/admin" 
         component={Admin} 
-        allowedRoles={[UserRole.ADMIN]} 
+        allowedRoles={[UserRole.SUPER_ADMIN]} 
       />
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
