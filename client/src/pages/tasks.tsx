@@ -320,35 +320,50 @@ export default function Tasks() {
   };
 
   // Due date formatter
-  const formatDueDate = (dueDate: Date) => {
-    const today = new Date();
-    const tomorrow = new Date();
-    tomorrow.setDate(today.getDate() + 1);
+  const formatDueDate = (dueDate: Date | string | undefined | null) => {
+    if (!dueDate) {
+      return <span className="text-gray-400">{t('common.notSet')}</span>;
+    }
     
-    const dueDateTime = new Date(dueDate).setHours(0, 0, 0, 0);
-    const todayTime = today.setHours(0, 0, 0, 0);
-    const tomorrowTime = tomorrow.setHours(0, 0, 0, 0);
-    
-    if (dueDateTime === todayTime) {
-      return (
-        <span className="text-red-500 font-medium">
-          {t('common.today')}
-        </span>
-      );
-    } else if (dueDateTime === tomorrowTime) {
-      return (
-        <span className="text-amber-500 font-medium">
-          {t('common.tomorrow')}
-        </span>
-      );
-    } else if (dueDateTime < todayTime) {
-      return (
-        <span className="text-red-500 font-medium">
-          {formatDistanceToNow(new Date(dueDate), language, true)}
-        </span>
-      );
-    } else {
-      return formatDate(new Date(dueDate), 'P', language);
+    try {
+      const dueDateObj = new Date(dueDate);
+      // Check if date is valid
+      if (isNaN(dueDateObj.getTime())) {
+        return <span className="text-gray-400">{t('common.invalidDate')}</span>;
+      }
+      
+      const today = new Date();
+      const tomorrow = new Date();
+      tomorrow.setDate(today.getDate() + 1);
+      
+      const dueDateTime = dueDateObj.setHours(0, 0, 0, 0);
+      const todayTime = today.setHours(0, 0, 0, 0);
+      const tomorrowTime = tomorrow.setHours(0, 0, 0, 0);
+      
+      if (dueDateTime === todayTime) {
+        return (
+          <span className="text-red-500 font-medium">
+            {t('common.today')}
+          </span>
+        );
+      } else if (dueDateTime === tomorrowTime) {
+        return (
+          <span className="text-amber-500 font-medium">
+            {t('common.tomorrow')}
+          </span>
+        );
+      } else if (dueDateTime < todayTime) {
+        return (
+          <span className="text-red-500 font-medium">
+            {formatDistanceToNow(dueDateObj, language, true)}
+          </span>
+        );
+      } else {
+        return formatDate(dueDateObj, 'P', language);
+      }
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return <span className="text-gray-400">{t('common.invalidDate')}</span>;
     }
   };
 
