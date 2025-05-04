@@ -163,8 +163,8 @@ export default function Reports() {
                   <SelectValue placeholder={t('reports.selectFarm')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">{t('reports.allFarms')}</SelectItem>
-                  {farms?.map((farm) => (
+                  <SelectItem value="all">{t('reports.allFarms')}</SelectItem>
+                  {farms?.map((farm: any) => (
                     <SelectItem key={farm.id} value={farm.id.toString()}>
                       {farm.name}
                     </SelectItem>

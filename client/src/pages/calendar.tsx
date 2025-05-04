@@ -92,12 +92,12 @@ export default function Calendar() {
   // Filter tasks based on the currently selected filters and date
   const filteredTasks = tasks?.filter(task => {
     // Filter by farm if a farm is selected
-    if (selectedFarm && task.farmId !== parseInt(selectedFarm)) {
+    if (selectedFarm && selectedFarm !== 'all' && task.farmId !== parseInt(selectedFarm)) {
       return false;
     }
     
     // Filter by status if a status is selected
-    if (filteredStatus && task.status !== filteredStatus) {
+    if (filteredStatus && filteredStatus !== 'all' && task.status !== filteredStatus) {
       return false;
     }
 
@@ -371,7 +371,7 @@ export default function Calendar() {
                       <SelectValue placeholder={t('calendar.allFarms')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">{t('calendar.allFarms')}</SelectItem>
+                      <SelectItem value="all">{t('calendar.allFarms')}</SelectItem>
                       {farms?.map(farm => (
                         <SelectItem key={farm.id} value={farm.id.toString()}>
                           {farm.name}
@@ -393,7 +393,7 @@ export default function Calendar() {
                       <SelectValue placeholder={t('calendar.allStatuses')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">{t('calendar.allStatuses')}</SelectItem>
+                      <SelectItem value="all">{t('calendar.allStatuses')}</SelectItem>
                       <SelectItem value="pending">{t('tasks.status.pending')}</SelectItem>
                       <SelectItem value="in_progress">{t('tasks.status.inProgress')}</SelectItem>
                       <SelectItem value="completed">{t('tasks.status.completed')}</SelectItem>

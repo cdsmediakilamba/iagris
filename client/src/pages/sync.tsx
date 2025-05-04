@@ -130,8 +130,8 @@ export default function Sync() {
             </div>
             <p className="text-xs text-gray-500 mt-1">
               {isOnline
-                ? t('sync.lastSync', { time: '30 min' })
-                : t('sync.pendingSyncs', { count: 32 })}
+                ? t('sync.lastSync', '30 min')
+                : t('sync.pendingSyncs', '32')}
             </p>
           </CardContent>
           <CardFooter>
@@ -169,7 +169,7 @@ export default function Sync() {
               <div className="flex justify-between items-center">
                 <span className="text-sm">{t('sync.items.crops')}</span>
                 <Badge variant="outline" className="bg-yellow-100 text-yellow-800">
-                  {t('sync.pendingUpdates', { count: 3 })}
+                  {t('sync.pendingUpdates', '3')}
                 </Badge>
               </div>
               <div className="flex justify-between items-center">
