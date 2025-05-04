@@ -28,7 +28,7 @@ export default function Sidebar({ isOpen }: SidebarProps) {
   const [location, setLocation] = useLocation();
   const { user } = useAuth();
 
-  const isAdmin = user?.role === UserRole.ADMIN;
+  const isAdmin = user?.role === UserRole.SUPER_ADMIN;
   const isManager = user?.role === UserRole.MANAGER || isAdmin;
 
   const sidebarItems = [
@@ -106,6 +106,33 @@ export default function Sidebar({ isOpen }: SidebarProps) {
   // Filter sidebar items based on user role
   const filteredItems = sidebarItems.filter(item => item.show !== false);
 
+  const renderNavItem = (item: typeof sidebarItems[0], index: number) => (
+    <a
+      key={index}
+      href={item.path}
+      onClick={(e) => {
+        e.preventDefault();
+        setLocation(item.path);
+      }}
+      className={cn(
+        "flex items-center px-4 py-3 rounded-md mb-1",
+        item.active 
+          ? "bg-primary bg-opacity-15 border-l-4 border-primary pl-3" 
+          : "text-gray-900 hover:bg-gray-100"
+      )}
+    >
+      <div className={cn("mr-4 h-5 w-5", item.active ? "text-primary" : "")}>
+        {item.icon}
+      </div>
+      <span className={cn(
+        "text-sm",
+        item.active ? "text-primary font-medium" : "text-gray-900"
+      )}>
+        {item.title}
+      </span>
+    </a>
+  );
+
   return (
     <aside className={cn(
       "sidebar bg-white shadow-md lg:block fixed lg:relative z-20 h-full",
@@ -118,69 +145,21 @@ export default function Sidebar({ isOpen }: SidebarProps) {
               <h2 className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 {t('common.dashboard')}
               </h2>
-              {filteredItems.slice(0, 3).map((item, index) => (
-                <a
-                  key={index}
-                  href={item.path}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setLocation(item.path);
-                  }}
-                  className={cn(
-                    "flex items-center px-4 py-3 text-gray-900 rounded-md mb-1",
-                    item.active ? "bg-primary bg-opacity-10 text-primary font-medium border-l-4 border-primary" : "hover:bg-gray-100"
-                  )}
-                >
-                  {item.icon}
-                  <span>{item.title}</span>
-                </a>
-              ))}
+              {filteredItems.slice(0, 3).map((item, index) => renderNavItem(item, index))}
             </div>
             
             <div className="mb-4">
               <h2 className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 {t('common.management')}
               </h2>
-              {filteredItems.slice(3, 8).map((item, index) => (
-                <a
-                  key={index}
-                  href={item.path}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setLocation(item.path);
-                  }}
-                  className={cn(
-                    "flex items-center px-4 py-3 text-gray-900 rounded-md mb-1",
-                    item.active ? "bg-primary bg-opacity-10 text-primary font-medium border-l-4 border-primary" : "hover:bg-gray-100"
-                  )}
-                >
-                  {item.icon}
-                  <span>{item.title}</span>
-                </a>
-              ))}
+              {filteredItems.slice(3, 8).map((item, index) => renderNavItem(item, index))}
             </div>
             
             <div>
               <h2 className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 {t('common.system')}
               </h2>
-              {filteredItems.slice(8).map((item, index) => (
-                <a
-                  key={index}
-                  href={item.path}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setLocation(item.path);
-                  }}
-                  className={cn(
-                    "flex items-center px-4 py-3 text-gray-900 rounded-md mb-1",
-                    item.active ? "bg-primary bg-opacity-10 text-primary font-medium border-l-4 border-primary" : "hover:bg-gray-100"
-                  )}
-                >
-                  {item.icon}
-                  <span>{item.title}</span>
-                </a>
-              ))}
+              {filteredItems.slice(8).map((item, index) => renderNavItem(item, index))}
             </div>
           </nav>
         </div>
