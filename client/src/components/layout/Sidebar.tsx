@@ -117,16 +117,16 @@ export default function Sidebar({ isOpen }: SidebarProps) {
       className={cn(
         "flex items-center px-4 py-3 rounded-md mb-1",
         item.active 
-          ? "bg-primary bg-opacity-15 border-l-4 border-primary pl-3" 
+          ? "bg-primary border-l-4 border-primary pl-3" 
           : "text-gray-900 hover:bg-gray-100"
       )}
     >
-      <div className={cn("mr-4 h-5 w-5", item.active ? "text-primary" : "")}>
+      <div className={cn("mr-4 h-5 w-5", item.active ? "text-white" : "")}>
         {item.icon}
       </div>
       <span className={cn(
         "text-sm",
-        item.active ? "text-primary font-medium" : "text-gray-900"
+        item.active ? "text-white font-medium" : "text-gray-900"
       )}>
         {item.title}
       </span>
