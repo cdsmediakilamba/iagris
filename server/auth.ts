@@ -22,7 +22,9 @@ function comparePasswords(supplied: string, stored: string) {
   const hashedSupplied = hashPassword(supplied);
   console.log("Senha fornecida hash:", hashedSupplied);
   console.log("Senha armazenada hash:", stored);
-  return hashedSupplied === stored;
+  const result = hashedSupplied === stored;
+  console.log("Resultado da comparação:", result);
+  return result;
 }
 
 export function setupAuth(app: Express) {
