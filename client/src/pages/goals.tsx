@@ -308,10 +308,9 @@ export default function GoalsPage() {
   // Find user name by ID
   const getUserName = (userId: number) => {
     if (!farmUsers) return "Usuário desconhecido";
-    const user = farmUsers.find((user: any) => user.userId === userId);
-    if (!user) return "Usuário desconhecido";
-    // We would need to get user details from another API call in a real app
-    return `ID: ${userId}`;
+    const user = farmUsers.find((user: any) => user.userId === userId || user.id === userId);
+    if (!user) return `Usuário ${userId}`;
+    return user.name || user.username || `Usuário ${userId}`;
   };
 
   // Calculate progress for a goal
@@ -436,8 +435,8 @@ export default function GoalsPage() {
                               </FormControl>
                               <SelectContent>
                                 {farmUsers?.map((user: any) => (
-                                  <SelectItem key={user.userId} value={String(user.userId)}>
-                                    {getUserName(user.userId)}
+                                  <SelectItem key={user.id || user.userId} value={String(user.id || user.userId || user.user_id)}>
+                                    {user.name || user.username || `Usuário ${user.id || user.userId || user.user_id}`}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
