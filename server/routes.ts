@@ -639,8 +639,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const hasPermission = await storage.checkUserAccess(
           req.user.id,
           farmId,
-          SystemModule.TASKS, // Since we don't have a specific SystemModule for goals, use TASKS
-          AccessLevel.FULL
+          SystemModule.GOALS, 
+          AccessLevel.MANAGE
         );
         
         if (!hasPermission) {
@@ -674,8 +674,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const hasPermission = await storage.checkUserAccess(
           req.user.id,
           goal.farmId,
-          SystemModule.TASKS, // Using TASKS module for goals
-          AccessLevel.FULL
+          SystemModule.GOALS,
+          AccessLevel.EDIT
         );
         
         if (!hasPermission) {
