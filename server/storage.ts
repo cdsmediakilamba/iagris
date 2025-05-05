@@ -70,6 +70,14 @@ export interface IStorage {
   createTask(task: InsertTask): Promise<Task>;
   updateTask(id: number, task: Partial<Task>): Promise<Task | undefined>;
   
+  // Goal operations
+  getGoal(id: number): Promise<Goal | undefined>;
+  getGoalsByFarm(farmId: number): Promise<Goal[]>;
+  getGoalsByAssignee(userId: number): Promise<Goal[]>;
+  getGoalsByStatus(farmId: number, status: GoalStatus): Promise<Goal[]>;
+  createGoal(goal: InsertGoal): Promise<Goal>;
+  updateGoal(id: number, goal: Partial<Goal>): Promise<Goal | undefined>;
+  
   // Session store
   sessionStore: any; // Using any to avoid type issues with SessionStore
 }
@@ -81,6 +89,7 @@ export class MemStorage implements IStorage {
   private crops: Map<number, Crop>;
   private inventoryItems: Map<number, Inventory>;
   private taskItems: Map<number, Task>;
+  private goalItems: Map<number, Goal>;
   private userFarms: Map<number, UserFarm>;
   private userPermissions: Map<number, UserPermission>;
   
@@ -93,6 +102,7 @@ export class MemStorage implements IStorage {
   private cropId = 1;
   private inventoryId = 1;
   private taskId = 1;
+  private goalId = 1;
   private userFarmId = 1;
   private userPermissionId = 1;
 
@@ -103,6 +113,7 @@ export class MemStorage implements IStorage {
     this.crops = new Map();
     this.inventoryItems = new Map();
     this.taskItems = new Map();
+    this.goalItems = new Map();
     this.userFarms = new Map();
     this.userPermissions = new Map();
     
@@ -424,6 +435,23 @@ export class MemStorage implements IStorage {
     };
     this.taskItems.set(id, task);
     return task;
+  }
+  
+  private createGoalSync(insertGoal: InsertGoal): Goal {
+    const id = this.goalId++;
+    const goal: Goal = {
+      ...insertGoal,
+      id,
+      createdAt: new Date(),
+      status: insertGoal.status || GoalStatus.PENDING,
+      description: insertGoal.description || null,
+      cropId: insertGoal.cropId || null,
+      notes: insertGoal.notes || null,
+      actualValue: "0",
+      completionDate: null
+    };
+    this.goalItems.set(id, goal);
+    return goal;
   }
 
   // User operations
@@ -781,6 +809,60 @@ export class MemStorage implements IStorage {
     const updatedTask = { ...task, ...taskData };
     this.taskItems.set(id, updatedTask);
     return updatedTask;
+  }
+  
+  // Goal operations
+  async getGoal(id: number): Promise<Goal | undefined> {
+    return this.goalItems.get(id);
+  }
+  
+  async getGoalsByFarm(farmId: number): Promise<Goal[]> {
+    return Array.from(this.goalItems.values()).filter(
+      (goal) => goal.farmId === farmId
+    );
+  }
+  
+  async getGoalsByAssignee(userId: number): Promise<Goal[]> {
+    return Array.from(this.goalItems.values()).filter(
+      (goal) => goal.assignedTo === userId
+    );
+  }
+  
+  async getGoalsByStatus(farmId: number, status: GoalStatus): Promise<Goal[]> {
+    return Array.from(this.goalItems.values()).filter(
+      (goal) => goal.farmId === farmId && goal.status === status
+    );
+  }
+  
+  async createGoal(insertGoal: InsertGoal): Promise<Goal> {
+    const id = this.goalId++;
+    const goal: Goal = {
+      ...insertGoal,
+      id,
+      createdAt: new Date(),
+      status: insertGoal.status || GoalStatus.PENDING,
+      description: insertGoal.description || null,
+      cropId: insertGoal.cropId || null,
+      notes: insertGoal.notes || null,
+      actualValue: "0",
+      completionDate: null
+    };
+    this.goalItems.set(id, goal);
+    return goal;
+  }
+  
+  async updateGoal(id: number, goalData: Partial<Goal>): Promise<Goal | undefined> {
+    const goal = this.goalItems.get(id);
+    if (!goal) return undefined;
+    
+    // Se o status estiver sendo alterado para COMPLETED, definir a data de conclusão
+    if (goalData.status === GoalStatus.COMPLETED && goal.status !== GoalStatus.COMPLETED) {
+      goalData.completionDate = new Date();
+    }
+    
+    const updatedGoal = { ...goal, ...goalData };
+    this.goalItems.set(id, updatedGoal);
+    return updatedGoal;
   }
 }
 
