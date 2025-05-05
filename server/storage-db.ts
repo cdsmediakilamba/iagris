@@ -10,9 +10,22 @@ import { IStorage } from "./storage";
 import { db } from "./db";
 import { eq, and, desc, asc } from "drizzle-orm";
 import { UserRole, SystemModule, AccessLevel, GoalStatus } from "@shared/schema";
+import session from "express-session";
+import pg from "pg";
+import ConnectPgSimple from "connect-pg-simple";
+import { pool } from "./db";
 
 export class DatabaseStorage implements IStorage {
   sessionStore: any;
+  
+  constructor() {
+    const PgSession = ConnectPgSimple(session);
+    this.sessionStore = new PgSession({
+      pool: pool as pg.Pool,
+      tableName: 'session',
+      createTableIfMissing: true
+    });
+  }
 
   // User operations
   async getUser(id: number): Promise<User | undefined> {
