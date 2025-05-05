@@ -175,9 +175,9 @@ export default function GoalsPage() {
     queryKey: ['/api/farms', farmId, 'goals', selectedTab],
     queryFn: async () => {
       if (selectedTab === "all") {
-        return await apiRequest<Goal[]>(`/api/farms/${farmId}/goals`, {});
+        return await apiRequest<Goal[]>(`/api/farms/${farmId}/goals`);
       } else {
-        return await apiRequest<Goal[]>(`/api/farms/${farmId}/goals/status/${selectedTab}`, {});
+        return await apiRequest<Goal[]>(`/api/farms/${farmId}/goals/status/${selectedTab}`);
       }
     },
     enabled: !!farmId
