@@ -11,6 +11,7 @@ import Animals from "@/pages/animals";
 import Crops from "@/pages/crops";
 import Inventory from "@/pages/inventory";
 import Tasks from "@/pages/tasks";
+import Goals from "@/pages/goals";
 import Financial from "@/pages/financial";
 import Employees from "@/pages/employees";
 import Settings from "@/pages/settings";
@@ -29,6 +30,7 @@ function Router() {
       <ProtectedRoute path="/crops" component={Crops} />
       <ProtectedRoute path="/inventory" component={Inventory} />
       <ProtectedRoute path="/tasks" component={Tasks} />
+      <ProtectedRoute path="/farms/:farmId/goals" component={Goals} />
       <ProtectedRoute path="/financial" component={Financial} />
       <ProtectedRoute 
         path="/employees" 

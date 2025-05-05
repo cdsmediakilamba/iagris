@@ -562,6 +562,136 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Goal routes
+  app.get("/api/farms/:farmId/goals", 
+    async (req, res) => {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
+      const farmId = parseInt(req.params.farmId);
+      
+      try {
+        const goals = await storage.getGoalsByFarm(farmId);
+        res.json(goals);
+      } catch (error) {
+        console.error("Error fetching goals:", error);
+        res.status(500).json({ message: "Failed to fetch goals" });
+      }
+    }
+  );
+  
+  app.get("/api/farms/:farmId/goals/status/:status", 
+    async (req, res) => {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
+      const farmId = parseInt(req.params.farmId);
+      const status = req.params.status;
+      
+      try {
+        const goals = await storage.getGoalsByStatus(farmId, status);
+        res.json(goals);
+      } catch (error) {
+        console.error("Error fetching goals by status:", error);
+        res.status(500).json({ message: "Failed to fetch goals by status" });
+      }
+    }
+  );
+  
+  app.get("/api/users/:userId/goals", 
+    async (req, res) => {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
+      const userId = parseInt(req.params.userId);
+      
+      // Users can only see their own goals unless they are admins
+      if (userId !== req.user.id && 
+          req.user.role !== UserRole.SUPER_ADMIN && 
+          req.user.role !== UserRole.FARM_ADMIN) {
+        return res.status(403).json({ message: "You don't have permission to view these goals" });
+      }
+      
+      try {
+        const goals = await storage.getGoalsByAssignee(userId);
+        res.json(goals);
+      } catch (error) {
+        console.error("Error fetching user goals:", error);
+        res.status(500).json({ message: "Failed to fetch user goals" });
+      }
+    }
+  );
+  
+  app.post("/api/farms/:farmId/goals", 
+    async (req, res) => {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
+      const farmId = parseInt(req.params.farmId);
+      const goalData = { ...req.body, farmId, createdBy: req.user.id };
+      
+      try {
+        // Check if user has permission to create goals on this farm
+        const hasPermission = await storage.checkUserAccess(
+          req.user.id,
+          farmId,
+          SystemModule.TASKS, // Since we don't have a specific SystemModule for goals, use TASKS
+          AccessLevel.FULL
+        );
+        
+        if (!hasPermission) {
+          return res.status(403).json({ message: "You don't have permission to create goals" });
+        }
+        
+        const goal = await storage.createGoal(goalData);
+        res.status(201).json(goal);
+      } catch (error) {
+        console.error("Error creating goal:", error);
+        res.status(500).json({ message: "Failed to create goal" });
+      }
+    }
+  );
+  
+  app.patch("/api/goals/:goalId", 
+    async (req, res) => {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const goalId = parseInt(req.params.goalId);
+      const goalData = req.body;
+      
+      try {
+        // Get the goal to check permissions
+        const goal = await storage.getGoal(goalId);
+        if (!goal) return res.status(404).json({ message: "Goal not found" });
+        
+        // Check if user has permission to update goals on this farm
+        const hasPermission = await storage.checkUserAccess(
+          req.user.id,
+          goal.farmId,
+          SystemModule.TASKS, // Using TASKS module for goals
+          AccessLevel.FULL
+        );
+        
+        if (!hasPermission) {
+          return res.status(403).json({ message: "You don't have permission to update goals" });
+        }
+        
+        // Update the goal
+        const updatedGoal = await storage.updateGoal(goalId, goalData);
+        res.json(updatedGoal);
+      } catch (error) {
+        console.error("Error updating goal:", error);
+        res.status(500).json({ message: "Failed to update goal" });
+      }
+    }
+  );
+
   // Create HTTP server
   const httpServer = createServer(app);
   return httpServer;
