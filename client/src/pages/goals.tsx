@@ -279,7 +279,7 @@ export default function GoalsPage() {
         endDate: new Date(editingGoal.endDate),
         targetValue: editingGoal.targetValue,
         unit: editingGoal.unit,
-        cropId: editingGoal.cropId ? String(editingGoal.cropId) : "",
+        cropId: editingGoal.cropId ? String(editingGoal.cropId) : "0",
         notes: editingGoal.notes || "",
         status: editingGoal.status
       });
