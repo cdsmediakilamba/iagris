@@ -16,7 +16,8 @@ import {
   FileText,
   ShieldAlert,
   RefreshCw,
-  WifiOff
+  WifiOff,
+  Target
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -49,6 +50,12 @@ export default function Sidebar({ isOpen }: SidebarProps) {
       icon: <CheckSquare className="mr-4 h-5 w-5" />,
       path: '/tasks',
       active: location === '/tasks',
+    },
+    {
+      title: t('common.goals') || 'Metas',
+      icon: <Target className="mr-4 h-5 w-5" />,
+      path: `/farms/${user?.farmId || 12}/goals`,
+      active: location.includes('/goals'),
     },
     {
       title: t('common.animals'),
@@ -143,23 +150,23 @@ export default function Sidebar({ isOpen }: SidebarProps) {
           <nav className="p-4">
             <div className="mb-4">
               <h2 className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                {t('common.dashboard')}
+                {t('common.dashboard') || 'Dashboard'}
               </h2>
-              {filteredItems.slice(0, 3).map((item, index) => renderNavItem(item, index))}
+              {filteredItems.slice(0, 4).map((item, index) => renderNavItem(item, index))}
             </div>
             
             <div className="mb-4">
               <h2 className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                {t('common.management')}
+                {t('common.management') || 'Gestão'}
               </h2>
-              {filteredItems.slice(3, 8).map((item, index) => renderNavItem(item, index))}
+              {filteredItems.slice(4, 9).map((item, index) => renderNavItem(item, index))}
             </div>
             
             <div>
               <h2 className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                {t('common.system')}
+                {t('common.system') || 'Sistema'}
               </h2>
-              {filteredItems.slice(8).map((item, index) => renderNavItem(item, index))}
+              {filteredItems.slice(9).map((item, index) => renderNavItem(item, index))}
             </div>
           </nav>
         </div>
