@@ -47,7 +47,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
-import { Spinner } from "@/components/ui/spinner";
+// Usar o Loader2 diretamente, pois o Spinner pode não estar disponível
+import { Loader2 } from "lucide-react";
 import { CalendarIcon, Plus, RefreshCw } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
@@ -701,7 +702,7 @@ export default function GoalsPage() {
             <CardContent>
               {isLoading ? (
                 <div className="flex justify-center items-center py-8">
-                  <Spinner className="h-6 w-6" />
+                  <Loader2 className="h-6 w-6 animate-spin" />
                 </div>
               ) : goals?.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">

@@ -14,8 +14,9 @@ export function Toaster() {
   return (
     <ToastProvider>
       {toasts.map(function ({ id, title, description, action, ...props }) {
+        // Garante que o id nunca é undefined ou vazio
         return (
-          <Toast key={id} {...props}>
+          <Toast key={id || `toast-${Date.now()}`} {...props}>
             <div className="grid gap-1">
               {title && <ToastTitle>{title}</ToastTitle>}
               {description && (
