@@ -1,28 +1,41 @@
 import React, { useState } from 'react';
 import { useLocation } from 'wouter';
-import { useAuth } from '@/hooks/use-auth';
-import { useLanguage } from '@/context/LanguageContext';
+import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { insertUserSchema } from '@shared/schema';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAuth } from '@/hooks/use-auth';
 import { Leaf } from 'lucide-react';
+import { insertUserSchema } from '@shared/schema';
+import { useLanguage } from '@/context/LanguageContext';
 
-// Login schema only needs username and password
-const loginSchema = insertUserSchema.pick({
-  username: true,
-  password: true,
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+// Login form schema
+const loginSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-// Register schema extends the insertUserSchema with password confirmation
-const registerSchema = insertUserSchema.extend({
-  confirmPassword: z.string(),
+// Registration form schema
+const registerSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  confirmPassword: z.string().min(6, "Password must be at least 6 characters"),
+  name: z.string().min(3, "Name must be at least 3 characters"),
+  email: z.string().email("Please enter a valid email"),
+  role: z.string(),
+  language: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords must match",
   path: ["confirmPassword"],
@@ -31,8 +44,9 @@ const registerSchema = insertUserSchema.extend({
 export default function AuthPage() {
   const [, setLocation] = useLocation();
   const { t } = useLanguage();
-  const { user, loginMutation, registerMutation } = useAuth();
+  const { user, login, register } = useAuth();
   const [activeTab, setActiveTab] = useState<string>('login');
+  const [isLoading, setIsLoading] = useState(false);
   
   // Redirect if already logged in
   React.useEffect(() => {
@@ -66,10 +80,10 @@ export default function AuthPage() {
 
   // Handle login submission
   const onLoginSubmit = (values: z.infer<typeof loginSchema>) => {
-    loginMutation.mutate(values, {
-      onSuccess: () => {
-        setLocation('/');
-      }
+    setIsLoading(true);
+    login(values, () => {
+      setIsLoading(false);
+      setLocation('/');
     });
   };
 
@@ -78,10 +92,10 @@ export default function AuthPage() {
     // Remove confirmPassword as it's not part of the schema
     const { confirmPassword, ...userData } = values;
     
-    registerMutation.mutate(userData, {
-      onSuccess: () => {
-        setLocation('/');
-      }
+    setIsLoading(true);
+    register(userData, () => {
+      setIsLoading(false);
+      setLocation('/');
     });
   };
 
@@ -117,7 +131,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>{t('common.username')}</FormLabel>
                           <FormControl>
-                            <Input {...field} disabled={loginMutation.isPending} />
+                            <Input {...field} disabled={isLoading} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -130,7 +144,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>{t('common.password')}</FormLabel>
                           <FormControl>
-                            <Input type="password" {...field} disabled={loginMutation.isPending} />
+                            <Input type="password" {...field} disabled={isLoading} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -139,9 +153,9 @@ export default function AuthPage() {
                     <Button 
                       type="submit" 
                       className="w-full" 
-                      disabled={loginMutation.isPending}
+                      disabled={isLoading}
                     >
-                      {loginMutation.isPending ? t('common.loading') : t('common.signIn')}
+                      {isLoading ? t('common.loading') : t('common.signIn')}
                     </Button>
                   </form>
                 </Form>
@@ -170,7 +184,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>{t('common.username')}</FormLabel>
                           <FormControl>
-                            <Input {...field} disabled={registerMutation.isPending} />
+                            <Input {...field} disabled={isLoading} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -183,7 +197,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>{t('common.name')}</FormLabel>
                           <FormControl>
-                            <Input {...field} disabled={registerMutation.isPending} />
+                            <Input {...field} disabled={isLoading} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -196,7 +210,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>{t('common.email')}</FormLabel>
                           <FormControl>
-                            <Input type="email" {...field} disabled={registerMutation.isPending} />
+                            <Input type="email" {...field} disabled={isLoading} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -212,7 +226,7 @@ export default function AuthPage() {
                             <Select 
                               onValueChange={field.onChange} 
                               defaultValue={field.value} 
-                              disabled={registerMutation.isPending}
+                              disabled={isLoading}
                             >
                               <FormControl>
                                 <SelectTrigger>
@@ -241,7 +255,7 @@ export default function AuthPage() {
                             <Select 
                               onValueChange={field.onChange} 
                               defaultValue={field.value}
-                              disabled={registerMutation.isPending}
+                              disabled={isLoading}
                             >
                               <FormControl>
                                 <SelectTrigger>
@@ -265,7 +279,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>{t('common.password')}</FormLabel>
                           <FormControl>
-                            <Input type="password" {...field} disabled={registerMutation.isPending} />
+                            <Input type="password" {...field} disabled={isLoading} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -278,7 +292,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>{t('common.confirmPassword')}</FormLabel>
                           <FormControl>
-                            <Input type="password" {...field} disabled={registerMutation.isPending} />
+                            <Input type="password" {...field} disabled={isLoading} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -287,9 +301,9 @@ export default function AuthPage() {
                     <Button 
                       type="submit" 
                       className="w-full" 
-                      disabled={registerMutation.isPending}
+                      disabled={isLoading}
                     >
-                      {registerMutation.isPending ? t('common.loading') : t('common.signUp')}
+                      {isLoading ? t('common.loading') : t('common.signUp')}
                     </Button>
                   </form>
                 </Form>

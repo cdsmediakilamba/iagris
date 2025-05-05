@@ -1,50 +1,49 @@
 import { createContext, ReactNode, useContext } from "react";
-import {
-  useQuery,
-  useMutation,
-  UseMutationResult,
-} from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { insertUserSchema, User as SelectUser } from "@shared/schema";
-import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
+import { getQueryFn, queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 
+// Tipo do contexto de autenticação
 type AuthContextType = {
   user: SelectUser | null;
   isLoading: boolean;
   error: Error | null;
-  loginMutation: UseMutationResult<SelectUser, Error, LoginData>;
-  logoutMutation: UseMutationResult<void, Error, void>;
-  registerMutation: UseMutationResult<SelectUser, Error, RegisterData>;
+  login: (credentials: LoginData, onSuccess?: () => void) => void;
+  register: (userData: RegisterData, onSuccess?: () => void) => void;
+  logout: (onSuccess?: () => void) => void;
 };
 
-// Extended schema for login (only needs username & password)
+// Schema para login (apenas username e password)
 const loginSchema = insertUserSchema.pick({
   username: true,
   password: true,
 });
 
 type LoginData = z.infer<typeof loginSchema>;
+type RegisterData = z.infer<typeof insertUserSchema>;
 
-// Extended schema for registration
-const registerSchema = insertUserSchema;
-type RegisterData = z.infer<typeof registerSchema>;
-
+// Criação do contexto de autenticação
 export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
+  
+  // Consulta para obter dados do usuário atual
   const {
     data: user,
     error,
     isLoading,
+    refetch,
   } = useQuery<SelectUser | null, Error>({
     queryKey: ["/api/user"],
     queryFn: getQueryFn({ on401: "returnNull" }),
   });
 
-  const loginMutation = useMutation<SelectUser, Error, LoginData>({
-    mutationFn: async (credentials) => {
+  // Mutation para login
+  const loginMutation = useMutation({
+    mutationFn: async (credentials: LoginData) => {
       const response = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -59,25 +58,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       return await response.json();
     },
-    onSuccess: (user) => {
-      queryClient.setQueryData(["/api/user"], user);
+    onSuccess: () => {
+      refetch(); // Recarregar dados do usuário após login bem-sucedido
       toast({
-        title: "Login successful",
-        description: "Welcome back to FarmManager Pro",
+        title: "Login bem-sucedido",
+        description: "Bem-vindo de volta ao FarmManager Pro",
       });
     },
-    onError: (error) => {
-      console.error("Login error:", error);
+    onError: (error: Error) => {
+      console.error("Erro de login:", error);
       toast({
-        title: "Login failed",
+        title: "Falha no login",
         description: error.message,
         variant: "destructive",
       });
     },
   });
 
-  const registerMutation = useMutation<SelectUser, Error, RegisterData>({
-    mutationFn: async (userData) => {
+  // Mutation para registro
+  const registerMutation = useMutation({
+    mutationFn: async (userData: RegisterData) => {
       const response = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -92,23 +92,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       return await response.json();
     },
-    onSuccess: (user) => {
-      queryClient.setQueryData(["/api/user"], user);
+    onSuccess: () => {
+      refetch(); // Recarregar dados do usuário após registro bem-sucedido
       toast({
-        title: "Registration successful",
-        description: "Welcome to FarmManager Pro",
+        title: "Registro bem-sucedido",
+        description: "Bem-vindo ao FarmManager Pro",
       });
     },
-    onError: (error) => {
-      console.error("Registration error:", error);
+    onError: (error: Error) => {
+      console.error("Erro de registro:", error);
       toast({
-        title: "Registration failed",
+        title: "Falha no registro",
         description: error.message,
         variant: "destructive",
       });
     },
   });
 
+  // Mutation para logout
   const logoutMutation = useMutation({
     mutationFn: async () => {
       const response = await fetch("/api/logout", {
@@ -124,18 +125,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onSuccess: () => {
       queryClient.setQueryData(["/api/user"], null);
       toast({
-        title: "Logged out",
-        description: "You have been logged out successfully",
+        title: "Logout realizado",
+        description: "Você saiu com sucesso",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Logout failed",
+        title: "Falha no logout",
         description: error.message,
         variant: "destructive",
       });
     },
   });
+
+  // Funções de wrapper para as mutations
+  const login = (credentials: LoginData, onSuccess?: () => void) => {
+    loginMutation.mutate(credentials, {
+      onSuccess: () => {
+        if (onSuccess) onSuccess();
+      }
+    });
+  };
+
+  const register = (userData: RegisterData, onSuccess?: () => void) => {
+    registerMutation.mutate(userData, {
+      onSuccess: () => {
+        if (onSuccess) onSuccess();
+      }
+    });
+  };
+
+  const logout = (onSuccess?: () => void) => {
+    logoutMutation.mutate(undefined, {
+      onSuccess: () => {
+        if (onSuccess) onSuccess();
+      }
+    });
+  };
 
   return (
     <AuthContext.Provider
@@ -143,9 +169,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user: user ?? null,
         isLoading,
         error,
-        loginMutation,
-        logoutMutation,
-        registerMutation,
+        login,
+        register,
+        logout
       }}
     >
       {children}
