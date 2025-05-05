@@ -314,6 +314,37 @@ export class MemStorage implements IStorage {
         priority: "média",
         assignedTo: employeeUser.id
       });
+      
+      // Add some sample goals
+      this.createGoalSync({
+        farmId: farm1.id,
+        name: "Aumentar produção de milho",
+        description: "Aumentar a produção de milho em 20% até o final da temporada",
+        assignedTo: employeeUser.id,
+        startDate: new Date(),
+        endDate: new Date(Date.now() + 90 * 86400000), // 90 dias
+        cropId: 1, // Milho
+        targetValue: "20",
+        unit: "percentage",
+        status: GoalStatus.IN_PROGRESS,
+        createdBy: farmAdminUser.id,
+        notes: "Objetivo trimestral"
+      });
+      
+      this.createGoalSync({
+        farmId: farm1.id,
+        name: "Plantação de feijão",
+        description: "Plantar 10 hectares de feijão",
+        assignedTo: employeeUser.id,
+        startDate: new Date(),
+        endDate: new Date(Date.now() + 30 * 86400000), // 30 dias
+        cropId: 2, // Feijão
+        targetValue: "10",
+        unit: "hectares",
+        status: GoalStatus.PENDING,
+        createdBy: farmAdminUser.id,
+        notes: "Prioridade alta"
+      });
     } catch (error) {
       console.error("Error initializing data:", error);
     }

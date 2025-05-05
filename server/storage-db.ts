@@ -1,14 +1,15 @@
 import { 
-  users, farms, userFarms, userPermissions, animals, crops, inventory, tasks,
+  users, farms, userFarms, userPermissions, animals, crops, inventory, tasks, goals,
   type User, type InsertUser, type Farm, type InsertFarm, 
   type UserFarm, type InsertUserFarm, type UserPermission, type InsertUserPermission,
   type Animal, type InsertAnimal, type Crop, type InsertCrop, 
-  type Inventory, type InsertInventory, type Task, type InsertTask
+  type Inventory, type InsertInventory, type Task, type InsertTask,
+  type Goal, type InsertGoal
 } from "@shared/schema";
 import { IStorage } from "./storage";
 import { db } from "./db";
 import { eq, and, desc, asc } from "drizzle-orm";
-import { UserRole, SystemModule, AccessLevel } from "@shared/schema";
+import { UserRole, SystemModule, AccessLevel, GoalStatus } from "@shared/schema";
 
 export class DatabaseStorage implements IStorage {
   sessionStore: any;
@@ -392,5 +393,62 @@ export class DatabaseStorage implements IStorage {
       .where(eq(tasks.id, id))
       .returning();
     return updatedTask || undefined;
+  }
+
+  // Goal operations
+  async getGoal(id: number): Promise<Goal | undefined> {
+    const [goal] = await db.select().from(goals).where(eq(goals.id, id));
+    return goal || undefined;
+  }
+
+  async getGoalsByFarm(farmId: number): Promise<Goal[]> {
+    return await db
+      .select()
+      .from(goals)
+      .where(eq(goals.farmId, farmId))
+      .orderBy(desc(goals.endDate));
+  }
+
+  async getGoalsByAssignee(userId: number): Promise<Goal[]> {
+    return await db
+      .select()
+      .from(goals)
+      .where(eq(goals.assignedTo, userId))
+      .orderBy(desc(goals.endDate));
+  }
+
+  async getGoalsByStatus(farmId: number, status: GoalStatus): Promise<Goal[]> {
+    return await db
+      .select()
+      .from(goals)
+      .where(
+        and(
+          eq(goals.farmId, farmId),
+          eq(goals.status, status)
+        )
+      )
+      .orderBy(desc(goals.endDate));
+  }
+
+  async createGoal(goalData: InsertGoal): Promise<Goal> {
+    const [goal] = await db.insert(goals).values(goalData).returning();
+    return goal;
+  }
+
+  async updateGoal(id: number, goalData: Partial<Goal>): Promise<Goal | undefined> {
+    // Se o status estiver sendo alterado para COMPLETED, definir a data de conclusão
+    if (goalData.status === GoalStatus.COMPLETED) {
+      const [goal] = await db.select().from(goals).where(eq(goals.id, id));
+      if (goal && goal.status !== GoalStatus.COMPLETED) {
+        goalData.completionDate = new Date();
+      }
+    }
+
+    const [updatedGoal] = await db
+      .update(goals)
+      .set(goalData)
+      .where(eq(goals.id, id))
+      .returning();
+    return updatedGoal || undefined;
   }
 }
