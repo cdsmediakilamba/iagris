@@ -242,7 +242,7 @@ export default function GoalsPage() {
     defaultValues: {
       name: "",
       description: "",
-      assignedTo: "",
+      assignedTo: farmUsers && farmUsers.length > 0 ? String(farmUsers[0].userId) : "0",
       targetValue: "",
       unit: "units",
       status: "pending",
@@ -256,17 +256,17 @@ export default function GoalsPage() {
       form.reset({
         name: "",
         description: "",
-        assignedTo: "",
+        assignedTo: farmUsers && farmUsers.length > 0 ? String(farmUsers[0].userId) : "0",
         startDate: new Date(),
         endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
         targetValue: "",
         unit: "units",
-        cropId: "",
+        cropId: crops && crops.length > 0 ? String(crops[0].id) : "0",
         notes: "",
         status: "pending"
       });
     }
-  }, [openCreateGoal, form]);
+  }, [openCreateGoal, form, farmUsers, crops]);
 
   // Fill form with goal data when editing
   useEffect(() => {
@@ -292,7 +292,9 @@ export default function GoalsPage() {
     const goalData = {
       ...data,
       assignedTo: parseInt(data.assignedTo),
-      cropId: data.cropId ? parseInt(data.cropId) : null
+      cropId: data.cropId ? parseInt(data.cropId) : null,
+      startDate: data.startDate ? format(data.startDate, "yyyy-MM-dd") : "",
+      endDate: data.endDate ? format(data.endDate, "yyyy-MM-dd") : "",
     };
     
     if (editingGoal) {
@@ -461,7 +463,7 @@ export default function GoalsPage() {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="">Nenhuma</SelectItem>
+                                <SelectItem value="0">Nenhuma</SelectItem>
                                 {crops?.map((crop: any) => (
                                   <SelectItem key={crop.id} value={String(crop.id)}>
                                     {crop.name}
