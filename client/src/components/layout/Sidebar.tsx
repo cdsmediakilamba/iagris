@@ -52,7 +52,7 @@ export default function Sidebar({ isOpen }: SidebarProps) {
       active: location === '/tasks',
     },
     {
-      title: t('common.goals') || 'Metas',
+      title: 'Metas',
       icon: <Target className="mr-4 h-5 w-5" />,
       path: `/farms/${user?.farmId || 12}/goals`,
       active: location.includes('/goals'),
