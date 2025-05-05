@@ -1,16 +1,8 @@
+import { pool } from './server/db.js';
 import fs from 'fs';
-import pg from 'pg';
-const { Pool } = pg;
-
-// Criar pool de conexão com o banco de dados
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL
-});
 
 async function exportData() {
   try {
-    console.log('Iniciando exportação dos dados...');
-    
     // Obter todas as tabelas
     const tablesResult = await pool.query(`
       SELECT tablename FROM pg_catalog.pg_tables 
@@ -31,6 +23,7 @@ async function exportData() {
       
       if (dataResult.rows.length > 0) {
         sql += `-- Dados da tabela: ${table}\n`;
+        sql += `DELETE FROM "${table}";\n`;
         
         // Gerar declarações INSERT
         for (const row of dataResult.rows) {
@@ -61,5 +54,4 @@ async function exportData() {
   }
 }
 
-// Executar a função
 exportData();
