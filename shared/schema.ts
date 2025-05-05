@@ -17,7 +17,10 @@ export enum UserRole {
 export enum AccessLevel {
   FULL = "full",               // Acesso completo
   READ_ONLY = "read_only",     // Somente leitura
-  NONE = "none"                // Sem acesso
+  NONE = "none",               // Sem acesso
+  MANAGE = "manage",           // Gerenciar (criar, editar, excluir)
+  EDIT = "edit",               // Editar (editar apenas)
+  VIEW = "view"                // Visualizar (somente leitura)
 }
 
 // Define system modules
@@ -28,7 +31,8 @@ export enum SystemModule {
   TASKS = "tasks",
   EMPLOYEES = "employees",
   FINANCIAL = "financial",
-  REPORTS = "reports"
+  REPORTS = "reports",
+  GOALS = "goals"
 }
 
 // User table schema
