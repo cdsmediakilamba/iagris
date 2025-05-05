@@ -4,9 +4,10 @@ import { animals, type Animal, type InsertAnimal } from "@shared/schema";
 import { crops, type Crop, type InsertCrop } from "@shared/schema";
 import { inventory, type Inventory, type InsertInventory } from "@shared/schema";
 import { tasks, type Task, type InsertTask } from "@shared/schema";
+import { goals, type Goal, type InsertGoal } from "@shared/schema";
 import { userFarms, type UserFarm, type InsertUserFarm } from "@shared/schema";
 import { userPermissions, type UserPermission, type InsertUserPermission } from "@shared/schema";
-import { UserRole, SystemModule, AccessLevel } from "@shared/schema";
+import { UserRole, SystemModule, AccessLevel, GoalStatus } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
 

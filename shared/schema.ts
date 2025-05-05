@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, decimal } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -132,6 +132,45 @@ export const tasks = pgTable("tasks", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Define goal/target status
+export enum GoalStatus {
+  PENDING = "pending",
+  IN_PROGRESS = "in_progress",
+  PARTIAL = "partial",
+  COMPLETED = "completed",
+  CANCELLED = "cancelled"
+}
+
+// Define units of measurement for goals
+export enum GoalUnit {
+  HECTARES = "hectares",
+  METERS = "meters",
+  UNITS = "units",
+  KILOGRAMS = "kilograms",
+  LITERS = "liters",
+  PERCENTAGE = "percentage"
+}
+
+// Goals/Targets table schema
+export const goals = pgTable("goals", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  assignedTo: integer("assigned_to").notNull(), // User ID
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  cropId: integer("crop_id"), // Optional: related crop for this goal
+  targetValue: decimal("target_value").notNull(), // The target numeric value
+  actualValue: decimal("actual_value").default("0"), // The current achieved value
+  unit: text("unit").notNull(), // Unit of measurement (hectares, meters, units, etc.)
+  status: text("status").notNull().default(GoalStatus.PENDING),
+  completionDate: timestamp("completion_date"), // Date when the goal was completed
+  farmId: integer("farm_id").notNull(),
+  createdBy: integer("created_by").notNull(), // User ID of who created this goal
+  notes: text("notes"), // Additional notes or comments
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Insert schemas using drizzle-zod
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -173,6 +212,13 @@ export const insertTaskSchema = createInsertSchema(tasks).omit({
   createdAt: true,
 });
 
+export const insertGoalSchema = createInsertSchema(goals).omit({
+  id: true,
+  createdAt: true,
+  actualValue: true,
+  completionDate: true,
+});
+
 // Export types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -197,3 +243,6 @@ export type Inventory = typeof inventory.$inferSelect;
 
 export type InsertTask = z.infer<typeof insertTaskSchema>;
 export type Task = typeof tasks.$inferSelect;
+
+export type InsertGoal = z.infer<typeof insertGoalSchema>;
+export type Goal = typeof goals.$inferSelect;
