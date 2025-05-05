@@ -828,8 +828,8 @@ export default function GoalsPage() {
                                                 </FormControl>
                                                 <SelectContent>
                                                   {farmUsers?.map((user: any) => (
-                                                    <SelectItem key={user.userId} value={String(user.userId)}>
-                                                      {getUserName(user.userId)}
+                                                    <SelectItem key={user.id || user.userId} value={String(user.id || user.userId || user.user_id)}>
+                                                      {user.name || user.username || `Usuário ${user.id || user.userId || user.user_id}`}
                                                     </SelectItem>
                                                   ))}
                                                 </SelectContent>
