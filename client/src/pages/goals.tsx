@@ -54,6 +54,45 @@ import { format } from "date-fns";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
+// Basic typings
+interface Farm {
+  id: number;
+  name: string;
+  // Other farm properties...
+}
+
+interface User {
+  userId: number;
+  username?: string;
+  name?: string;
+  // Other user properties...
+}
+
+interface Crop {
+  id: number;
+  name: string;
+  // Other crop properties...
+}
+
+interface Goal {
+  id: number;
+  name: string;
+  description: string | null;
+  farmId: number;
+  assignedTo: number;
+  startDate: string;
+  endDate: string;
+  targetValue: string;
+  actualValue: string;
+  unit: string;
+  status: string;
+  cropId: number | null;
+  notes: string | null;
+  createdBy: number;
+  completionDate: string | null;
+  createdAt: string;
+}
+
 // Status badge colors
 const statusColors = {
   pending: "bg-yellow-500",
@@ -114,31 +153,31 @@ export default function GoalsPage() {
   }, [farmId, setLocation]);
 
   // Query farm information
-  const { data: farmData } = useQuery({
+  const { data: farmData } = useQuery<Farm>({
     queryKey: ['/api/farms', farmId],
     enabled: !!farmId
   });
 
   // Query users for the farm
-  const { data: farmUsers } = useQuery({
+  const { data: farmUsers } = useQuery<User[]>({
     queryKey: ['/api/farms', farmId, 'users'],
     enabled: !!farmId
   });
 
   // Query crops for the farm
-  const { data: crops } = useQuery({
+  const { data: crops } = useQuery<Crop[]>({
     queryKey: ['/api/farms', farmId, 'crops'],
     enabled: !!farmId
   });
 
   // Query goals based on selected tab
-  const { data: goals, isLoading } = useQuery({
+  const { data: goals, isLoading } = useQuery<Goal[]>({
     queryKey: ['/api/farms', farmId, 'goals', selectedTab],
     queryFn: async () => {
       if (selectedTab === "all") {
-        return await apiRequest(`/api/farms/${farmId}/goals`, {});
+        return await apiRequest<Goal[]>(`/api/farms/${farmId}/goals`, {});
       } else {
-        return await apiRequest(`/api/farms/${farmId}/goals/status/${selectedTab}`, {});
+        return await apiRequest<Goal[]>(`/api/farms/${farmId}/goals/status/${selectedTab}`, {});
       }
     },
     enabled: !!farmId
@@ -146,8 +185,8 @@ export default function GoalsPage() {
 
   // Create goal mutation
   const createGoal = useMutation({
-    mutationFn: (goalData: any) => {
-      return apiRequest(`/api/farms/${farmId}/goals`, {
+    mutationFn: async (goalData: Omit<Partial<Goal>, 'id' | 'createdAt' | 'completionDate' | 'actualValue'>) => {
+      return await apiRequest<Goal>(`/api/farms/${farmId}/goals`, {
         method: "POST",
         data: goalData
       });
@@ -171,8 +210,11 @@ export default function GoalsPage() {
 
   // Update goal mutation
   const updateGoal = useMutation({
-    mutationFn: ({ goalId, goalData }: { goalId: number, goalData: any }) => {
-      return apiRequest(`/api/goals/${goalId}`, {
+    mutationFn: async ({ goalId, goalData }: { 
+      goalId: number, 
+      goalData: Partial<Goal>
+    }) => {
+      return await apiRequest<Goal>(`/api/goals/${goalId}`, {
         method: "PATCH",
         data: goalData
       });
