@@ -856,7 +856,7 @@ export default function GoalsPage() {
                                                   </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                  <SelectItem value="">Nenhuma</SelectItem>
+                                                  <SelectItem value="0">Nenhuma</SelectItem>
                                                   {crops?.map((crop: any) => (
                                                     <SelectItem key={crop.id} value={String(crop.id)}>
                                                       {crop.name}
