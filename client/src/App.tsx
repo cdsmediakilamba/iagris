@@ -20,6 +20,7 @@ import Calendar from "@/pages/calendar";
 import Reports from "@/pages/reports";
 import Sync from "@/pages/sync";
 import { UserRole } from "@shared/schema";
+import { AuthProvider } from "@/hooks/use-auth";
 
 function Router() {
   return (
@@ -54,10 +55,12 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Router />
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
