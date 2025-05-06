@@ -83,6 +83,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Farm Users route
+  app.get("/api/farms/:farmId/users", 
+    checkModuleAccess(SystemModule.ADMINISTRATION, AccessLevel.READ_ONLY), 
+    async (req, res) => {
+      try {
+        const farmId = parseInt(req.params.farmId, 10);
+        const farmUserRelations = await storage.getFarmUsers(farmId);
+        
+        // Para cada relação, obtemos os detalhes completos do usuário
+        const users = [];
+        for (const relation of farmUserRelations) {
+          const user = await storage.getUser(relation.userId);
+          if (user) {
+            users.push({
+              ...user,
+              farmRole: relation.role
+            });
+          }
+        }
+        
+        res.json(users);
+      } catch (error) {
+        console.error("Error fetching farm users:", error);
+        res.status(500).json({ message: "Failed to fetch farm users" });
+      }
+    }
+  );
+
   // Animal routes
   app.get("/api/farms/:farmId/animals", 
     checkModuleAccess(SystemModule.ANIMALS, AccessLevel.READ_ONLY), 

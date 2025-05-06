@@ -259,7 +259,7 @@ export default function GoalsPage() {
       form.reset({
         name: "",
         description: "",
-        assignedTo: employeeUser ? String(employeeUser.id || employeeUser.userId || employeeUser.user_id) : "0",
+        assignedTo: employeeUser ? String(employeeUser.id) : "0",
         startDate: new Date(),
         endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
         targetValue: "",
@@ -310,7 +310,9 @@ export default function GoalsPage() {
   // Find user name by ID
   const getUserName = (userId: number) => {
     if (!farmUsers) return "Usuário desconhecido";
-    const user = farmUsers.find((user: any) => user.userId === userId || user.id === userId);
+    const user = farmUsers.find((user: any) => 
+      user.id === userId
+    );
     if (!user) return `Usuário ${userId}`;
     return user.name || user.username || `Usuário ${userId}`;
   };
@@ -437,8 +439,8 @@ export default function GoalsPage() {
                               </FormControl>
                               <SelectContent>
                                 {farmUsers?.filter((user: any) => user.role === "employee").map((user: any) => (
-                                  <SelectItem key={user.id || user.userId} value={String(user.id || user.userId || user.user_id)}>
-                                    {user.name || user.username || `Usuário ${user.id || user.userId || user.user_id}`}
+                                  <SelectItem key={user.id} value={String(user.id)}>
+                                    {user.name || user.username || `Usuário ${user.id}`}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -830,8 +832,8 @@ export default function GoalsPage() {
                                                 </FormControl>
                                                 <SelectContent>
                                                   {farmUsers?.filter((user: any) => user.role === "employee").map((user: any) => (
-                                                    <SelectItem key={user.id || user.userId} value={String(user.id || user.userId || user.user_id)}>
-                                                      {user.name || user.username || `Usuário ${user.id || user.userId || user.user_id}`}
+                                                    <SelectItem key={user.id} value={String(user.id)}>
+                                                      {user.name || user.username || `Usuário ${user.id}`}
                                                     </SelectItem>
                                                   ))}
                                                 </SelectContent>

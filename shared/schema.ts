@@ -32,7 +32,8 @@ export enum SystemModule {
   EMPLOYEES = "employees",
   FINANCIAL = "financial",
   REPORTS = "reports",
-  GOALS = "goals"
+  GOALS = "goals",
+  ADMINISTRATION = "administration" // Módulo para administração do sistema
 }
 
 // User table schema
