@@ -17,7 +17,9 @@ import {
   ShieldAlert,
   RefreshCw,
   WifiOff,
-  Target
+  Target,
+  BarChart3,
+  Package
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -74,6 +76,12 @@ export default function Sidebar({ isOpen }: SidebarProps) {
       icon: <Warehouse className="mr-4 h-5 w-5" />,
       path: '/inventory',
       active: location === '/inventory',
+    },
+    {
+      title: t('inventory.transactions.title') || 'Transações de Inventário',
+      icon: <BarChart3 className="mr-4 h-5 w-5" />,
+      path: '/inventory-transactions',
+      active: location === '/inventory-transactions',
     },
     {
       title: t('common.employees'),
@@ -159,14 +167,14 @@ export default function Sidebar({ isOpen }: SidebarProps) {
               <h2 className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 {t('common.management') || 'Gestão'}
               </h2>
-              {filteredItems.slice(4, 9).map((item, index) => renderNavItem(item, index))}
+              {filteredItems.slice(4, 10).map((item, index) => renderNavItem(item, index))}
             </div>
             
             <div>
               <h2 className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 {t('common.system') || 'Sistema'}
               </h2>
-              {filteredItems.slice(9).map((item, index) => renderNavItem(item, index))}
+              {filteredItems.slice(10).map((item, index) => renderNavItem(item, index))}
             </div>
           </nav>
         </div>
