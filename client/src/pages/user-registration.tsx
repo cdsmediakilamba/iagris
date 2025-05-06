@@ -113,6 +113,12 @@ export default function UserRegistration() {
     });
     return () => subscription.unsubscribe();
   }, [form.watch]);
+  
+  // Inicializar permissões quando o componente carregar com o valor padrão
+  React.useEffect(() => {
+    const defaultRole = form.getValues().role as UserRole;
+    initializePermissionsByRole(defaultRole);
+  }, []);
 
   // Inicializar permissões com base na função selecionada
   const initializePermissionsByRole = (role: UserRole) => {
@@ -221,12 +227,7 @@ export default function UserRegistration() {
       };
 
       const userResponse = await apiRequest('POST', '/api/users', userData);
-      if (!userResponse.ok) {
-        const errorText = await userResponse.text();
-        throw new Error(errorText || 'Falha ao criar usuário');
-      }
-      
-      const newUser = await userResponse.json();
+      const newUser = userResponse;
       
       // 2. Definir permissões para o usuário se uma fazenda foi selecionada
       if (data.farmId && permissions.some(p => p.enabled)) {
@@ -308,11 +309,16 @@ export default function UserRegistration() {
                       <FormItem>
                         <FormLabel>Nome Completo</FormLabel>
                         <FormControl>
-                          <Input 
-                            {...field} 
-                            placeholder="Digite o nome completo" 
-                            prefix={<User className="h-4 w-4 text-gray-400" />} 
-                          />
+                          <div className="relative">
+                            <span className="absolute left-2.5 top-2.5">
+                              <User className="h-4 w-4 text-gray-400" />
+                            </span>
+                            <Input 
+                              {...field} 
+                              placeholder="Digite o nome completo" 
+                              className="pl-8"
+                            />
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -326,12 +332,17 @@ export default function UserRegistration() {
                       <FormItem>
                         <FormLabel>E-mail</FormLabel>
                         <FormControl>
-                          <Input 
-                            {...field} 
-                            type="email" 
-                            placeholder="email@exemplo.com"
-                            prefix={<Mail className="h-4 w-4 text-gray-400" />}
-                          />
+                          <div className="relative">
+                            <span className="absolute left-2.5 top-2.5">
+                              <Mail className="h-4 w-4 text-gray-400" />
+                            </span>
+                            <Input 
+                              {...field} 
+                              type="email" 
+                              placeholder="email@exemplo.com"
+                              className="pl-8"
+                            />
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -388,12 +399,17 @@ export default function UserRegistration() {
                       <FormItem>
                         <FormLabel>Senha</FormLabel>
                         <FormControl>
-                          <Input 
-                            {...field} 
-                            type="password" 
-                            placeholder="Digite a senha"
-                            prefix={<Lock className="h-4 w-4 text-gray-400" />}
-                          />
+                          <div className="relative">
+                            <span className="absolute left-2.5 top-2.5">
+                              <Lock className="h-4 w-4 text-gray-400" />
+                            </span>
+                            <Input 
+                              {...field} 
+                              type="password" 
+                              placeholder="Digite a senha"
+                              className="pl-8"
+                            />
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -407,12 +423,17 @@ export default function UserRegistration() {
                       <FormItem>
                         <FormLabel>Confirmar Senha</FormLabel>
                         <FormControl>
-                          <Input 
-                            {...field} 
-                            type="password" 
-                            placeholder="Confirme a senha"
-                            prefix={<Lock className="h-4 w-4 text-gray-400" />}
-                          />
+                          <div className="relative">
+                            <span className="absolute left-2.5 top-2.5">
+                              <Lock className="h-4 w-4 text-gray-400" />
+                            </span>
+                            <Input 
+                              {...field} 
+                              type="password" 
+                              placeholder="Confirme a senha"
+                              className="pl-8"
+                            />
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -478,11 +499,11 @@ export default function UserRegistration() {
                             {isLoadingFarms ? (
                               <SelectItem value="loading" disabled>Carregando...</SelectItem>
                             ) : (
-                              farms?.map((farm) => (
+                              Array.isArray(farms) ? farms.map((farm: any) => (
                                 <SelectItem key={farm.id} value={farm.id.toString()}>
                                   {farm.name}
                                 </SelectItem>
-                              ))
+                              )) : <SelectItem value="no-farms">Nenhuma fazenda disponível</SelectItem>
                             )}
                           </SelectContent>
                         </Select>
