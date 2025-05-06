@@ -688,13 +688,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const farmId = parseInt(req.params.farmId);
         
+        console.log("Request body:", req.body);
+        
         // Converter as strings de data para objetos Date
         const { startDate, endDate, ...otherData } = req.body;
         
+        // Garantir que temos datas válidas
+        let startDateObj = null;
+        let endDateObj = null;
+        
+        try {
+          startDateObj = startDate ? new Date(startDate) : null;
+          endDateObj = endDate ? new Date(endDate) : null;
+          
+          // Verificar se as datas são válidas
+          if (startDateObj && isNaN(startDateObj.getTime())) {
+            throw new Error("Invalid start date");
+          }
+          
+          if (endDateObj && isNaN(endDateObj.getTime())) {
+            throw new Error("Invalid end date");
+          }
+        } catch (dateError) {
+          console.error("Date parsing error:", dateError);
+          return res.status(400).json({ message: "Invalid date format" });
+        }
+        
+        // Garantir que o targetValue seja numérico
+        let targetValue = otherData.targetValue;
+        if (typeof targetValue === 'string') {
+          targetValue = parseFloat(targetValue);
+        }
+        
         const goalData = { 
-          ...otherData, 
-          startDate: startDate ? new Date(startDate) : null,
-          endDate: endDate ? new Date(endDate) : null,
+          ...otherData,
+          targetValue,
+          startDate: startDateObj,
+          endDate: endDateObj,
           farmId,
           createdBy: req.user.id
         };
@@ -748,14 +778,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "You don't have permission to update goals" });
         }
         
-        // Converter as strings de data para objetos Date se presentes
-        const { startDate, endDate, completionDate, ...otherData } = req.body;
+        console.log("Update request body:", req.body);
         
+        // Extrair dados da requisição
+        const { startDate, endDate, completionDate, targetValue, actualValue, ...otherData } = req.body;
+        
+        // Processar datas
+        let startDateObj = undefined;
+        let endDateObj = undefined;
+        let completionDateObj = undefined;
+        
+        try {
+          if (startDate !== undefined) {
+            startDateObj = startDate ? new Date(startDate) : null;
+            if (startDateObj && isNaN(startDateObj.getTime())) {
+              throw new Error("Invalid start date");
+            }
+          }
+          
+          if (endDate !== undefined) {
+            endDateObj = endDate ? new Date(endDate) : null;
+            if (endDateObj && isNaN(endDateObj.getTime())) {
+              throw new Error("Invalid end date");
+            }
+          }
+          
+          if (completionDate !== undefined) {
+            completionDateObj = completionDate ? new Date(completionDate) : null;
+            if (completionDateObj && isNaN(completionDateObj.getTime())) {
+              throw new Error("Invalid completion date");
+            }
+          }
+        } catch (dateError) {
+          console.error("Date parsing error:", dateError);
+          return res.status(400).json({ message: "Invalid date format" });
+        }
+        
+        // Processar valores numéricos
+        let targetValueNum = undefined;
+        let actualValueNum = undefined;
+        
+        if (targetValue !== undefined) {
+          targetValueNum = typeof targetValue === 'string' ? parseFloat(targetValue) : targetValue;
+        }
+        
+        if (actualValue !== undefined) {
+          actualValueNum = typeof actualValue === 'string' ? parseFloat(actualValue) : actualValue;
+        }
+        
+        // Montar objeto com dados para atualização
         const goalData = { 
           ...otherData,
-          ...(startDate && { startDate: new Date(startDate) }),
-          ...(endDate && { endDate: new Date(endDate) }),
-          ...(completionDate && { completionDate: new Date(completionDate) })
+          ...(targetValueNum !== undefined && { targetValue: targetValueNum }),
+          ...(actualValueNum !== undefined && { actualValue: actualValueNum }),
+          ...(startDateObj !== undefined && { startDate: startDateObj }),
+          ...(endDateObj !== undefined && { endDate: endDateObj }),
+          ...(completionDateObj !== undefined && { completionDate: completionDateObj })
         };
         
         console.log("Updating goal with data:", goalData);
