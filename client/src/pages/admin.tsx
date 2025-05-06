@@ -147,8 +147,7 @@ export default function Admin() {
   // Create user mutation
   const createUserMutation = useMutation({
     mutationFn: async (userData: z.infer<typeof insertUserSchema>) => {
-      const response = await apiRequest('POST', '/api/users', userData);
-      return response.json();
+      return await apiRequest('/api/users', { method: 'POST', data: userData });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
@@ -189,8 +188,7 @@ export default function Admin() {
   // Create farm mutation
   const createFarmMutation = useMutation({
     mutationFn: async (farmData: z.infer<typeof insertFarmSchema>) => {
-      const response = await apiRequest('POST', '/api/farms', farmData);
-      return response.json();
+      return await apiRequest('/api/farms', { method: 'POST', data: farmData });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/farms'] });

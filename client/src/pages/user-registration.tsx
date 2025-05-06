@@ -226,8 +226,7 @@ export default function UserRegistration() {
         farmId: data.farmId,
       };
 
-      const userResponse = await apiRequest('POST', '/api/users', userData);
-      const newUser = userResponse;
+      const newUser = await apiRequest('/api/users', { method: 'POST', data: userData });
       
       // 2. Definir permissões para o usuário se uma fazenda foi selecionada
       if (data.farmId && permissions.some(p => p.enabled)) {
@@ -241,7 +240,7 @@ export default function UserRegistration() {
             accessLevel: perm.accessLevel
           };
           
-          const permResponse = await apiRequest('POST', '/api/permissions', permissionData);
+          await apiRequest('/api/permissions', { method: 'POST', data: permissionData });
         }
       }
       
