@@ -49,7 +49,8 @@ import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 // Usar o Loader2 diretamente, pois o Spinner pode não estar disponível
 import { Loader2 } from "lucide-react";
-import { CalendarIcon, Plus, RefreshCw } from "lucide-react";
+import { CalendarIcon, Plus, RefreshCw, Check } from "lucide-react";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -258,7 +259,7 @@ export default function GoalsPage() {
       form.reset({
         name: "",
         description: "",
-        assignedTo: employeeUser ? String(employeeUser.id) : "0",
+        assignedTo: employeeUser ? String(employeeUser.userId) : "0",
         startDate: new Date(),
         endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
         targetValue: "",
@@ -308,7 +309,7 @@ export default function GoalsPage() {
   const getUserName = (userId: number) => {
     if (!farmUsers) return "Usuário desconhecido";
     const user = farmUsers.find((user: any) => 
-      user.id === userId
+      user.userId === userId
     );
     if (!user) return `Usuário ${userId}`;
     return user.name || user.username || `Usuário ${userId}`;
@@ -420,30 +421,70 @@ export default function GoalsPage() {
                     <FormField
                       control={form.control}
                       name="assignedTo"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Responsável</FormLabel>
-                          <Select 
-                            onValueChange={field.onChange} 
-                            defaultValue={field.value}
-                            value={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione um usuário" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {farmUsers?.filter((user: any) => user.role === "employee").map((user: any) => (
-                                <SelectItem key={user.userId} value={String(user.userId)}>
-                                  {user.name || user.username || `Usuário ${user.userId}`}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                      render={({ field }) => {
+                        const filteredUsers = farmUsers?.filter((user: any) => user.role === "employee") || [];
+                        const selectedUser = filteredUsers.find(user => String(user.userId) === field.value);
+                        const [open, setOpen] = useState(false);
+                        const [inputValue, setInputValue] = useState('');
+                        
+                        return (
+                          <FormItem className="flex flex-col">
+                            <FormLabel>Responsável</FormLabel>
+                            <Popover open={open} onOpenChange={setOpen}>
+                              <PopoverTrigger asChild>
+                                <FormControl>
+                                  <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    aria-expanded={open}
+                                    className="justify-between w-full"
+                                  >
+                                    {field.value && selectedUser
+                                      ? selectedUser.name || selectedUser.username || `Usuário ${selectedUser.userId}`
+                                      : "Selecione um usuário"}
+                                  </Button>
+                                </FormControl>
+                              </PopoverTrigger>
+                              <PopoverContent className="p-0 w-full" align="start">
+                                <Command>
+                                  <CommandInput
+                                    placeholder="Buscar usuário..."
+                                    value={inputValue}
+                                    onValueChange={setInputValue}
+                                    className="h-9"
+                                  />
+                                  <CommandList>
+                                    <CommandEmpty>Nenhum usuário encontrado.</CommandEmpty>
+                                    <CommandGroup>
+                                      {filteredUsers
+                                        .filter(user => 
+                                          (user.name?.toLowerCase() || "").includes(inputValue.toLowerCase()) ||
+                                          (user.username?.toLowerCase() || "").includes(inputValue.toLowerCase())
+                                        )
+                                        .map((user) => (
+                                          <CommandItem
+                                            key={user.userId}
+                                            value={String(user.userId)}
+                                            onSelect={(value) => {
+                                              field.onChange(value);
+                                              setOpen(false);
+                                            }}
+                                          >
+                                            {user.name || user.username || `Usuário ${user.userId}`}
+                                            {String(user.userId) === field.value && (
+                                              <Check className="ml-auto h-4 w-4" />
+                                            )}
+                                          </CommandItem>
+                                        ))}
+                                    </CommandGroup>
+                                  </CommandList>
+                                </Command>
+                              </PopoverContent>
+                            </Popover>
+                            <FormMessage />
+                          </FormItem>
+                        );
+                      }}
                     />
                     
                     <div className="grid grid-cols-2 gap-4">
@@ -781,30 +822,70 @@ export default function GoalsPage() {
                                       <FormField
                                         control={form.control}
                                         name="assignedTo"
-                                        render={({ field }) => (
-                                          <FormItem>
-                                            <FormLabel>Responsável</FormLabel>
-                                            <Select 
-                                              onValueChange={field.onChange} 
-                                              defaultValue={field.value}
-                                              value={field.value}
-                                            >
-                                              <FormControl>
-                                                <SelectTrigger>
-                                                  <SelectValue placeholder="Selecione um usuário" />
-                                                </SelectTrigger>
-                                              </FormControl>
-                                              <SelectContent>
-                                                {farmUsers?.filter((user: any) => user.role === "employee").map((user: any) => (
-                                                  <SelectItem key={user.userId} value={String(user.userId)}>
-                                                    {user.name || user.username || `Usuário ${user.userId}`}
-                                                  </SelectItem>
-                                                ))}
-                                              </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                          </FormItem>
-                                        )}
+                                        render={({ field }) => {
+                                          const filteredUsers = farmUsers?.filter((user: any) => user.role === "employee") || [];
+                                          const selectedUser = filteredUsers.find(user => String(user.userId) === field.value);
+                                          const [open, setOpen] = useState(false);
+                                          const [inputValue, setInputValue] = useState('');
+                                          
+                                          return (
+                                            <FormItem className="flex flex-col">
+                                              <FormLabel>Responsável</FormLabel>
+                                              <Popover open={open} onOpenChange={setOpen}>
+                                                <PopoverTrigger asChild>
+                                                  <FormControl>
+                                                    <Button
+                                                      variant="outline"
+                                                      role="combobox"
+                                                      aria-expanded={open}
+                                                      className="justify-between w-full"
+                                                    >
+                                                      {field.value && selectedUser
+                                                        ? selectedUser.name || selectedUser.username || `Usuário ${selectedUser.userId}`
+                                                        : "Selecione um usuário"}
+                                                    </Button>
+                                                  </FormControl>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="p-0 w-full" align="start">
+                                                  <Command>
+                                                    <CommandInput
+                                                      placeholder="Buscar usuário..."
+                                                      value={inputValue}
+                                                      onValueChange={setInputValue}
+                                                      className="h-9"
+                                                    />
+                                                    <CommandList>
+                                                      <CommandEmpty>Nenhum usuário encontrado.</CommandEmpty>
+                                                      <CommandGroup>
+                                                        {filteredUsers
+                                                          .filter(user => 
+                                                            (user.name?.toLowerCase() || "").includes(inputValue.toLowerCase()) ||
+                                                            (user.username?.toLowerCase() || "").includes(inputValue.toLowerCase())
+                                                          )
+                                                          .map((user) => (
+                                                            <CommandItem
+                                                              key={user.userId}
+                                                              value={String(user.userId)}
+                                                              onSelect={(value) => {
+                                                                field.onChange(value);
+                                                                setOpen(false);
+                                                              }}
+                                                            >
+                                                              {user.name || user.username || `Usuário ${user.userId}`}
+                                                              {String(user.userId) === field.value && (
+                                                                <Check className="ml-auto h-4 w-4" />
+                                                              )}
+                                                            </CommandItem>
+                                                          ))}
+                                                      </CommandGroup>
+                                                    </CommandList>
+                                                  </Command>
+                                                </PopoverContent>
+                                              </Popover>
+                                              <FormMessage />
+                                            </FormItem>
+                                          );
+                                        }}
                                       />
                                       
                                       <div className="grid grid-cols-2 gap-4">
