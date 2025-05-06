@@ -435,8 +435,8 @@ export default function GoalsPage() {
                             </FormControl>
                             <SelectContent>
                               {farmUsers?.filter((user: any) => user.role === "employee").map((user: any) => (
-                                <SelectItem key={user.id} value={String(user.id)}>
-                                  {user.name || user.username || `Usuário ${user.id}`}
+                                <SelectItem key={user.userId} value={String(user.userId)}>
+                                  {user.name || user.username || `Usuário ${user.userId}`}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -796,8 +796,8 @@ export default function GoalsPage() {
                                               </FormControl>
                                               <SelectContent>
                                                 {farmUsers?.filter((user: any) => user.role === "employee").map((user: any) => (
-                                                  <SelectItem key={user.id} value={String(user.id)}>
-                                                    {user.name || user.username || `Usuário ${user.id}`}
+                                                  <SelectItem key={user.userId} value={String(user.userId)}>
+                                                    {user.name || user.username || `Usuário ${user.userId}`}
                                                   </SelectItem>
                                                 ))}
                                               </SelectContent>
