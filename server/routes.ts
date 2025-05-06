@@ -685,10 +685,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Not authenticated" });
       }
       
-      const farmId = parseInt(req.params.farmId);
-      const goalData = { ...req.body, farmId, createdBy: req.user.id };
-      
       try {
+        const farmId = parseInt(req.params.farmId);
+        
+        // Converter as strings de data para objetos Date
+        const { startDate, endDate, ...otherData } = req.body;
+        
+        const goalData = { 
+          ...otherData, 
+          startDate: startDate ? new Date(startDate) : null,
+          endDate: endDate ? new Date(endDate) : null,
+          farmId,
+          createdBy: req.user.id
+        };
+        
+        console.log("Creating goal with data:", goalData);
+        
         // Check if user has permission to create goals on this farm
         const hasPermission = await storage.checkUserAccess(
           req.user.id,
@@ -702,6 +714,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         const goal = await storage.createGoal(goalData);
+        console.log("Goal created successfully:", goal);
         res.status(201).json(goal);
       } catch (error) {
         console.error("Error creating goal:", error);
@@ -717,7 +730,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const goalId = parseInt(req.params.goalId);
-      const goalData = req.body;
       
       try {
         // Get the goal to check permissions
@@ -736,8 +748,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "You don't have permission to update goals" });
         }
         
+        // Converter as strings de data para objetos Date se presentes
+        const { startDate, endDate, completionDate, ...otherData } = req.body;
+        
+        const goalData = { 
+          ...otherData,
+          ...(startDate && { startDate: new Date(startDate) }),
+          ...(endDate && { endDate: new Date(endDate) }),
+          ...(completionDate && { completionDate: new Date(completionDate) })
+        };
+        
+        console.log("Updating goal with data:", goalData);
+        
         // Update the goal
         const updatedGoal = await storage.updateGoal(goalId, goalData);
+        console.log("Goal updated successfully:", updatedGoal);
         res.json(updatedGoal);
       } catch (error) {
         console.error("Error updating goal:", error);
