@@ -3,6 +3,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { useLanguage } from '@/context/LanguageContext';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useForm } from 'react-hook-form';
+import { useLocation } from 'wouter';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { insertInventorySchema, Inventory as InventoryType } from '@shared/schema';
@@ -59,6 +60,7 @@ import {
   Loader2,
   AlertTriangle,
   Truck,
+  BarChart3,
 } from 'lucide-react';
 import {
   Tabs,
@@ -70,6 +72,7 @@ import {
 export default function Inventory() {
   const { t, language } = useLanguage();
   const { toast } = useToast();
+  const [, navigate] = useLocation();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFarmId, setSelectedFarmId] = useState<number | null>(null);
@@ -241,147 +244,159 @@ export default function Inventory() {
             )}
           </div>
           
-          {/* Add inventory button */}
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="w-full sm:w-auto">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                {t('inventory.addItem')}
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
-              <DialogHeader>
-                <DialogTitle>{t('inventory.addItem')}</DialogTitle>
-              </DialogHeader>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t('inventory.name')}</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="category"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t('inventory.category')}</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
+          {/* Inventory buttons */}
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button 
+              variant="outline"
+              className="flex items-center text-gray-700"
+              onClick={() => navigate('/inventory-transactions')}
+            >
+              <BarChart3 className="h-4 w-4 mr-2" />
+              {t('inventory.transactions.title') || 'Transações'}
+            </Button>
+          
+            {/* Add inventory button */}
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full sm:w-auto">
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  {t('inventory.addItem')}
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[600px]">
+                <DialogHeader>
+                  <DialogTitle>{t('inventory.addItem')}</DialogTitle>
+                </DialogHeader>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{t('inventory.name')}</FormLabel>
                             <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder={t('inventory.category')} />
-                              </SelectTrigger>
+                              <Input {...field} />
                             </FormControl>
-                            <SelectContent>
-                              <SelectItem value="feed">{t('inventory.categories.feed')}</SelectItem>
-                              <SelectItem value="medicine">{t('inventory.categories.medicine')}</SelectItem>
-                              <SelectItem value="seeds">{t('inventory.categories.seeds')}</SelectItem>
-                              <SelectItem value="fertilizer">{t('inventory.categories.fertilizer')}</SelectItem>
-                              <SelectItem value="pesticide">{t('inventory.categories.pesticide')}</SelectItem>
-                              <SelectItem value="fuel">{t('inventory.categories.fuel')}</SelectItem>
-                              <SelectItem value="equipment">{t('inventory.categories.equipment')}</SelectItem>
-                              <SelectItem value="other">{t('inventory.categories.other')}</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="quantity"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t('inventory.quantity')}</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="number" 
-                              {...field}
-                              onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="unit"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t('inventory.unit')}</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="category"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{t('inventory.category')}</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder={t('inventory.category')} />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="feed">{t('inventory.categories.feed')}</SelectItem>
+                                <SelectItem value="medicine">{t('inventory.categories.medicine')}</SelectItem>
+                                <SelectItem value="seeds">{t('inventory.categories.seeds')}</SelectItem>
+                                <SelectItem value="fertilizer">{t('inventory.categories.fertilizer')}</SelectItem>
+                                <SelectItem value="pesticide">{t('inventory.categories.pesticide')}</SelectItem>
+                                <SelectItem value="fuel">{t('inventory.categories.fuel')}</SelectItem>
+                                <SelectItem value="equipment">{t('inventory.categories.equipment')}</SelectItem>
+                                <SelectItem value="other">{t('inventory.categories.other')}</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="quantity"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{t('inventory.quantity')}</FormLabel>
                             <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder={t('inventory.unit')} />
-                              </SelectTrigger>
+                              <Input 
+                                type="number" 
+                                {...field}
+                                onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                              />
                             </FormControl>
-                            <SelectContent>
-                              <SelectItem value="kg">{t('inventory.units.kg')}</SelectItem>
-                              <SelectItem value="l">{t('inventory.units.l')}</SelectItem>
-                              <SelectItem value="units">{t('inventory.units.units')}</SelectItem>
-                              <SelectItem value="bags">{t('inventory.units.bags')}</SelectItem>
-                              <SelectItem value="boxes">{t('inventory.units.boxes')}</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="minimumLevel"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t('inventory.minimumLevel')}</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="number" 
-                              {...field}
-                              onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <DialogFooter>
-                    <DialogClose asChild>
-                      <Button variant="outline">{t('common.cancel')}</Button>
-                    </DialogClose>
-                    <Button type="submit" disabled={createInventoryItem.isPending}>
-                      {createInventoryItem.isPending ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          {t('common.loading')}
-                        </>
-                      ) : (
-                        t('common.save')
-                      )}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="unit"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{t('inventory.unit')}</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder={t('inventory.unit')} />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="kg">{t('inventory.units.kg')}</SelectItem>
+                                <SelectItem value="l">{t('inventory.units.l')}</SelectItem>
+                                <SelectItem value="units">{t('inventory.units.units')}</SelectItem>
+                                <SelectItem value="bags">{t('inventory.units.bags')}</SelectItem>
+                                <SelectItem value="boxes">{t('inventory.units.boxes')}</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="minimumLevel"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{t('inventory.minimumLevel')}</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                {...field}
+                                onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <DialogFooter>
+                      <DialogClose asChild>
+                        <Button variant="outline">{t('common.cancel')}</Button>
+                      </DialogClose>
+                      <Button type="submit" disabled={createInventoryItem.isPending}>
+                        {createInventoryItem.isPending ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            {t('common.loading')}
+                          </>
+                        ) : (
+                          t('common.save')
+                        )}
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
       </div>
 
