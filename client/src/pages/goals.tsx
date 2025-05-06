@@ -254,10 +254,12 @@ export default function GoalsPage() {
   // Reset form when opening the create goal form
   useEffect(() => {
     if (openCreateGoal) {
+      // Encontra um funcionário (employee) nos usuários da fazenda
+      const employeeUser = farmUsers?.find((user: any) => user.role === "employee");
       form.reset({
         name: "",
         description: "",
-        assignedTo: farmUsers && farmUsers.length > 0 ? String(farmUsers[0].userId) : "0",
+        assignedTo: employeeUser ? String(employeeUser.id || employeeUser.userId || employeeUser.user_id) : "0",
         startDate: new Date(),
         endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
         targetValue: "",
@@ -434,7 +436,7 @@ export default function GoalsPage() {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                {farmUsers?.map((user: any) => (
+                                {farmUsers?.filter((user: any) => user.role === "employee").map((user: any) => (
                                   <SelectItem key={user.id || user.userId} value={String(user.id || user.userId || user.user_id)}>
                                     {user.name || user.username || `Usuário ${user.id || user.userId || user.user_id}`}
                                   </SelectItem>
@@ -827,7 +829,7 @@ export default function GoalsPage() {
                                                   </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                  {farmUsers?.map((user: any) => (
+                                                  {farmUsers?.filter((user: any) => user.role === "employee").map((user: any) => (
                                                     <SelectItem key={user.id || user.userId} value={String(user.id || user.userId || user.user_id)}>
                                                       {user.name || user.username || `Usuário ${user.id || user.userId || user.user_id}`}
                                                     </SelectItem>
