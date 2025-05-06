@@ -126,7 +126,6 @@ const goalFormSchema = z.object({
   }),
   targetValue: z.string().min(1, "Valor alvo é obrigatório"),
   unit: z.string().min(1, "Unidade de medida é obrigatória"),
-  cropId: z.string().optional(),
   notes: z.string().optional(),
   status: z.string().default("pending")
 }).refine(data => new Date(data.startDate) <= new Date(data.endDate), {
@@ -264,12 +263,11 @@ export default function GoalsPage() {
         endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
         targetValue: "",
         unit: "units",
-        cropId: crops && crops.length > 0 ? String(crops[0].id) : "0",
         notes: "",
         status: "pending"
       });
     }
-  }, [openCreateGoal, form, farmUsers, crops]);
+  }, [openCreateGoal, form, farmUsers]);
 
   // Fill form with goal data when editing
   useEffect(() => {
@@ -282,7 +280,6 @@ export default function GoalsPage() {
         endDate: new Date(editingGoal.endDate),
         targetValue: editingGoal.targetValue,
         unit: editingGoal.unit,
-        cropId: editingGoal.cropId ? String(editingGoal.cropId) : "0",
         notes: editingGoal.notes || "",
         status: editingGoal.status
       });
@@ -295,7 +292,7 @@ export default function GoalsPage() {
     const goalData = {
       ...data,
       assignedTo: parseInt(data.assignedTo),
-      cropId: data.cropId ? parseInt(data.cropId) : null,
+      cropId: null, // Defina como nulo, já que removemos o campo
       startDate: data.startDate ? format(data.startDate, "yyyy-MM-dd") : "",
       endDate: data.endDate ? format(data.endDate, "yyyy-MM-dd") : "",
     };
@@ -420,66 +417,34 @@ export default function GoalsPage() {
                       )}
                     />
                     
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="assignedTo"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Responsável</FormLabel>
-                            <Select 
-                              onValueChange={field.onChange} 
-                              defaultValue={field.value}
-                              value={field.value}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione um usuário" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {farmUsers?.filter((user: any) => user.role === "employee").map((user: any) => (
-                                  <SelectItem key={user.id} value={String(user.id)}>
-                                    {user.name || user.username || `Usuário ${user.id}`}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="cropId"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Plantação (opcional)</FormLabel>
-                            <Select 
-                              onValueChange={field.onChange} 
-                              defaultValue={field.value}
-                              value={field.value}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="0">Nenhuma</SelectItem>
-                                {crops?.map((crop: any) => (
-                                  <SelectItem key={crop.id} value={String(crop.id)}>
-                                    {crop.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+                    <FormField
+                      control={form.control}
+                      name="assignedTo"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Responsável</FormLabel>
+                          <Select 
+                            onValueChange={field.onChange} 
+                            defaultValue={field.value}
+                            value={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione um usuário" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {farmUsers?.filter((user: any) => user.role === "employee").map((user: any) => (
+                                <SelectItem key={user.id} value={String(user.id)}>
+                                  {user.name || user.username || `Usuário ${user.id}`}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     
                     <div className="grid grid-cols-2 gap-4">
                       <FormField
@@ -813,66 +778,34 @@ export default function GoalsPage() {
                                         )}
                                       />
                                       
-                                      <div className="grid grid-cols-2 gap-4">
-                                        <FormField
-                                          control={form.control}
-                                          name="assignedTo"
-                                          render={({ field }) => (
-                                            <FormItem>
-                                              <FormLabel>Responsável</FormLabel>
-                                              <Select 
-                                                onValueChange={field.onChange} 
-                                                defaultValue={field.value}
-                                                value={field.value}
-                                              >
-                                                <FormControl>
-                                                  <SelectTrigger>
-                                                    <SelectValue placeholder="Selecione um usuário" />
-                                                  </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                  {farmUsers?.filter((user: any) => user.role === "employee").map((user: any) => (
-                                                    <SelectItem key={user.id} value={String(user.id)}>
-                                                      {user.name || user.username || `Usuário ${user.id}`}
-                                                    </SelectItem>
-                                                  ))}
-                                                </SelectContent>
-                                              </Select>
-                                              <FormMessage />
-                                            </FormItem>
-                                          )}
-                                        />
-                                        
-                                        <FormField
-                                          control={form.control}
-                                          name="cropId"
-                                          render={({ field }) => (
-                                            <FormItem>
-                                              <FormLabel>Plantação (opcional)</FormLabel>
-                                              <Select 
-                                                onValueChange={field.onChange} 
-                                                defaultValue={field.value}
-                                                value={field.value}
-                                              >
-                                                <FormControl>
-                                                  <SelectTrigger>
-                                                    <SelectValue placeholder="Selecione" />
-                                                  </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                  <SelectItem value="0">Nenhuma</SelectItem>
-                                                  {crops?.map((crop: any) => (
-                                                    <SelectItem key={crop.id} value={String(crop.id)}>
-                                                      {crop.name}
-                                                    </SelectItem>
-                                                  ))}
-                                                </SelectContent>
-                                              </Select>
-                                              <FormMessage />
-                                            </FormItem>
-                                          )}
-                                        />
-                                      </div>
+                                      <FormField
+                                        control={form.control}
+                                        name="assignedTo"
+                                        render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel>Responsável</FormLabel>
+                                            <Select 
+                                              onValueChange={field.onChange} 
+                                              defaultValue={field.value}
+                                              value={field.value}
+                                            >
+                                              <FormControl>
+                                                <SelectTrigger>
+                                                  <SelectValue placeholder="Selecione um usuário" />
+                                                </SelectTrigger>
+                                              </FormControl>
+                                              <SelectContent>
+                                                {farmUsers?.filter((user: any) => user.role === "employee").map((user: any) => (
+                                                  <SelectItem key={user.id} value={String(user.id)}>
+                                                    {user.name || user.username || `Usuário ${user.id}`}
+                                                  </SelectItem>
+                                                ))}
+                                              </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                          </FormItem>
+                                        )}
+                                      />
                                       
                                       <div className="grid grid-cols-2 gap-4">
                                         <FormField
