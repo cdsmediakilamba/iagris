@@ -162,13 +162,20 @@ export default function GoalsPage() {
   // Query users for the farm
   const { data: farmUsers } = useQuery<User[]>({
     queryKey: ['/api/farms', farmId, 'users'],
+    queryFn: async () => {
+      console.log("Fetching users for farm:", farmId);
+      // Usamos a função apiRequest para termos melhor controle e visualização da resposta
+      const users = await apiRequest<User[]>(`/api/farms/${farmId}/users`);
+      console.log("API Response from farm users endpoint:", users);
+      return users;
+    },
     enabled: !!farmId
   });
   
   // Log farm users data when it changes to debug
   useEffect(() => {
     if (farmUsers) {
-      console.log("Received farm users data:", farmUsers);
+      console.log("Received farm users data in state:", farmUsers);
     }
   }, [farmUsers]);
 
@@ -316,7 +323,7 @@ export default function GoalsPage() {
   const getUserName = (userId: number) => {
     if (!farmUsers) return "Usuário desconhecido";
     const user = farmUsers.find((user: any) => 
-      user.userId === userId
+      user.userId === userId || user.id === userId
     );
     if (!user) return `Usuário ${userId}`;
     return user.name || user.username || `Usuário ${userId}`;
