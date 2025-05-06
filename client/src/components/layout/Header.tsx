@@ -29,13 +29,14 @@ interface HeaderProps {
 
 export default function Header({ toggleSidebar }: HeaderProps) {
   const { language, setLanguage, t } = useLanguage();
-  const { user, logoutMutation } = useAuth();
+  const { user, logout } = useAuth();
   const [, setLocation] = useLocation();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   const handleLogout = () => {
-    logoutMutation.mutate();
-    setLocation('/auth');
+    logout(() => {
+      setLocation('/auth');
+    });
   };
 
   const handleLanguageToggle = (checked: boolean) => {
