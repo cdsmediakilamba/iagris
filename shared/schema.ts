@@ -1,6 +1,13 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, decimal } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, decimal, date } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+
+// Define tipos de transação de inventário
+export enum InventoryTransactionType {
+  IN = "in",      // Entrada no estoque
+  OUT = "out",    // Saída do estoque
+  ADJUST = "adjust" // Ajuste de inventário
+}
 
 // Define user roles for the system
 export enum UserRole {
@@ -115,10 +122,34 @@ export const inventory = pgTable("inventory", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   category: text("category").notNull(), // feed, medicine, seeds, fertilizer, etc.
-  quantity: integer("quantity").notNull(),
+  quantity: decimal("quantity").notNull(), // Alterado para decimal para ter maior precisão
   unit: text("unit").notNull(), // kg, liters, bags, etc.
   farmId: integer("farm_id").notNull(),
-  minimumLevel: integer("minimum_level"),
+  minimumLevel: decimal("minimum_level"),
+  lastUpdated: timestamp("last_updated").defaultNow(), // Data da última atualização
+  price: decimal("price"), // Preço unitário (opcional)
+  supplier: text("supplier"), // Fornecedor (opcional)
+  location: text("location"), // Localização dentro da fazenda (opcional)
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Tabela de transações de inventário
+export const inventoryTransactions = pgTable("inventory_transactions", {
+  id: serial("id").primaryKey(),
+  inventoryId: integer("inventory_id").notNull(), // Referência ao item de inventário
+  type: text("type").notNull(), // "in", "out", "adjust"
+  quantity: decimal("quantity").notNull(), // Quantidade da transação
+  previousBalance: decimal("previous_balance").notNull(), // Saldo anterior
+  newBalance: decimal("new_balance").notNull(), // Novo saldo após a transação
+  date: timestamp("date").defaultNow().notNull(), // Data da transação
+  documentNumber: text("document_number"), // Número do documento (nota fiscal, requisição, etc.)
+  userId: integer("user_id").notNull(), // Usuário que realizou a transação
+  farmId: integer("farm_id").notNull(), // Fazenda relacionada
+  notes: text("notes"), // Observações
+  destinationOrSource: text("destination_or_source"), // Destino ou origem do material
+  unitPrice: decimal("unit_price"), // Preço unitário (para entrada)
+  totalPrice: decimal("total_price"), // Preço total da transação
+  category: text("category"), // Categoria da transação (ex: compra, transferência, consumo)
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -224,6 +255,11 @@ export const insertGoalSchema = createInsertSchema(goals).omit({
   completionDate: true,
 });
 
+export const insertInventoryTransactionSchema = createInsertSchema(inventoryTransactions).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Export types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -245,6 +281,9 @@ export type Crop = typeof crops.$inferSelect;
 
 export type InsertInventory = z.infer<typeof insertInventorySchema>;
 export type Inventory = typeof inventory.$inferSelect;
+
+export type InsertInventoryTransaction = z.infer<typeof insertInventoryTransactionSchema>;
+export type InventoryTransaction = typeof inventoryTransactions.$inferSelect;
 
 export type InsertTask = z.infer<typeof insertTaskSchema>;
 export type Task = typeof tasks.$inferSelect;
