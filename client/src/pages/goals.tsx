@@ -305,18 +305,12 @@ export default function GoalsPage() {
   const onSubmit = (data: GoalFormValues) => {
     console.log("Dados do formulário antes de formatar:", data);
     
-    // Format the data for API
+    // Usar objeto mais simples possível
     const goalData = {
-      name: data.name,
-      description: data.description,
-      assignedTo: parseInt(data.assignedTo),
-      cropId: null,
-      targetValue: data.targetValue,
-      unit: data.unit,
-      status: data.status,
-      notes: data.notes,
+      ...data,
+      assignedTo: String(data.assignedTo),
       
-      // Formatar datas como strings no formato ISO
+      // Enviar datas como string ISO
       startDate: data.startDate ? data.startDate.toISOString() : null,
       endDate: data.endDate ? data.endDate.toISOString() : null,
     };

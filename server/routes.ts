@@ -690,21 +690,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         console.log("Request body:", req.body);
         
-        // Transmitir os dados diretamente para o banco de dados, evitando manipulação de datas
-        // Isso funciona porque o cliente está enviando as datas no formato correto (ISO string)
-        const goalData = { 
-          ...req.body,
-          farmId,
-          createdBy: req.user.id
-        };
+        // Definir datas padrão
+        let startDate = new Date();
+        let endDate = new Date();
+        endDate.setDate(endDate.getDate() + 30); // 30 dias a partir de hoje
         
-        // Converter valores numéricos
-        if (typeof goalData.targetValue === 'string') {
-          goalData.targetValue = parseFloat(goalData.targetValue);
+        // Tentar usar as datas do cliente
+        try {
+          if (req.body.startDate) {
+            const tempStartDate = new Date(req.body.startDate);
+            if (!isNaN(tempStartDate.getTime())) {
+              startDate = tempStartDate;
+            }
+          }
+          
+          if (req.body.endDate) {
+            const tempEndDate = new Date(req.body.endDate);
+            if (!isNaN(tempEndDate.getTime())) {
+              endDate = tempEndDate;
+            }
+          }
+        } catch (err) {
+          console.error("Error parsing dates:", err);
         }
         
-        if (goalData.actualValue && typeof goalData.actualValue === 'string') {
-          goalData.actualValue = parseFloat(goalData.actualValue);
+        // Criar um objeto simples com todos os campos necessários explicitamente definidos
+        const goalData = {
+          name: req.body.name,
+          description: req.body.description || null,
+          assignedTo: parseInt(req.body.assignedTo),
+          farmId: farmId,
+          createdBy: req.user.id,
+          status: req.body.status || 'pending',
+          unit: req.body.unit || 'units',
+          notes: req.body.notes || null,
+          cropId: null,
+          targetValue: 0,
+          actualValue: 0,
+          startDate: startDate,
+          endDate: endDate,
+          completionDate: null
+        };
+        
+        // Tratar valores numéricos
+        if (req.body.targetValue) {
+          goalData.targetValue = typeof req.body.targetValue === 'string' 
+            ? parseFloat(req.body.targetValue) 
+            : req.body.targetValue;
         }
         
         // Check if user has permission to create goals on this farm
@@ -718,11 +750,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!hasPermission) {
           return res.status(403).json({ message: "You don't have permission to create goals" });
         }
-        
-        // Remover propriedades undefined
-        Object.keys(goalData).forEach(key => 
-          goalData[key] === undefined && delete goalData[key]
-        );
         
         console.log("Creating goal with data:", goalData);
         
@@ -763,66 +790,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         console.log("Update request body:", req.body);
         
-        // Extrair dados da requisição
-        const { startDate, endDate, completionDate, targetValue, actualValue, ...otherData } = req.body;
+        // Criar objeto de atualização mais simples e direto
+        const updateData: any = {};
+        
+        // Copiar campos string básicos diretamente
+        if (req.body.name !== undefined) updateData.name = req.body.name;
+        if (req.body.description !== undefined) updateData.description = req.body.description;
+        if (req.body.status !== undefined) updateData.status = req.body.status;
+        if (req.body.unit !== undefined) updateData.unit = req.body.unit;
+        if (req.body.notes !== undefined) updateData.notes = req.body.notes;
+        
+        // Converter e copiar valores numéricos
+        if (req.body.assignedTo !== undefined) {
+          updateData.assignedTo = parseInt(req.body.assignedTo);
+        }
+        
+        if (req.body.targetValue !== undefined) {
+          updateData.targetValue = typeof req.body.targetValue === 'string'
+            ? parseFloat(req.body.targetValue)
+            : req.body.targetValue;
+        }
+        
+        if (req.body.actualValue !== undefined) {
+          updateData.actualValue = typeof req.body.actualValue === 'string'
+            ? parseFloat(req.body.actualValue)
+            : req.body.actualValue;
+        }
         
         // Processar datas
-        let startDateObj = undefined;
-        let endDateObj = undefined;
-        let completionDateObj = undefined;
-        
-        try {
-          if (startDate !== undefined) {
-            startDateObj = startDate ? new Date(startDate) : null;
-            if (startDateObj && isNaN(startDateObj.getTime())) {
-              throw new Error("Invalid start date");
+        if (req.body.startDate !== undefined) {
+          try {
+            updateData.startDate = new Date(req.body.startDate);
+            if (isNaN(updateData.startDate.getTime())) {
+              updateData.startDate = new Date();
             }
+          } catch (err) {
+            updateData.startDate = new Date();
           }
-          
-          if (endDate !== undefined) {
-            endDateObj = endDate ? new Date(endDate) : null;
-            if (endDateObj && isNaN(endDateObj.getTime())) {
-              throw new Error("Invalid end date");
-            }
-          }
-          
-          if (completionDate !== undefined) {
-            completionDateObj = completionDate ? new Date(completionDate) : null;
-            if (completionDateObj && isNaN(completionDateObj.getTime())) {
-              throw new Error("Invalid completion date");
-            }
-          }
-        } catch (dateError) {
-          console.error("Date parsing error:", dateError);
-          return res.status(400).json({ message: "Invalid date format" });
         }
         
-        // Processar valores numéricos
-        let targetValueNum = undefined;
-        let actualValueNum = undefined;
-        
-        if (targetValue !== undefined) {
-          targetValueNum = typeof targetValue === 'string' ? parseFloat(targetValue) : targetValue;
+        if (req.body.endDate !== undefined) {
+          try {
+            updateData.endDate = new Date(req.body.endDate);
+            if (isNaN(updateData.endDate.getTime())) {
+              const future = new Date();
+              future.setDate(future.getDate() + 30);
+              updateData.endDate = future;
+            }
+          } catch (err) {
+            const future = new Date();
+            future.setDate(future.getDate() + 30);
+            updateData.endDate = future;
+          }
         }
         
-        if (actualValue !== undefined) {
-          actualValueNum = typeof actualValue === 'string' ? parseFloat(actualValue) : actualValue;
+        if (req.body.completionDate !== undefined) {
+          try {
+            updateData.completionDate = req.body.completionDate
+              ? new Date(req.body.completionDate)
+              : null;
+              
+            if (updateData.completionDate && isNaN(updateData.completionDate.getTime())) {
+              updateData.completionDate = null;
+            }
+          } catch (err) {
+            updateData.completionDate = null;
+          }
         }
         
-        // Montar objeto com dados para atualização
-        const goalData = { 
-          ...otherData,
-          ...(targetValueNum !== undefined && { targetValue: targetValueNum }),
-          ...(actualValueNum !== undefined && { actualValue: actualValueNum }),
-          ...(startDateObj !== undefined && { startDate: startDateObj }),
-          ...(endDateObj !== undefined && { endDate: endDateObj }),
-          ...(completionDateObj !== undefined && { completionDate: completionDateObj })
-        };
-        
-        console.log("Updating goal with data:", goalData);
+        console.log("Updating goal with data:", updateData);
         
         // Update the goal
-        const updatedGoal = await storage.updateGoal(goalId, goalData);
+        const updatedGoal = await storage.updateGoal(goalId, updateData);
         console.log("Goal updated successfully:", updatedGoal);
         res.json(updatedGoal);
       } catch (error) {
