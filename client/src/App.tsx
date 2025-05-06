@@ -19,6 +19,7 @@ import Admin from "@/pages/admin";
 import Calendar from "@/pages/calendar";
 import Reports from "@/pages/reports";
 import Sync from "@/pages/sync";
+import UserRegistration from "@/pages/user-registration";
 import { UserRole } from "@shared/schema";
 import { AuthProvider } from "@/hooks/use-auth";
 
@@ -46,6 +47,11 @@ function Router() {
         allowedRoles={[UserRole.SUPER_ADMIN]} 
       />
       <ProtectedRoute path="/sync" component={Sync} />
+      <ProtectedRoute 
+        path="/user-registration" 
+        component={UserRegistration} 
+        allowedRoles={[UserRole.SUPER_ADMIN, UserRole.FARM_ADMIN]} 
+      />
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
     </Switch>
