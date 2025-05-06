@@ -690,46 +690,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         console.log("Request body:", req.body);
         
-        // Converter as strings de data para objetos Date
-        const { startDate, endDate, ...otherData } = req.body;
-        
-        // Garantir que temos datas válidas
-        let startDateObj = null;
-        let endDateObj = null;
-        
-        try {
-          startDateObj = startDate ? new Date(startDate) : null;
-          endDateObj = endDate ? new Date(endDate) : null;
-          
-          // Verificar se as datas são válidas
-          if (startDateObj && isNaN(startDateObj.getTime())) {
-            throw new Error("Invalid start date");
-          }
-          
-          if (endDateObj && isNaN(endDateObj.getTime())) {
-            throw new Error("Invalid end date");
-          }
-        } catch (dateError) {
-          console.error("Date parsing error:", dateError);
-          return res.status(400).json({ message: "Invalid date format" });
-        }
-        
-        // Garantir que o targetValue seja numérico
-        let targetValue = otherData.targetValue;
-        if (typeof targetValue === 'string') {
-          targetValue = parseFloat(targetValue);
-        }
-        
+        // Transmitir os dados diretamente para o banco de dados, evitando manipulação de datas
+        // Isso funciona porque o cliente está enviando as datas no formato correto (ISO string)
         const goalData = { 
-          ...otherData,
-          targetValue,
-          startDate: startDateObj,
-          endDate: endDateObj,
+          ...req.body,
           farmId,
           createdBy: req.user.id
         };
         
-        console.log("Creating goal with data:", goalData);
+        // Converter valores numéricos
+        if (typeof goalData.targetValue === 'string') {
+          goalData.targetValue = parseFloat(goalData.targetValue);
+        }
+        
+        if (goalData.actualValue && typeof goalData.actualValue === 'string') {
+          goalData.actualValue = parseFloat(goalData.actualValue);
+        }
         
         // Check if user has permission to create goals on this farm
         const hasPermission = await storage.checkUserAccess(
@@ -742,6 +718,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!hasPermission) {
           return res.status(403).json({ message: "You don't have permission to create goals" });
         }
+        
+        // Remover propriedades undefined
+        Object.keys(goalData).forEach(key => 
+          goalData[key] === undefined && delete goalData[key]
+        );
+        
+        console.log("Creating goal with data:", goalData);
         
         const goal = await storage.createGoal(goalData);
         console.log("Goal created successfully:", goal);
