@@ -111,7 +111,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log("Getting user relations for farm:", farmId);
       const farmUserRelations = await storage.getFarmUsers(farmId);
-      console.log("Farm user relations:", farmUserRelations);
+      console.log("Farm user relations (length " + farmUserRelations.length + "):", farmUserRelations);
       
       // Para cada relação, obtemos os detalhes completos do usuário
       const users = [];
