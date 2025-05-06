@@ -84,60 +84,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Farm Users route
-  app.get("/api/farms/:farmId/users", 
-    async (req, res) => {
-      try {
-        if (!req.isAuthenticated()) {
-          return res.status(401).json({ message: "Not authenticated" });
-        }
-        
-        console.log("Farm users request received for farmId:", req.params.farmId);
-        const farmId = parseInt(req.params.farmId, 10);
-        
-        // Super admin e farm admin podem ver todos os usuários
-        if (req.user.role !== UserRole.SUPER_ADMIN && req.user.role !== UserRole.FARM_ADMIN) {
-          // Verificar se o usuário tem permissão para ver os usuários desta fazenda
-          const hasAccess = await storage.checkUserAccess(
-            req.user.id, 
-            farmId, 
-            SystemModule.ADMINISTRATION, 
-            AccessLevel.READ_ONLY
-          );
-          
-          if (!hasAccess) {
-            console.log("User does not have permission to view farm users");
-            return res.status(403).json({ message: "Not authorized to view farm users" });
-          }
-        }
-        
-        console.log("Getting user relations for farm:", farmId);
-        const farmUserRelations = await storage.getFarmUsers(farmId);
-        console.log("Farm user relations:", farmUserRelations);
-        
-        // Para cada relação, obtemos os detalhes completos do usuário
-        const users = [];
-        for (const relation of farmUserRelations) {
-          console.log("Getting details for user ID:", relation.userId);
-          const user = await storage.getUser(relation.userId);
-          if (user) {
-            const userWithRole = {
-              ...user,
-              farmRole: relation.role,
-              userId: user.id // Adicionando userId como alias para id para compatibilidade
-            };
-            console.log("Adding user to response:", userWithRole);
-            users.push(userWithRole);
-          }
-        }
-        
-        console.log("Returning users:", users);
-        res.json(users);
-      } catch (error) {
-        console.error("Error fetching farm users:", error);
-        res.status(500).json({ message: "Failed to fetch farm users" });
+  app.get("/api/farms/:farmId/users", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Not authenticated" });
       }
+      
+      console.log("Farm users request received for farmId:", req.params.farmId);
+      const farmId = parseInt(req.params.farmId, 10);
+      
+      // Super admin e farm admin podem ver todos os usuários
+      if (req.user && req.user.role !== UserRole.SUPER_ADMIN && req.user.role !== UserRole.FARM_ADMIN) {
+        // Verificar se o usuário tem permissão para ver os usuários desta fazenda
+        const hasAccess = await storage.checkUserAccess(
+          req.user.id, 
+          farmId, 
+          SystemModule.ADMINISTRATION, 
+          AccessLevel.READ_ONLY
+        );
+        
+        if (!hasAccess) {
+          console.log("User does not have permission to view farm users");
+          return res.status(403).json({ message: "Not authorized to view farm users" });
+        }
+      }
+      
+      console.log("Getting user relations for farm:", farmId);
+      const farmUserRelations = await storage.getFarmUsers(farmId);
+      console.log("Farm user relations:", farmUserRelations);
+      
+      // Para cada relação, obtemos os detalhes completos do usuário
+      const users = [];
+      for (const relation of farmUserRelations) {
+        console.log("Getting details for user ID:", relation.userId);
+        const user = await storage.getUser(relation.userId);
+        if (user) {
+          const userWithRole = {
+            ...user,
+            farmRole: relation.role,
+            userId: user.id // Adicionando userId como alias para id para compatibilidade
+          };
+          console.log("Adding user to response:", userWithRole);
+          users.push(userWithRole);
+        }
+      }
+      
+      console.log("Returning users:", users);
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching farm users:", error);
+      res.status(500).json({ message: "Failed to fetch farm users" });
     }
-  );
+  });
 
   // Animal routes
   app.get("/api/farms/:farmId/animals", 

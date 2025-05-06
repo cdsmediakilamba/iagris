@@ -436,66 +436,37 @@ export default function GoalsPage() {
                       control={form.control}
                       name="assignedTo"
                       render={({ field }) => {
-                        const filteredUsers = farmUsers?.filter((user: any) => user.role === "employee") || [];
-                        const selectedUser = filteredUsers.find(user => String(user.userId) === field.value);
-                        const [open, setOpen] = useState(false);
-                        const [inputValue, setInputValue] = useState('');
+                        // Filtra apenas funcionários (employees)
+                        const employeeUsers = farmUsers?.filter((user: any) => user.role === "employee") || [];
+                        console.log("Lista de funcionários para seleção:", employeeUsers);
                         
                         return (
-                          <FormItem className="flex flex-col">
+                          <FormItem>
                             <FormLabel>Responsável</FormLabel>
-                            <Popover open={open} onOpenChange={setOpen}>
-                              <PopoverTrigger asChild>
-                                <FormControl>
-                                  <Button
-                                    variant="outline"
-                                    role="combobox"
-                                    aria-expanded={open}
-                                    className="justify-between w-full"
-                                  >
-                                    {field.value && selectedUser
-                                      ? selectedUser.name || selectedUser.username || `Usuário ${selectedUser.userId}`
-                                      : "Selecione um usuário"}
-                                  </Button>
-                                </FormControl>
-                              </PopoverTrigger>
-                              <PopoverContent className="p-0 w-full" align="start">
-                                <Command>
-                                  <CommandInput
-                                    placeholder="Buscar usuário..."
-                                    value={inputValue}
-                                    onValueChange={setInputValue}
-                                    className="h-9"
-                                  />
-                                  <CommandList>
-                                    <CommandEmpty>Nenhum usuário encontrado.</CommandEmpty>
-                                    <CommandGroup>
-                                      {filteredUsers
-                                        .filter(user => 
-                                          (user.name?.toLowerCase() || "").includes(inputValue.toLowerCase()) ||
-                                          (user.username?.toLowerCase() || "").includes(inputValue.toLowerCase())
-                                        )
-                                        .map((user) => (
-                                          <CommandItem
-                                            key={user.userId || user.id}
-                                            value={String(user.userId || user.id)}
-                                            onSelect={(value) => {
-                                              console.log("Selected user:", user, "Value:", value);
-                                              field.onChange(value);
-                                              setOpen(false);
-                                            }}
-                                          >
-                                            {user.name || user.username || `Usuário ${user.userId || user.id}`}
-                                            {String(user.userId || user.id) === field.value && (
-                                              <Check className="ml-auto h-4 w-4" />
-                                            )}
-                                          </CommandItem>
-                                        ))}
-                                    </CommandGroup>
-                                  </CommandList>
-                                </Command>
-                              </PopoverContent>
-                            </Popover>
+                            <Select
+                              value={field.value}
+                              onValueChange={field.onChange}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione um responsável" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {employeeUsers.length === 0 ? (
+                                  <SelectItem value="0" disabled>Nenhum funcionário disponível</SelectItem>
+                                ) : (
+                                  employeeUsers.map((user: any) => (
+                                    <SelectItem 
+                                      key={user.id} 
+                                      value={String(user.id)}
+                                    >
+                                      {user.name || user.username || `Usuário ${user.id}`}
+                                    </SelectItem>
+                                  ))
+                                )}
+                              </SelectContent>
+                            </Select>
                             <FormMessage />
                           </FormItem>
                         );
