@@ -242,9 +242,6 @@ export default function UserRegistration() {
           };
           
           const permResponse = await apiRequest('POST', '/api/permissions', permissionData);
-          if (!permResponse.ok) {
-            throw new Error('Falha ao definir permissões');
-          }
         }
       }
       
@@ -282,9 +279,21 @@ export default function UserRegistration() {
 
   return (
     <DashboardLayout>
-      <div className="mb-6">
-        <h1 className="text-2xl font-medium text-gray-900 mb-2">Cadastro de Usuários</h1>
-        <p className="text-gray-500">Registre novos usuários e defina suas permissões de acesso.</p>
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-medium text-gray-900 mb-2">Cadastro de Usuários</h1>
+          <p className="text-gray-500">Registre novos usuários e defina suas permissões de acesso.</p>
+        </div>
+        <Button 
+          variant="outline" 
+          onClick={() => window.history.back()}
+          className="flex items-center gap-2"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m15 18-6-6 6-6"/>
+          </svg>
+          Voltar
+        </Button>
       </div>
 
       <Card className="mb-6">
@@ -576,14 +585,32 @@ export default function UserRegistration() {
                 </div>
               </div>
               
-              {/* Botão de Envio */}
-              <div className="flex justify-end">
+              {/* Botões de Ação */}
+              <div className="flex items-center justify-end space-x-4">
                 <Button 
-                  type="submit" 
-                  className="w-full md:w-auto"
+                  type="button" 
+                  variant="outline"
+                  onClick={() => form.reset()}
                   disabled={createUserMutation.isPending}
                 >
-                  {createUserMutation.isPending ? 'Cadastrando...' : 'Cadastrar Usuário'}
+                  Limpar Formulário
+                </Button>
+                <Button 
+                  type="submit" 
+                  className="w-auto"
+                  disabled={createUserMutation.isPending}
+                >
+                  {createUserMutation.isPending ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Cadastrando...
+                    </>
+                  ) : (
+                    <>Cadastrar Usuário</>
+                  )}
                 </Button>
               </div>
             </form>

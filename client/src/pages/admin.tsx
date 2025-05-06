@@ -521,11 +521,15 @@ export default function Admin() {
                   </div>
                   <Dialog open={userDialogOpen} onOpenChange={setUserDialogOpen}>
                     <DialogTrigger asChild>
-                      <Button>
+                      <Button className="mr-2">
                         <PlusCircle className="mr-2 h-4 w-4" />
                         {t('admin.addUser')}
                       </Button>
                     </DialogTrigger>
+                    <Button onClick={() => setLocation('/user-registration')} variant="outline">
+                      <Users className="mr-2 h-4 w-4" />
+                      Cadastro Avançado
+                    </Button>
                     <DialogContent className="sm:max-w-[600px]">
                       <DialogHeader>
                         <DialogTitle>{t('admin.addUser')}</DialogTitle>
