@@ -164,6 +164,13 @@ export default function GoalsPage() {
     queryKey: ['/api/farms', farmId, 'users'],
     enabled: !!farmId
   });
+  
+  // Log farm users data when it changes to debug
+  useEffect(() => {
+    if (farmUsers) {
+      console.log("Received farm users data:", farmUsers);
+    }
+  }, [farmUsers]);
 
   // Query crops for the farm
   const { data: crops } = useQuery<Crop[]>({
@@ -463,15 +470,16 @@ export default function GoalsPage() {
                                         )
                                         .map((user) => (
                                           <CommandItem
-                                            key={user.userId}
-                                            value={String(user.userId)}
+                                            key={user.userId || user.id}
+                                            value={String(user.userId || user.id)}
                                             onSelect={(value) => {
+                                              console.log("Selected user:", user, "Value:", value);
                                               field.onChange(value);
                                               setOpen(false);
                                             }}
                                           >
-                                            {user.name || user.username || `Usuário ${user.userId}`}
-                                            {String(user.userId) === field.value && (
+                                            {user.name || user.username || `Usuário ${user.userId || user.id}`}
+                                            {String(user.userId || user.id) === field.value && (
                                               <Check className="ml-auto h-4 w-4" />
                                             )}
                                           </CommandItem>
@@ -864,15 +872,16 @@ export default function GoalsPage() {
                                                           )
                                                           .map((user) => (
                                                             <CommandItem
-                                                              key={user.userId}
-                                                              value={String(user.userId)}
+                                                              key={user.userId || user.id}
+                                                              value={String(user.userId || user.id)}
                                                               onSelect={(value) => {
+                                                                console.log("Selected user (edit form):", user, "Value:", value);
                                                                 field.onChange(value);
                                                                 setOpen(false);
                                                               }}
                                                             >
-                                                              {user.name || user.username || `Usuário ${user.userId}`}
-                                                              {String(user.userId) === field.value && (
+                                                              {user.name || user.username || `Usuário ${user.userId || user.id}`}
+                                                              {String(user.userId || user.id) === field.value && (
                                                                 <Check className="ml-auto h-4 w-4" />
                                                               )}
                                                             </CommandItem>
