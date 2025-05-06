@@ -3,11 +3,12 @@ import { farms, type Farm, type InsertFarm } from "@shared/schema";
 import { animals, type Animal, type InsertAnimal } from "@shared/schema";
 import { crops, type Crop, type InsertCrop } from "@shared/schema";
 import { inventory, type Inventory, type InsertInventory } from "@shared/schema";
+import { inventoryTransactions, type InventoryTransaction, type InsertInventoryTransaction } from "@shared/schema";
 import { tasks, type Task, type InsertTask } from "@shared/schema";
 import { goals, type Goal, type InsertGoal } from "@shared/schema";
 import { userFarms, type UserFarm, type InsertUserFarm } from "@shared/schema";
 import { userPermissions, type UserPermission, type InsertUserPermission } from "@shared/schema";
-import { UserRole, SystemModule, AccessLevel, GoalStatus } from "@shared/schema";
+import { UserRole, SystemModule, AccessLevel, GoalStatus, InventoryTransactionType } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
 
@@ -62,6 +63,16 @@ export interface IStorage {
   createInventoryItem(item: InsertInventory): Promise<Inventory>;
   updateInventoryItem(id: number, item: Partial<Inventory>): Promise<Inventory | undefined>;
   
+  // Inventory Transaction operations
+  getInventoryTransaction(id: number): Promise<InventoryTransaction | undefined>;
+  getInventoryTransactionsByItem(inventoryId: number): Promise<InventoryTransaction[]>;
+  getInventoryTransactionsByFarm(farmId: number): Promise<InventoryTransaction[]>;
+  getInventoryTransactionsByPeriod(farmId: number, startDate: Date, endDate: Date): Promise<InventoryTransaction[]>;
+  createInventoryTransaction(transaction: InsertInventoryTransaction): Promise<InventoryTransaction>;
+  registerInventoryEntry(inventoryId: number, quantity: number, userId: number, notes?: string, documentNumber?: string, unitPrice?: number): Promise<{transaction: InventoryTransaction, inventory: Inventory}>;
+  registerInventoryWithdrawal(inventoryId: number, quantity: number, userId: number, notes?: string, destination?: string): Promise<{transaction: InventoryTransaction, inventory: Inventory}>;
+  registerInventoryAdjustment(inventoryId: number, newQuantity: number, userId: number, notes?: string): Promise<{transaction: InventoryTransaction, inventory: Inventory}>;
+  
   // Task operations
   getTask(id: number): Promise<Task | undefined>;
   getTasksByFarm(farmId: number): Promise<Task[]>;
@@ -88,6 +99,7 @@ export class MemStorage implements IStorage {
   private animals: Map<number, Animal>;
   private crops: Map<number, Crop>;
   private inventoryItems: Map<number, Inventory>;
+  private inventoryTransactions: Map<number, InventoryTransaction>;
   private taskItems: Map<number, Task>;
   private goalItems: Map<number, Goal>;
   private userFarms: Map<number, UserFarm>;
@@ -101,6 +113,7 @@ export class MemStorage implements IStorage {
   private animalId = 1;
   private cropId = 1;
   private inventoryId = 1;
+  private inventoryTransactionId = 1;
   private taskId = 1;
   private goalId = 1;
   private userFarmId = 1;
@@ -112,6 +125,7 @@ export class MemStorage implements IStorage {
     this.animals = new Map();
     this.crops = new Map();
     this.inventoryItems = new Map();
+    this.inventoryTransactions = new Map();
     this.taskItems = new Map();
     this.goalItems = new Map();
     this.userFarms = new Map();
