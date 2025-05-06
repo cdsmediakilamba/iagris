@@ -292,18 +292,18 @@ export class MemStorage implements IStorage {
         farmId: farm1.id,
         name: "Ração para Bovinos",
         category: "Alimentação",
-        quantity: 500,
+        quantity: "500",
         unit: "kg",
-        minimumLevel: 100
+        minimumLevel: "100"
       });
       
       this.createInventoryItemSync({
         farmId: farm1.id,
         name: "Vacina Antirrábica",
         category: "Medicamentos",
-        quantity: 50,
+        quantity: "50",
         unit: "doses",
-        minimumLevel: 10
+        minimumLevel: "10"
       });
       
       // Add some tasks
@@ -699,6 +699,194 @@ export class MemStorage implements IStorage {
     const updatedItem = { ...item, ...itemData };
     this.inventoryItems.set(id, updatedItem);
     return updatedItem;
+  }
+  
+  // Inventory Transaction operations
+  async getInventoryTransaction(id: number): Promise<InventoryTransaction | undefined> {
+    return this.inventoryTransactions.get(id);
+  }
+  
+  async getInventoryTransactionsByItem(inventoryId: number): Promise<InventoryTransaction[]> {
+    return Array.from(this.inventoryTransactions.values())
+      .filter(transaction => transaction.inventoryId === inventoryId)
+      .sort((a, b) => b.date.getTime() - a.date.getTime());
+  }
+  
+  async getInventoryTransactionsByFarm(farmId: number): Promise<InventoryTransaction[]> {
+    return Array.from(this.inventoryTransactions.values())
+      .filter(transaction => transaction.farmId === farmId)
+      .sort((a, b) => b.date.getTime() - a.date.getTime());
+  }
+  
+  async getInventoryTransactionsByPeriod(farmId: number, startDate: Date, endDate: Date): Promise<InventoryTransaction[]> {
+    return Array.from(this.inventoryTransactions.values())
+      .filter(transaction => 
+        transaction.farmId === farmId && 
+        transaction.date >= startDate && 
+        transaction.date <= endDate
+      )
+      .sort((a, b) => b.date.getTime() - a.date.getTime());
+  }
+  
+  async createInventoryTransaction(transactionData: InsertInventoryTransaction): Promise<InventoryTransaction> {
+    const id = this.inventoryTransactionId++;
+    const transaction: InventoryTransaction = {
+      ...transactionData,
+      id,
+      createdAt: new Date(),
+      date: transactionData.date || new Date()
+    };
+    this.inventoryTransactions.set(id, transaction);
+    return transaction;
+  }
+  
+  async registerInventoryEntry(
+    inventoryId: number, 
+    quantity: number, 
+    userId: number, 
+    notes?: string, 
+    documentNumber?: string, 
+    unitPrice?: number
+  ): Promise<{transaction: InventoryTransaction, inventory: Inventory}> {
+    // 1. Get the current inventory item
+    const item = await this.getInventoryItem(inventoryId);
+    if (!item) {
+      throw new Error(`Inventory item with ID ${inventoryId} not found`);
+    }
+    
+    // 2. Calculate new balance
+    const previousBalance = Number(item.quantity);
+    const newBalance = previousBalance + quantity;
+    
+    // 3. Update inventory item with new balance
+    const updatedItem = await this.updateInventoryItem(inventoryId, {
+      quantity: String(newBalance),
+      lastUpdated: new Date()
+    });
+    
+    if (!updatedItem) {
+      throw new Error(`Failed to update inventory item with ID ${inventoryId}`);
+    }
+    
+    // 4. Create transaction record
+    const transaction = await this.createInventoryTransaction({
+      inventoryId,
+      type: InventoryTransactionType.IN,
+      quantity: String(quantity),
+      previousBalance: String(previousBalance),
+      newBalance: String(newBalance),
+      date: new Date(),
+      documentNumber: documentNumber || null,
+      userId,
+      farmId: item.farmId,
+      notes: notes || null,
+      destinationOrSource: null,
+      unitPrice: unitPrice ? String(unitPrice) : null,
+      totalPrice: unitPrice ? String(quantity * unitPrice) : null,
+      category: item.category
+    });
+    
+    return { transaction, inventory: updatedItem };
+  }
+  
+  async registerInventoryWithdrawal(
+    inventoryId: number, 
+    quantity: number, 
+    userId: number, 
+    notes?: string, 
+    destination?: string
+  ): Promise<{transaction: InventoryTransaction, inventory: Inventory}> {
+    // 1. Get the current inventory item
+    const item = await this.getInventoryItem(inventoryId);
+    if (!item) {
+      throw new Error(`Inventory item with ID ${inventoryId} not found`);
+    }
+    
+    // 2. Calculate new balance
+    const previousBalance = Number(item.quantity);
+    
+    if (previousBalance < quantity) {
+      throw new Error(`Insufficient inventory. Current balance: ${previousBalance}, Requested: ${quantity}`);
+    }
+    
+    const newBalance = previousBalance - quantity;
+    
+    // 3. Update inventory item with new balance
+    const updatedItem = await this.updateInventoryItem(inventoryId, {
+      quantity: String(newBalance),
+      lastUpdated: new Date()
+    });
+    
+    if (!updatedItem) {
+      throw new Error(`Failed to update inventory item with ID ${inventoryId}`);
+    }
+    
+    // 4. Create transaction record
+    const transaction = await this.createInventoryTransaction({
+      inventoryId,
+      type: InventoryTransactionType.OUT,
+      quantity: String(quantity),
+      previousBalance: String(previousBalance),
+      newBalance: String(newBalance),
+      date: new Date(),
+      documentNumber: null,
+      userId,
+      farmId: item.farmId,
+      notes: notes || null,
+      destinationOrSource: destination || null,
+      unitPrice: null,
+      totalPrice: null,
+      category: item.category
+    });
+    
+    return { transaction, inventory: updatedItem };
+  }
+  
+  async registerInventoryAdjustment(
+    inventoryId: number, 
+    newQuantity: number, 
+    userId: number, 
+    notes?: string
+  ): Promise<{transaction: InventoryTransaction, inventory: Inventory}> {
+    // 1. Get the current inventory item
+    const item = await this.getInventoryItem(inventoryId);
+    if (!item) {
+      throw new Error(`Inventory item with ID ${inventoryId} not found`);
+    }
+    
+    // 2. Calculate adjustment
+    const previousBalance = Number(item.quantity);
+    const adjustmentQuantity = newQuantity - previousBalance;
+    
+    // 3. Update inventory item with new balance
+    const updatedItem = await this.updateInventoryItem(inventoryId, {
+      quantity: String(newQuantity),
+      lastUpdated: new Date()
+    });
+    
+    if (!updatedItem) {
+      throw new Error(`Failed to update inventory item with ID ${inventoryId}`);
+    }
+    
+    // 4. Create transaction record
+    const transaction = await this.createInventoryTransaction({
+      inventoryId,
+      type: InventoryTransactionType.ADJUST,
+      quantity: String(Math.abs(adjustmentQuantity)),
+      previousBalance: String(previousBalance),
+      newBalance: String(newQuantity),
+      date: new Date(),
+      documentNumber: null,
+      userId,
+      farmId: item.farmId,
+      notes: notes || `Ajuste manual: ${adjustmentQuantity > 0 ? '+' : ''}${adjustmentQuantity} ${item.unit}`,
+      destinationOrSource: null,
+      unitPrice: null,
+      totalPrice: null,
+      category: item.category
+    });
+    
+    return { transaction, inventory: updatedItem };
   }
 
   // User-Farm operations

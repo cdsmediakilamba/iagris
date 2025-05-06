@@ -239,6 +239,161 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     }
   );
+  
+  // Inventory Transaction routes
+  app.get("/api/farms/:farmId/inventory/transactions", 
+    checkModuleAccess(SystemModule.INVENTORY, AccessLevel.READ_ONLY), 
+    async (req, res) => {
+      try {
+        const farmId = parseInt(req.params.farmId, 10);
+        
+        // Optional query parameters for date filtering
+        const { startDate, endDate } = req.query;
+        
+        let transactions;
+        if (startDate && endDate) {
+          transactions = await storage.getInventoryTransactionsByPeriod(
+            farmId, 
+            new Date(startDate as string), 
+            new Date(endDate as string)
+          );
+        } else {
+          transactions = await storage.getInventoryTransactionsByFarm(farmId);
+        }
+        
+        res.json(transactions);
+      } catch (error) {
+        console.error("Error fetching inventory transactions:", error);
+        res.status(500).json({ message: "Failed to fetch inventory transactions" });
+      }
+    }
+  );
+  
+  app.get("/api/inventory/:itemId/transactions", 
+    checkModuleAccess(SystemModule.INVENTORY, AccessLevel.READ_ONLY), 
+    async (req, res) => {
+      try {
+        const itemId = parseInt(req.params.itemId, 10);
+        
+        // First, get the inventory item to check if user has access to the farm
+        const item = await storage.getInventoryItem(itemId);
+        if (!item) {
+          return res.status(404).json({ message: "Inventory item not found" });
+        }
+        
+        // Check if user has access to this farm's inventory
+        const hasAccess = await storage.checkUserAccess(
+          req.user!.id, 
+          item.farmId, 
+          SystemModule.INVENTORY, 
+          AccessLevel.READ_ONLY
+        );
+        
+        if (!hasAccess) {
+          return res.status(403).json({ message: "Not authorized to view inventory transactions" });
+        }
+        
+        const transactions = await storage.getInventoryTransactionsByItem(itemId);
+        res.json(transactions);
+      } catch (error) {
+        console.error("Error fetching item transactions:", error);
+        res.status(500).json({ message: "Failed to fetch inventory item transactions" });
+      }
+    }
+  );
+  
+  // Route for entry transactions (add to inventory)
+  app.post("/api/inventory/:itemId/entry",
+    checkModuleAccess(SystemModule.INVENTORY, AccessLevel.FULL),
+    async (req, res) => {
+      try {
+        const itemId = parseInt(req.params.itemId, 10);
+        const { quantity, notes, documentNumber, unitPrice } = req.body;
+        
+        if (!quantity || quantity <= 0) {
+          return res.status(400).json({ message: "Valid quantity is required" });
+        }
+        
+        const result = await storage.registerInventoryEntry(
+          itemId,
+          Number(quantity),
+          req.user!.id,
+          notes,
+          documentNumber,
+          unitPrice ? Number(unitPrice) : undefined
+        );
+        
+        res.status(201).json(result);
+      } catch (error) {
+        console.error("Error registering inventory entry:", error);
+        res.status(500).json({ 
+          message: "Failed to register inventory entry", 
+          error: error instanceof Error ? error.message : String(error) 
+        });
+      }
+    }
+  );
+  
+  // Route for withdrawal transactions (remove from inventory)
+  app.post("/api/inventory/:itemId/withdrawal",
+    checkModuleAccess(SystemModule.INVENTORY, AccessLevel.FULL),
+    async (req, res) => {
+      try {
+        const itemId = parseInt(req.params.itemId, 10);
+        const { quantity, notes, destination } = req.body;
+        
+        if (!quantity || quantity <= 0) {
+          return res.status(400).json({ message: "Valid quantity is required" });
+        }
+        
+        const result = await storage.registerInventoryWithdrawal(
+          itemId,
+          Number(quantity),
+          req.user!.id,
+          notes,
+          destination
+        );
+        
+        res.status(201).json(result);
+      } catch (error) {
+        console.error("Error registering inventory withdrawal:", error);
+        res.status(500).json({ 
+          message: "Failed to register inventory withdrawal", 
+          error: error instanceof Error ? error.message : String(error) 
+        });
+      }
+    }
+  );
+  
+  // Route for inventory adjustments
+  app.post("/api/inventory/:itemId/adjustment",
+    checkModuleAccess(SystemModule.INVENTORY, AccessLevel.FULL),
+    async (req, res) => {
+      try {
+        const itemId = parseInt(req.params.itemId, 10);
+        const { newQuantity, notes } = req.body;
+        
+        if (newQuantity === undefined || newQuantity < 0) {
+          return res.status(400).json({ message: "Valid new quantity is required" });
+        }
+        
+        const result = await storage.registerInventoryAdjustment(
+          itemId,
+          Number(newQuantity),
+          req.user!.id,
+          notes
+        );
+        
+        res.status(201).json(result);
+      } catch (error) {
+        console.error("Error adjusting inventory:", error);
+        res.status(500).json({ 
+          message: "Failed to adjust inventory", 
+          error: error instanceof Error ? error.message : String(error) 
+        });
+      }
+    }
+  );
 
   // Task routes
   app.get("/api/farms/:farmId/tasks", 
