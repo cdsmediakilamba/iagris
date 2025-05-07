@@ -89,17 +89,29 @@ export const userPermissions = pgTable("user_permissions", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Species table schema
+export const species = pgTable("species", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  abbreviation: text("abbreviation").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Animal table schema
 export const animals = pgTable("animals", {
   id: serial("id").primaryKey(),
-  identificationCode: text("identification_code").notNull(),
-  species: text("species").notNull(),
+  registrationCode: text("registration_code").notNull().unique(), // Formatted as [ABREVIAÇÃO_DA_ESPÉCIE]-[DATA]-[SEQUENCIAL_DIÁRIO]
+  name: text("name"), // Nome ou identificação (opcional)
+  speciesId: integer("species_id").notNull(), // FK para tabela de espécies
   breed: text("breed").notNull(),
   gender: text("gender").notNull(),
   birthDate: timestamp("birth_date"),
   weight: integer("weight"),
   farmId: integer("farm_id").notNull(),
-  status: text("status").notNull().default("healthy"),
+  status: text("status").notNull().default("active"), // active, slaughtered, dead, sold, transferred
+  observations: text("observations"),
+  fatherId: integer("father_id"), // FK opcional para o animal pai
+  motherId: integer("mother_id"), // FK opcional para o animal mãe
   lastVaccineDate: timestamp("last_vaccine_date"),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -228,9 +240,15 @@ export const insertUserPermissionSchema = createInsertSchema(userPermissions).om
   createdAt: true,
 });
 
+export const insertSpeciesSchema = createInsertSchema(species).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertAnimalSchema = createInsertSchema(animals).omit({
   id: true,
   createdAt: true,
+  registrationCode: true, // This will be generated on the server
 });
 
 export const insertCropSchema = createInsertSchema(crops).omit({
@@ -272,6 +290,9 @@ export type UserFarm = typeof userFarms.$inferSelect;
 
 export type InsertUserPermission = z.infer<typeof insertUserPermissionSchema>;
 export type UserPermission = typeof userPermissions.$inferSelect;
+
+export type InsertSpecies = z.infer<typeof insertSpeciesSchema>;
+export type Species = typeof species.$inferSelect;
 
 export type InsertAnimal = z.infer<typeof insertAnimalSchema>;
 export type Animal = typeof animals.$inferSelect;
