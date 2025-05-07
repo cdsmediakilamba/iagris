@@ -2,6 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  .compact-form [class*="FormDescription"] {
+    @apply text-xs;
+  }
+  
+  .compact-form [class*="FormItem"] {
+    @apply space-y-1 mb-1;
+  }
+  
+  .compact-form .grid {
+    @apply gap-3;
+  }
+}
+
 :root {
   --background: 0 0% 100%;
   --foreground: 20 14.3% 4.1%;

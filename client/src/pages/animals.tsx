@@ -290,12 +290,12 @@ export default function Animals() {
                 {t('animals.addAnimal')}
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto [&_div.space-y-2]:space-y-1">
               <DialogHeader className="pb-2">
                 <DialogTitle>{t('animals.addAnimal')}</DialogTitle>
               </DialogHeader>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2 compact-form">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
