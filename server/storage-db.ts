@@ -25,6 +25,39 @@ export class DatabaseStorage implements IStorage {
       tableName: 'session',
       createTableIfMissing: true
     });
+    
+    // Inicializar as espécies básicas
+    setTimeout(() => {
+      this.initializeSpecies().catch(err => {
+        console.error("Erro ao inicializar espécies:", err);
+      });
+    }, 1000); // Pequeno delay para garantir que o banco de dados esteja pronto
+  }
+  
+  // Método para inicializar as espécies básicas no banco de dados
+  async initializeSpecies(): Promise<void> {
+    // Verificar se já existem espécies cadastradas
+    const existingSpecies = await this.getAllSpecies();
+    if (existingSpecies.length > 0) {
+      return; // Não inicializar novamente se já existem espécies
+    }
+    
+    // Espécies básicas para inicialização
+    const defaultSpecies = [
+      { name: "Bovino", abbreviation: "BOI" },
+      { name: "Suíno", abbreviation: "SUI" },
+      { name: "Caprino", abbreviation: "CAP" },
+      { name: "Ovino", abbreviation: "OVI" },
+      { name: "Aves", abbreviation: "AVE" },
+      { name: "Equino", abbreviation: "EQU" }
+    ];
+    
+    // Inserir as espécies no banco de dados
+    for (const species of defaultSpecies) {
+      await this.createSpecies(species);
+    }
+    
+    console.log("Espécies básicas inicializadas com sucesso.");
   }
 
   // User operations
@@ -143,7 +176,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createAnimal(animalData: InsertAnimal): Promise<Animal> {
-    const [animal] = await db.insert(animals).values(animalData).returning();
+    // Gerar o código de registro para o animal
+    const registrationCode = await this.generateAnimalRegistrationCode(animalData.speciesId, animalData.farmId);
+    
+    // Inserir o animal com o código de registro gerado
+    const [animal] = await db.insert(animals).values({
+      ...animalData,
+      registrationCode
+    }).returning();
+    
     return animal;
   }
 
@@ -553,6 +594,86 @@ export class DatabaseStorage implements IStorage {
       default:
         return false;
     }
+  }
+
+  // Species operations
+  async getSpecies(id: number): Promise<Species | undefined> {
+    const [speciesItem] = await db.select().from(species).where(eq(species.id, id));
+    return speciesItem || undefined;
+  }
+  
+  async getAllSpecies(): Promise<Species[]> {
+    return await db.select().from(species);
+  }
+  
+  async createSpecies(speciesData: InsertSpecies): Promise<Species> {
+    const [newSpecies] = await db.insert(species).values(speciesData).returning();
+    return newSpecies;
+  }
+  
+  async updateSpecies(id: number, speciesData: Partial<Species>): Promise<Species | undefined> {
+    const [updatedSpecies] = await db
+      .update(species)
+      .set(speciesData)
+      .where(eq(species.id, id))
+      .returning();
+    return updatedSpecies || undefined;
+  }
+  
+  // Método para gerar código de registro de animal
+  async generateAnimalRegistrationCode(speciesId: number, farmId: number): Promise<string> {
+    // Obter a espécie pelo ID
+    const speciesItem = await this.getSpecies(speciesId);
+    if (!speciesItem) {
+      throw new Error("Espécie não encontrada");
+    }
+    
+    const abbreviation = speciesItem.abbreviation;
+    
+    // Obter data atual no formato YYYYMMDD
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const dateString = `${year}${month}${day}`;
+    
+    // Consultar banco de dados para obter o último número sequencial para esta espécie, data e fazenda
+    const pattern = `${abbreviation}-${dateString}-%`;
+    
+    // Buscar todos os animais da mesma espécie registrados na mesma data e fazenda
+    const animalsWithSimilarCode = await db
+      .select()
+      .from(animals)
+      .where(
+        and(
+          eq(animals.farmId, farmId),
+          eq(animals.speciesId, speciesId)
+        )
+      );
+    
+    // Filtrar animais cujo código começa com o padrão e encontrar o maior número sequencial
+    const regex = new RegExp(`^${abbreviation}-${dateString}-([0-9]{4})$`);
+    let maxSequential = 0;
+    
+    // Para cada animal com pattern similar, extrair o número sequencial e encontrar o maior
+    for (const animal of animalsWithSimilarCode) {
+      if (!animal.registrationCode) continue;
+      
+      const match = animal.registrationCode.match(regex);
+      if (match && match[1]) {
+        const sequentialNumber = parseInt(match[1], 10);
+        if (sequentialNumber > maxSequential) {
+          maxSequential = sequentialNumber;
+        }
+      }
+    }
+    
+    // Incrementar o contador e formatar com zeros à esquerda
+    const newSequential = maxSequential + 1;
+    const sequentialFormatted = String(newSequential).padStart(4, '0');
+    
+    // Gerar código no formato [ABREVIAÇÃO]-[YYYYMMDD]-[SEQUENCIAL]
+    return `${abbreviation}-${dateString}-${sequentialFormatted}`;
   }
 
   // Task operations
