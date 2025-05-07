@@ -143,9 +143,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req, res) => {
       try {
         const farmId = parseInt(req.params.farmId, 10);
+        console.log("Getting animals for farm:", farmId);
         const animals = await storage.getAnimalsByFarm(farmId);
+        console.log("Retrieved animals:", animals);
+        console.log("Number of animals found:", animals.length);
         res.json(animals);
       } catch (error) {
+        console.error("Error fetching animals:", error);
         res.status(500).json({ message: "Failed to fetch animals" });
       }
     }
