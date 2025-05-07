@@ -1026,6 +1026,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
+  // Species routes
+  app.get("/api/species", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
+    
+    try {
+      const allSpecies = await storage.getAllSpecies();
+      res.json(allSpecies);
+    } catch (error) {
+      console.error("Error fetching species:", error);
+      res.status(500).json({ message: "Failed to fetch species" });
+    }
+  });
+
+  app.get("/api/species/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
+    
+    try {
+      const speciesId = parseInt(req.params.id, 10);
+      const species = await storage.getSpecies(speciesId);
+      
+      if (!species) {
+        return res.status(404).json({ message: "Species not found" });
+      }
+      
+      res.json(species);
+    } catch (error) {
+      console.error("Error fetching species:", error);
+      res.status(500).json({ message: "Failed to fetch species" });
+    }
+  });
+
+  app.post("/api/species", 
+    checkRole([UserRole.SUPER_ADMIN, UserRole.FARM_ADMIN]), 
+    async (req, res) => {
+      try {
+        const newSpecies = await storage.createSpecies(req.body);
+        res.status(201).json(newSpecies);
+      } catch (error) {
+        console.error("Error creating species:", error);
+        res.status(500).json({ message: "Failed to create species" });
+      }
+    }
+  );
+
+  app.patch("/api/species/:id", 
+    checkRole([UserRole.SUPER_ADMIN, UserRole.FARM_ADMIN]), 
+    async (req, res) => {
+      try {
+        const speciesId = parseInt(req.params.id, 10);
+        
+        // Check if species exists
+        const species = await storage.getSpecies(speciesId);
+        if (!species) {
+          return res.status(404).json({ message: "Species not found" });
+        }
+        
+        // Update species
+        const updatedSpecies = await storage.updateSpecies(speciesId, req.body);
+        res.json(updatedSpecies);
+      } catch (error) {
+        console.error("Error updating species:", error);
+        res.status(500).json({ message: "Failed to update species" });
+      }
+    }
+  );
+
   // Create HTTP server
   const httpServer = createServer(app);
   return httpServer;
