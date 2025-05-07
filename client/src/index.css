@@ -34,6 +34,10 @@
   .compact-form select {
     @apply py-1 px-2 h-8;
   }
+  
+  .compact-form [class*="SelectTrigger"] {
+    @apply h-8 min-h-8 py-0;
+  }
 }
 
 :root {
