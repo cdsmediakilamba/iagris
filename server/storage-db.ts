@@ -1,8 +1,8 @@
 import { 
-  users, farms, userFarms, userPermissions, animals, crops, inventory, inventoryTransactions, tasks, goals,
+  users, farms, userFarms, userPermissions, animals, species, crops, inventory, inventoryTransactions, tasks, goals,
   type User, type InsertUser, type Farm, type InsertFarm, 
   type UserFarm, type InsertUserFarm, type UserPermission, type InsertUserPermission,
-  type Animal, type InsertAnimal, type Crop, type InsertCrop, 
+  type Animal, type InsertAnimal, type Species, type InsertSpecies, type Crop, type InsertCrop, 
   type Inventory, type InsertInventory, type InventoryTransaction, type InsertInventoryTransaction,
   type Task, type InsertTask, type Goal, type InsertGoal
 } from "@shared/schema";
