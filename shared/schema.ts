@@ -106,7 +106,7 @@ export const animals = pgTable("animals", {
   breed: text("breed").notNull(),
   gender: text("gender").notNull(),
   birthDate: timestamp("birth_date"),
-  weight: integer("weight"),
+  weight: decimal("weight", { precision: 10, scale: 2 }),
   farmId: integer("farm_id").notNull(),
   status: text("status").notNull().default("active"), // active, slaughtered, dead, sold, transferred
   observations: text("observations"),
