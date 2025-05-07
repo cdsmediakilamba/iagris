@@ -33,10 +33,12 @@ async function updateAnimalRegistrations() {
     console.log("Atualizando registros de animais...");
     
     // Buscar todos os animais que não têm registration_code ou species_id
-    const animalsToUpdate = await db
-      .select()
-      .from(animals)
-      .where(eq(animals.registrationCode, null));
+    const result = await db.execute(
+      `SELECT * FROM animals WHERE registration_code IS NULL OR registration_code = ''`
+    );
+    
+    // Converter o resultado para um array de animais
+    const animalsToUpdate = result.rows;
     
     console.log(`Encontrados ${animalsToUpdate.length} animais para atualizar.`);
     
