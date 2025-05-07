@@ -334,7 +334,7 @@ export default function Animals() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">{t('animals.noParent')}</SelectItem>
+                              <SelectItem value="none">{t('animals.noParent')}</SelectItem>
                               {femaleAnimals.map((animal) => (
                                 <SelectItem key={animal.id} value={animal.id.toString()}>
                                   {animal.name || animal.registrationCode || animal.id}
@@ -362,7 +362,7 @@ export default function Animals() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">{t('animals.noParent')}</SelectItem>
+                              <SelectItem value="none">{t('animals.noParent')}</SelectItem>
                               {maleAnimals.map((animal) => (
                                 <SelectItem key={animal.id} value={animal.id.toString()}>
                                   {animal.name || animal.registrationCode || animal.id}
