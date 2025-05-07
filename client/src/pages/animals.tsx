@@ -316,7 +316,7 @@ export default function Animals() {
                         <FormItem>
                           <FormLabel>{t('common.name')}</FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input {...field} value={field.value || ''} />
                           </FormControl>
                           <FormDescription className="text-xs">
                             {t('animals.registrationCodeInfo')}
@@ -414,7 +414,7 @@ export default function Animals() {
                         <FormItem>
                           <FormLabel>{t('animals.breed')}</FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input {...field} value={field.value || ''} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -456,7 +456,10 @@ export default function Animals() {
                             <Input 
                               type="date" 
                               {...field} 
-                              value={field.value instanceof Date ? field.value.toISOString().substring(0, 10) : field.value || ''} 
+                              value={field.value instanceof Date 
+                                ? field.value.toISOString().substring(0, 10) 
+                                : typeof field.value === 'string' ? field.value : ''
+                              } 
                             />
                           </FormControl>
                           <FormMessage />
@@ -495,7 +498,10 @@ export default function Animals() {
                             <Input 
                               type="date" 
                               {...field} 
-                              value={field.value instanceof Date ? field.value.toISOString().substring(0, 10) : field.value || ''} 
+                              value={field.value instanceof Date 
+                                ? field.value.toISOString().substring(0, 10) 
+                                : typeof field.value === 'string' ? field.value : ''
+                              } 
                             />
                           </FormControl>
                           <FormMessage />
@@ -545,6 +551,7 @@ export default function Animals() {
                               placeholder={t('animals.observationsPlaceholder')}
                               className="resize-none"
                               rows={2}
+                              value={field.value || ''}
                             />
                           </FormControl>
                           <FormMessage />
