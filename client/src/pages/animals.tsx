@@ -166,12 +166,20 @@ export default function Animals() {
         observations += `\nPai: ${fatherInfo}`;
       }
       
+      // Process dates - convert string to Date objects for the API
+      const birthDate = restData.birthDate ? new Date(restData.birthDate) : null;
+      const lastVaccineDate = restData.lastVaccineDate ? new Date(restData.lastVaccineDate) : null;
+      
       // The API data with farmId and observations containing parent info
       const apiData = {
         ...restData,
+        birthDate,
+        lastVaccineDate,
         observations: observations.trim(),
         farmId: selectedFarmId
       };
+      
+      console.log("Sending animal data to API:", apiData);
       
       const response = await apiRequest(
         'POST', 
