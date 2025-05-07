@@ -50,6 +50,12 @@ export const pt = {
     signUp: 'Registrar',
     submit: 'Enviar',
     newTask: 'Nova Tarefa',
+    management: 'Gestão',
+    system: 'Sistema',
+    more: 'Mais',
+    unknown: 'Desconhecido',
+    notSet: 'Não definido',
+    noSearchResults: 'Nenhum resultado encontrado para a busca',
   },
   auth: {
     login: 'Login',
@@ -101,6 +107,7 @@ export const pt = {
     cloudy: 'Nublado',
     rainy: 'Chuvoso',
     lastUpdated: 'Última atualização',
+    status: 'Status',
     weekDays: {
       mon: 'Seg',
       tue: 'Ter',
@@ -157,6 +164,8 @@ export const pt = {
     selectSpecies: 'Selecione a espécie',
     selectParent: 'Selecione o progenitor',
     noParent: 'Sem progenitor',
+    noSpecies: 'Nenhuma espécie cadastrada',
+    noSearchResults: 'Nenhum resultado encontrado',
   },
   crops: {
     title: 'Gestão de Plantações',
@@ -219,6 +228,9 @@ export const pt = {
     itemUpdated: 'Item atualizado com sucesso',
     itemDeleted: 'Item excluído com sucesso',
     confirmDelete: 'Tem certeza que deseja excluir este item?',
+    transactions: {
+      title: 'Transações de Inventário',
+    },
   },
   tasks: {
     pageTitle: 'Gestão de Tarefas',
@@ -283,6 +295,7 @@ export const pt = {
       veterinarian: 'Veterinário',
       agronomist: 'Agrônomo',
       consultant: 'Consultor/Visitante',
+      super_admin: 'Administrador Geral',
     },
     taskHistory: 'Histórico de Tarefas',
     performanceMetrics: 'Métricas de Desempenho',

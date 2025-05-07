@@ -50,6 +50,12 @@ export const en = {
     signUp: 'Sign Up',
     submit: 'Submit',
     newTask: 'New Task',
+    management: 'Management',
+    system: 'System',
+    more: 'More',
+    unknown: 'Unknown',
+    notSet: 'Not set',
+    noSearchResults: 'No search results found',
   },
   auth: {
     login: 'Login',
@@ -101,6 +107,7 @@ export const en = {
     cloudy: 'Cloudy',
     rainy: 'Rainy',
     lastUpdated: 'Last updated',
+    status: 'Status',
     weekDays: {
       mon: 'Mon',
       tue: 'Tue',
@@ -157,6 +164,8 @@ export const en = {
     selectSpecies: 'Select species',
     selectParent: 'Select parent',
     noParent: 'No parent',
+    noSpecies: 'No species registered',
+    noSearchResults: 'No search results found',
   },
   crops: {
     title: 'Crop Management',
@@ -219,6 +228,9 @@ export const en = {
     itemUpdated: 'Item updated successfully',
     itemDeleted: 'Item deleted successfully',
     confirmDelete: 'Are you sure you want to delete this item?',
+    transactions: {
+      title: 'Inventory Transactions',
+    },
   },
   tasks: {
     pageTitle: 'Task Management',
@@ -283,6 +295,7 @@ export const en = {
       veterinarian: 'Veterinarian',
       agronomist: 'Agronomist',
       consultant: 'Consultant/Visitor',
+      super_admin: 'Super Administrator',
     },
     taskHistory: 'Task History',
     performanceMetrics: 'Performance Metrics',
