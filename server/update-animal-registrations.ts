@@ -27,6 +27,36 @@ function generateRegistrationCode(speciesAbbr: string, counter: number): string 
   return `${speciesAbbr}-${dateStr}-${sequential}`;
 }
 
+// Função para encontrar o maior contador atual para cada espécie
+async function getCurrentCounters(): Promise<Record<string, number>> {
+  const counters: Record<string, number> = {};
+  
+  // Buscar todos os códigos de registro existentes
+  const result = await db.execute(
+    `SELECT registration_code FROM animals WHERE registration_code IS NOT NULL AND registration_code != ''`
+  );
+  
+  // Para cada código, extrair a abreviação da espécie e o contador
+  for (const row of result.rows) {
+    const code = row.registration_code;
+    if (!code) continue;
+    
+    // Extrair os componentes do código (formato: ABBR-YYYYMMDD-NNNN)
+    const parts = code.split('-');
+    if (parts.length !== 3) continue;
+    
+    const [abbr, dateStr, seqStr] = parts;
+    const seq = parseInt(seqStr, 10);
+    
+    // Atualizar o contador máximo para esta abreviação
+    if (!counters[abbr] || seq > counters[abbr]) {
+      counters[abbr] = seq;
+    }
+  }
+  
+  return counters;
+}
+
 // Função para atualizar os registros de animais
 async function updateAnimalRegistrations() {
   try {
@@ -38,7 +68,7 @@ async function updateAnimalRegistrations() {
     );
     
     // Converter o resultado para um array de animais
-    const animalsToUpdate = result.rows;
+    const animalsToUpdate = result.rows as any[];
     
     console.log(`Encontrados ${animalsToUpdate.length} animais para atualizar.`);
     
@@ -51,8 +81,10 @@ async function updateAnimalRegistrations() {
       speciesAbbreviations[s.id] = s.abbreviation;
     });
     
-    // Contadores para cada espécie
-    const counters: Record<string, number> = {};
+    // Obter contadores atuais para cada espécie a partir dos animais existentes
+    const counters = await getCurrentCounters();
+    
+    console.log("Contadores iniciais:", counters);
     
     // Atualizar cada animal
     for (const animal of animalsToUpdate) {
@@ -63,8 +95,8 @@ async function updateAnimalRegistrations() {
       
       // Se não houver species_id, tentamos inferir a partir do campo antigo 'species'
       if (!animal.speciesId) {
-        // @ts-ignore - Acessando campo antigo que pode não existir no tipo atual
-        const oldSpecies = animal.species;
+        // Acessando campo antigo que pode não existir no tipo atual
+        const oldSpecies = animal.species as string | undefined;
         if (oldSpecies && speciesMapping[oldSpecies]) {
           animal.speciesId = speciesMapping[oldSpecies];
         } else {
@@ -74,7 +106,7 @@ async function updateAnimalRegistrations() {
       }
       
       // Obtém a abreviação da espécie
-      const abbr = speciesAbbreviations[animal.speciesId];
+      const abbr = speciesAbbreviations[animal.speciesId as number];
       
       // Incrementa o contador para esta espécie
       if (!counters[abbr]) {
@@ -91,10 +123,10 @@ async function updateAnimalRegistrations() {
         .update(animals)
         .set({ 
           registrationCode,
-          speciesId: animal.speciesId,
-          status: animal.status
+          speciesId: animal.speciesId as number,
+          status: animal.status as string
         })
-        .where(eq(animals.id, animal.id));
+        .where(eq(animals.id, animal.id as number));
       
       console.log(`Animal ID ${animal.id} atualizado com código ${registrationCode}`);
     }
