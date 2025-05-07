@@ -179,9 +179,22 @@ export class DatabaseStorage implements IStorage {
     // Gerar o código de registro para o animal
     const registrationCode = await this.generateAnimalRegistrationCode(animalData.speciesId, animalData.farmId);
     
+    // Processa a data de nascimento
+    let processedData = { ...animalData };
+    if (typeof processedData.birthDate === 'string') {
+      processedData.birthDate = new Date(processedData.birthDate);
+    }
+    
+    // Processa a data da última vacina
+    if (typeof processedData.lastVaccineDate === 'string') {
+      processedData.lastVaccineDate = new Date(processedData.lastVaccineDate);
+    }
+    
+    console.log("Processed animal data:", processedData);
+    
     // Inserir o animal com o código de registro gerado
     const [animal] = await db.insert(animals).values({
-      ...animalData,
+      ...processedData,
       registrationCode
     }).returning();
     
