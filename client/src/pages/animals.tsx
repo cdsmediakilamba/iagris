@@ -325,8 +325,8 @@ export default function Animals() {
                         <FormItem>
                           <FormLabel>{t('animals.mother')}</FormLabel>
                           <Select
-                            onValueChange={(value) => field.onChange(value ? parseInt(value) : undefined)}
-                            value={field.value?.toString() || ""}
+                            onValueChange={(value) => field.onChange(value && value !== "none" ? parseInt(value) : undefined)}
+                            value={field.value?.toString() || "none"}
                           >
                             <FormControl>
                               <SelectTrigger>
@@ -353,8 +353,8 @@ export default function Animals() {
                         <FormItem>
                           <FormLabel>{t('animals.father')}</FormLabel>
                           <Select
-                            onValueChange={(value) => field.onChange(value ? parseInt(value) : undefined)}
-                            value={field.value?.toString() || ""}
+                            onValueChange={(value) => field.onChange(value && value !== "none" ? parseInt(value) : undefined)}
+                            value={field.value?.toString() || "none"}
                           >
                             <FormControl>
                               <SelectTrigger>
