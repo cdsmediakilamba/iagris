@@ -24,7 +24,7 @@
   }
   
   .compact-form textarea {
-    @apply py-1 px-2;
+    @apply py-1 px-2 text-sm min-h-[50px];
   }
   
   .compact-form input {
@@ -37,6 +37,10 @@
   
   .compact-form [class*="SelectTrigger"] {
     @apply h-8 min-h-8 py-0;
+  }
+  
+  .compact-form [class*="FormDescription"] {
+    @apply text-xs mt-0.5;
   }
 }
 

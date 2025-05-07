@@ -302,7 +302,7 @@ export default function Animals() {
                 {t('animals.addAnimal')}
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto [&_div.space-y-2]:space-y-1">
+            <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto compact-form">
               <DialogHeader className="pb-2">
                 <DialogTitle>{t('animals.addAnimal')}</DialogTitle>
               </DialogHeader>
@@ -408,7 +408,7 @@ export default function Animals() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <FormField
                       control={form.control}
                       name="breed"
@@ -447,7 +447,7 @@ export default function Animals() {
                       )}
                     />
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <FormField
                       control={form.control}
                       name="birthDate"
@@ -489,7 +489,7 @@ export default function Animals() {
                       )}
                     />
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <FormField
                       control={form.control}
                       name="lastVaccineDate"
@@ -552,7 +552,7 @@ export default function Animals() {
                               {...field}
                               placeholder={t('animals.observationsPlaceholder')}
                               className="resize-none"
-                              rows={2}
+                              rows={1}
                               value={field.value || ''}
                             />
                           </FormControl>
