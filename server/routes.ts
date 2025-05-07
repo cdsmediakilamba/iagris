@@ -156,13 +156,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req, res) => {
       try {
         const farmId = parseInt(req.params.farmId, 10);
+        console.log("Creating animal with data:", { ...req.body, farmId });
         const newAnimal = await storage.createAnimal({
           ...req.body,
           farmId,
         });
         res.status(201).json(newAnimal);
       } catch (error) {
-        res.status(500).json({ message: "Failed to create animal" });
+        console.error("Error creating animal:", error);
+        res.status(500).json({ 
+          message: "Failed to create animal", 
+          error: error instanceof Error ? error.message : String(error)
+        });
       }
     }
   );
