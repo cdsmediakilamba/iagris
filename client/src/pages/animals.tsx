@@ -170,11 +170,15 @@ export default function Animals() {
       const birthDate = restData.birthDate ? new Date(restData.birthDate) : null;
       const lastVaccineDate = restData.lastVaccineDate ? new Date(restData.lastVaccineDate) : null;
       
-      // The API data with farmId and observations containing parent info
+      // Ensure weight is a string representation of decimal number as expected by the server
+      const weight = restData.weight ? String(restData.weight) : null;
+      
+      // The API data with proper type conversions
       const apiData = {
         ...restData,
         birthDate,
         lastVaccineDate,
+        weight,
         observations: observations.trim(),
         farmId: selectedFarmId
       };
@@ -470,7 +474,8 @@ export default function Animals() {
                               type="number" 
                               step="0.01"
                               {...field}
-                              onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                              value={field.value ? field.value : ''}
+                              onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : null)}
                             />
                           </FormControl>
                           <FormDescription className="text-xs">{t('animals.weightUnit')}</FormDescription>
