@@ -4,15 +4,35 @@
 
 @layer components {
   .compact-form [class*="FormDescription"] {
-    @apply text-xs;
+    @apply text-xs mt-0.5;
   }
   
   .compact-form [class*="FormItem"] {
     @apply space-y-1 mb-1;
   }
   
+  .compact-form [class*="FormMessage"] {
+    @apply text-xs mt-0.5;
+  }
+  
+  .compact-form [class*="FormLabel"] {
+    @apply text-sm mb-0.5;
+  }
+  
   .compact-form .grid {
-    @apply gap-3;
+    @apply gap-2;
+  }
+  
+  .compact-form textarea {
+    @apply py-1 px-2;
+  }
+  
+  .compact-form input {
+    @apply py-1 px-2 h-8;
+  }
+  
+  .compact-form select {
+    @apply py-1 px-2 h-8;
   }
 }
 
