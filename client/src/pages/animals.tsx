@@ -290,12 +290,12 @@ export default function Animals() {
                 {t('animals.addAnimal')}
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
-              <DialogHeader>
+            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+              <DialogHeader className="pb-2">
                 <DialogTitle>{t('animals.addAnimal')}</DialogTitle>
               </DialogHeader>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -306,7 +306,7 @@ export default function Animals() {
                           <FormControl>
                             <Input {...field} />
                           </FormControl>
-                          <FormDescription>
+                          <FormDescription className="text-xs">
                             {t('animals.registrationCodeInfo')}
                           </FormDescription>
                           <FormMessage />
@@ -465,7 +465,7 @@ export default function Animals() {
                               onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
                             />
                           </FormControl>
-                          <FormDescription>{t('animals.weightUnit')}</FormDescription>
+                          <FormDescription className="text-xs">{t('animals.weightUnit')}</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -530,13 +530,10 @@ export default function Animals() {
                             <Textarea
                               {...field}
                               placeholder={t('animals.observationsPlaceholder')}
-                              className="resize-y"
-                              rows={3}
+                              className="resize-none"
+                              rows={2}
                             />
                           </FormControl>
-                          <FormDescription>
-                            {t('animals.observationsHelper')}
-                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
