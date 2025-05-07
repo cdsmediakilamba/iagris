@@ -376,6 +376,7 @@ export default function Animals() {
                             <Input 
                               {...field} 
                               placeholder={t('animals.enterParentInfo')}
+                              value={field.value || ''}
                             />
                           </FormControl>
                           <FormDescription>
@@ -395,6 +396,7 @@ export default function Animals() {
                             <Input 
                               {...field} 
                               placeholder={t('animals.enterParentInfo')}
+                              value={field.value || ''}
                             />
                           </FormControl>
                           <FormDescription>
