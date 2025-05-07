@@ -59,8 +59,8 @@ export default function AuthPage() {
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      username: '',
-      password: '',
+      username: 'admin',
+      password: 'admin123',
     },
   });
 
@@ -150,13 +150,31 @@ export default function AuthPage() {
                         </FormItem>
                       )}
                     />
-                    <Button 
-                      type="submit" 
-                      className="w-full" 
-                      disabled={isLoading}
-                    >
-                      {isLoading ? t('common.loading') : t('common.signIn')}
-                    </Button>
+                    <div className="flex flex-col gap-2">
+                      <Button 
+                        type="submit" 
+                        className="w-full" 
+                        disabled={isLoading}
+                      >
+                        {isLoading ? t('common.loading') : t('common.signIn')}
+                      </Button>
+                      <Button 
+                        type="button"
+                        variant="outline"
+                        className="w-full" 
+                        disabled={isLoading}
+                        onClick={() => {
+                          login({
+                            username: "admin",
+                            password: "admin123"
+                          }, () => {
+                            setLocation('/');
+                          });
+                        }}
+                      >
+                        Login Automático (Uso em Desenvolvimento)
+                      </Button>
+                    </div>
                   </form>
                 </Form>
                 <div className="text-center mt-4">
