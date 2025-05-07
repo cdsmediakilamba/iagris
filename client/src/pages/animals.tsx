@@ -5,7 +5,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { insertAnimalSchema, Animal } from '@shared/schema';
+import { insertAnimalSchema, Animal, Species } from '@shared/schema';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { formatDate } from '@/lib/i18n';
@@ -14,6 +14,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from '@/components/ui/card';
 import {
   Table,
@@ -39,6 +40,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from '@/components/ui/form';
 import {
   Select,
@@ -60,6 +62,10 @@ import {
   Edit,
   Trash2,
   Loader2,
+  Users,
+  Heart,
+  Info,
+  FileText,
 } from 'lucide-react';
 
 export default function Animals() {
@@ -81,6 +87,11 @@ export default function Animals() {
     }
   }, [farms, selectedFarmId]);
 
+  // Get species list for the dropdown
+  const { data: speciesList, isLoading: isLoadingSpecies } = useQuery<Species[]>({
+    queryKey: ['/api/species'],
+  });
+
   // Get animals for selected farm
   const { data: animals, isLoading: isLoadingAnimals } = useQuery<Animal[]>({
     queryKey: ['/api/farms', selectedFarmId, 'animals'],
@@ -89,10 +100,15 @@ export default function Animals() {
 
   // Filter animals by search term
   const filteredAnimals = animals?.filter(animal => 
-    animal.identificationCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    animal.species.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    animal.breed.toLowerCase().includes(searchTerm.toLowerCase())
+    (animal.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (animal.registrationCode?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (speciesList?.find(s => s.id === animal.speciesId)?.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (animal.breed?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   );
+
+  // Get potential parent animals (for mother/father selection)
+  const femaleAnimals = animals?.filter(animal => animal.gender === 'female') || [];
+  const maleAnimals = animals?.filter(animal => animal.gender === 'male') || [];
 
   // Animal form schema
   const formSchema = insertAnimalSchema.omit({ 
@@ -103,14 +119,17 @@ export default function Animals() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      identificationCode: '',
-      species: '',
+      name: '',
+      speciesId: undefined,
       breed: '',
       gender: '',
       birthDate: undefined,
       weight: undefined,
       status: 'healthy',
+      motherId: undefined,
+      fatherId: undefined,
       lastVaccineDate: undefined,
+      observations: '',
     },
   });
 
@@ -244,31 +263,119 @@ export default function Animals() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
-                      name="identificationCode"
+                      name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('animals.identificationCode')}</FormLabel>
+                          <FormLabel>{t('common.name')}</FormLabel>
                           <FormControl>
                             <Input {...field} />
                           </FormControl>
+                          <FormDescription>
+                            {t('animals.registrationCodeInfo')}
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                     <FormField
                       control={form.control}
-                      name="species"
+                      name="speciesId"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>{t('animals.species')}</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
+                          <Select
+                            onValueChange={(value) => field.onChange(parseInt(value))}
+                            value={field.value?.toString()}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder={t('animals.selectSpecies')} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {isLoadingSpecies ? (
+                                <SelectItem value="loading" disabled>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin inline" />
+                                  {t('common.loading')}
+                                </SelectItem>
+                              ) : speciesList && speciesList.length > 0 ? (
+                                speciesList.map((species) => (
+                                  <SelectItem key={species.id} value={species.id.toString()}>
+                                    {species.name} ({species.abbreviation})
+                                  </SelectItem>
+                                ))
+                              ) : (
+                                <SelectItem value="no-species" disabled>
+                                  {t('animals.noSpecies')}
+                                </SelectItem>
+                              )}
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                   </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="motherId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('animals.mother')}</FormLabel>
+                          <Select
+                            onValueChange={(value) => field.onChange(value ? parseInt(value) : undefined)}
+                            value={field.value?.toString() || ""}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder={t('animals.selectParent')} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="">{t('animals.noParent')}</SelectItem>
+                              {femaleAnimals.map((animal) => (
+                                <SelectItem key={animal.id} value={animal.id.toString()}>
+                                  {animal.name || animal.registrationCode || animal.id}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="fatherId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('animals.father')}</FormLabel>
+                          <Select
+                            onValueChange={(value) => field.onChange(value ? parseInt(value) : undefined)}
+                            value={field.value?.toString() || ""}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder={t('animals.selectParent')} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="">{t('animals.noParent')}</SelectItem>
+                              {maleAnimals.map((animal) => (
+                                <SelectItem key={animal.id} value={animal.id.toString()}>
+                                  {animal.name || animal.registrationCode || animal.id}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -331,14 +438,16 @@ export default function Animals() {
                       name="weight"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('animals.weight')} (kg)</FormLabel>
+                          <FormLabel>{t('animals.weight')}</FormLabel>
                           <FormControl>
                             <Input 
                               type="number" 
+                              step="0.01"
                               {...field}
-                              onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                              onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
                             />
                           </FormControl>
+                          <FormDescription>{t('animals.weightUnit')}</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -383,6 +492,7 @@ export default function Animals() {
                               <SelectItem value="treatment">{t('animals.status.treatment')}</SelectItem>
                               <SelectItem value="quarantine">{t('animals.status.quarantine')}</SelectItem>
                               <SelectItem value="pregnant">{t('animals.status.pregnant')}</SelectItem>
+                              <SelectItem value="needsAttention">{t('animals.status.needsAttention')}</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -426,6 +536,7 @@ export default function Animals() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>{t('animals.registrationCode')}</TableHead>
                     <TableHead>{t('animals.identificationCode')}</TableHead>
                     <TableHead>{t('animals.species')}</TableHead>
                     <TableHead>{t('animals.breed')}</TableHead>
@@ -440,13 +551,19 @@ export default function Animals() {
                   {filteredAnimals.map((animal) => (
                     <TableRow key={animal.id}>
                       <TableCell className="font-medium flex items-center">
-                        <Tag className="h-4 w-4 mr-2 text-primary" />
-                        {animal.identificationCode}
+                        <FileText className="h-4 w-4 mr-2 text-primary" />
+                        <span className="font-mono text-sm">{animal.registrationCode}</span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center">
+                          <Tag className="h-4 w-4 mr-2 text-gray-500" />
+                          {animal.name || '-'}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center">
                           <PawPrint className="h-4 w-4 mr-2 text-gray-500" />
-                          {animal.species}
+                          {speciesList?.find(s => s.id === animal.speciesId)?.name || '-'}
                         </div>
                       </TableCell>
                       <TableCell>{animal.breed}</TableCell>
@@ -463,7 +580,7 @@ export default function Animals() {
                         {animal.weight ? (
                           <div className="flex items-center">
                             <Weight className="h-4 w-4 mr-2 text-gray-500" />
-                            {animal.weight} kg
+                            {animal.weight} {t('animals.weightUnit')}
                           </div>
                         ) : '-'}
                       </TableCell>
