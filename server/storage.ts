@@ -1,6 +1,7 @@
 import { users, type User, type InsertUser } from "@shared/schema";
 import { farms, type Farm, type InsertFarm } from "@shared/schema";
 import { animals, type Animal, type InsertAnimal } from "@shared/schema";
+import { species, type Species, type InsertSpecies } from "@shared/schema";
 import { crops, type Crop, type InsertCrop } from "@shared/schema";
 import { inventory, type Inventory, type InsertInventory } from "@shared/schema";
 import { inventoryTransactions, type InventoryTransaction, type InsertInventoryTransaction } from "@shared/schema";
@@ -44,11 +45,18 @@ export interface IStorage {
   updateUserPermission(id: number, permission: Partial<UserPermission>): Promise<UserPermission | undefined>;
   checkUserAccess(userId: number, farmId: number, module: SystemModule, requiredLevel: AccessLevel): Promise<boolean>;
   
+  // Species operations
+  getSpecies(id: number): Promise<Species | undefined>;
+  getAllSpecies(): Promise<Species[]>;
+  createSpecies(speciesData: InsertSpecies): Promise<Species>;
+  updateSpecies(id: number, speciesData: Partial<Species>): Promise<Species | undefined>;
+  
   // Animal operations
   getAnimal(id: number): Promise<Animal | undefined>;
   getAnimalsByFarm(farmId: number): Promise<Animal[]>;
   createAnimal(animal: InsertAnimal): Promise<Animal>;
   updateAnimal(id: number, animal: Partial<Animal>): Promise<Animal | undefined>;
+  generateAnimalRegistrationCode(speciesId: number, farmId: number): Promise<string>;
   
   // Crop operations
   getCrop(id: number): Promise<Crop | undefined>;
@@ -97,6 +105,7 @@ export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private farms: Map<number, Farm>;
   private animals: Map<number, Animal>;
+  private speciesItems: Map<number, Species>;
   private crops: Map<number, Crop>;
   private inventoryItems: Map<number, Inventory>;
   private inventoryTransactions: Map<number, InventoryTransaction>;
@@ -111,6 +120,7 @@ export class MemStorage implements IStorage {
   private userId = 1;
   private farmId = 1;
   private animalId = 1;
+  private speciesId = 1;
   private cropId = 1;
   private inventoryId = 1;
   private inventoryTransactionId = 1;
@@ -118,11 +128,15 @@ export class MemStorage implements IStorage {
   private goalId = 1;
   private userFarmId = 1;
   private userPermissionId = 1;
+  
+  // Maps para acompanhar os contadores diários de registro animal
+  private dailyAnimalCounters: Map<string, number> = new Map();
 
   constructor() {
     this.users = new Map();
     this.farms = new Map();
     this.animals = new Map();
+    this.speciesItems = new Map();
     this.crops = new Map();
     this.inventoryItems = new Map();
     this.inventoryTransactions = new Map();
@@ -139,9 +153,47 @@ export class MemStorage implements IStorage {
     this.initializeData();
   }
   
+  // Método para criar uma espécie de forma síncrona
+  private createSpeciesSync(insertSpecies: InsertSpecies): Species {
+    const id = this.speciesId++;
+    const species: Species = {
+      ...insertSpecies,
+      id,
+      createdAt: new Date()
+    };
+    this.speciesItems.set(id, species);
+    return species;
+  }
+  
   // Método para inicializar os dados (não asíncrono para o construtor)
   private initializeData() {
     try {
+      // Criar espécies básicas
+      this.createSpeciesSync({
+        name: "Bovino",
+        abbreviation: "BOI"
+      });
+      
+      this.createSpeciesSync({
+        name: "Suíno",
+        abbreviation: "SUI"
+      });
+      
+      this.createSpeciesSync({
+        name: "Ovino",
+        abbreviation: "OVI"
+      });
+      
+      this.createSpeciesSync({
+        name: "Caprino",
+        abbreviation: "CAP"
+      });
+      
+      this.createSpeciesSync({
+        name: "Ave",
+        abbreviation: "AVE"
+      });
+      
       // Create initial super admin user
       const adminUser = this.createUserSync({
         username: "admin",
@@ -242,25 +294,30 @@ export class MemStorage implements IStorage {
       });
       
       // Add some sample animals to the farm
+      // Usar espécie cadastrada (bovino) id=1
+      const registrationCode1 = "BOI-20250507-0001"; // Código para exemplo (será gerado automaticamente em casos reais)
       this.createAnimalSync({
         farmId: farm1.id,
-        identificationCode: "A001",
-        species: "Bovino",
+        registrationCode: registrationCode1,
+        speciesId: 1, // Bovino
+        name: "Touro Ferdinando",
         breed: "Angus",
-        gender: "Macho",
-        status: "Ativo",
+        gender: "male",
+        status: "active",
         birthDate: new Date("2022-05-15"),
         weight: 450,
         lastVaccineDate: new Date("2023-10-10")
       });
       
+      const registrationCode2 = "BOI-20250507-0002"; // Código para exemplo (será gerado automaticamente em casos reais)
       this.createAnimalSync({
         farmId: farm1.id,
-        identificationCode: "A002",
-        species: "Bovino",
+        registrationCode: registrationCode2,
+        speciesId: 1, // Bovino
+        name: "Vaca Mimosa",
         breed: "Nelore",
-        gender: "Fêmea",
-        status: "Ativo",
+        gender: "female",
+        status: "active",
         birthDate: new Date("2021-03-22"),
         weight: 380,
         lastVaccineDate: new Date("2023-10-10")
@@ -431,10 +488,15 @@ export class MemStorage implements IStorage {
       ...insertAnimal, 
       id, 
       createdAt: new Date(),
-      status: insertAnimal.status || "healthy",
+      name: insertAnimal.name || null,
+      status: insertAnimal.status || "active",
       birthDate: insertAnimal.birthDate || null,
       weight: insertAnimal.weight || null,
-      lastVaccineDate: insertAnimal.lastVaccineDate || null
+      lastVaccineDate: insertAnimal.lastVaccineDate || null,
+      observations: insertAnimal.observations || null,
+      fatherId: insertAnimal.fatherId || null,
+      motherId: insertAnimal.motherId || null,
+      registrationCode: insertAnimal.registrationCode
     };
     this.animals.set(id, animal);
     return animal;
@@ -1096,6 +1158,67 @@ export class MemStorage implements IStorage {
     const updatedGoal = { ...goal, ...goalData };
     this.goalItems.set(id, updatedGoal);
     return updatedGoal;
+  }
+  
+  // Implementation of Species operations
+  async getSpecies(id: number): Promise<Species | undefined> {
+    return this.speciesItems.get(id);
+  }
+  
+  async getAllSpecies(): Promise<Species[]> {
+    return Array.from(this.speciesItems.values());
+  }
+  
+  async createSpecies(speciesData: InsertSpecies): Promise<Species> {
+    const id = this.speciesId++;
+    const species: Species = {
+      ...speciesData,
+      id,
+      createdAt: new Date()
+    };
+    this.speciesItems.set(id, species);
+    return species;
+  }
+  
+  async updateSpecies(id: number, speciesData: Partial<Species>): Promise<Species | undefined> {
+    const species = this.speciesItems.get(id);
+    if (!species) return undefined;
+    
+    const updatedSpecies = { ...species, ...speciesData };
+    this.speciesItems.set(id, updatedSpecies);
+    return updatedSpecies;
+  }
+  
+  // Method to generate animal registration code
+  async generateAnimalRegistrationCode(speciesId: number, farmId: number): Promise<string> {
+    // Get the species abbreviation
+    const species = await this.getSpecies(speciesId);
+    if (!species) {
+      throw new Error("Species not found");
+    }
+    
+    const abbreviation = species.abbreviation;
+    
+    // Get current date in format YYYYMMDD
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const dateString = `${year}${month}${day}`;
+    
+    // Get today's key for the counter
+    const counterKey = `${abbreviation}-${dateString}-${farmId}`;
+    
+    // Get current count for today and increment
+    const currentCount = this.dailyAnimalCounters.get(counterKey) || 0;
+    const newCount = currentCount + 1;
+    this.dailyAnimalCounters.set(counterKey, newCount);
+    
+    // Format the sequential number with leading zeros (4 digits)
+    const sequentialNumber = String(newCount).padStart(4, '0');
+    
+    // Generate code in format [ABBREVIATION]-[YYYYMMDD]-[SEQUENTIAL]
+    return `${abbreviation}-${dateString}-${sequentialNumber}`;
   }
 }
 
