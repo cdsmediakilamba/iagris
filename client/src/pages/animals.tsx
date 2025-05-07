@@ -93,9 +93,15 @@ export default function Animals() {
   });
 
   // Get animals for selected farm
-  const { data: animals, isLoading: isLoadingAnimals } = useQuery<Animal[]>({
-    queryKey: ['/api/farms', selectedFarmId, 'animals'],
+  const { data: animals, isLoading: isLoadingAnimals, error: animalError } = useQuery<Animal[]>({
+    queryKey: [`/api/farms/${selectedFarmId}/animals`],
     enabled: !!selectedFarmId,
+    onSuccess: (data) => {
+      console.log('Animals loaded successfully:', data);
+    },
+    onError: (error) => {
+      console.error('Error loading animals:', error);
+    }
   });
 
   // Filter animals by search term
@@ -145,7 +151,7 @@ export default function Animals() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/farms', selectedFarmId, 'animals'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/farms/${selectedFarmId}/animals`] });
       toast({
         title: t('animals.animalAdded'),
         description: t('common.success'),
@@ -567,7 +573,7 @@ export default function Animals() {
                         </div>
                       </TableCell>
                       <TableCell>{animal.breed}</TableCell>
-                      <TableCell>{t(`animals.genders.${animal.gender}`)}</TableCell>
+                      <TableCell>{animal.gender ? animal.gender : '-'}</TableCell>
                       <TableCell>
                         {animal.birthDate ? (
                           <div className="flex items-center">
