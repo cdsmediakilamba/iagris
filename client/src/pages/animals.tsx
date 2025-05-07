@@ -50,6 +50,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -120,10 +121,18 @@ export default function Animals() {
   const formSchema = insertAnimalSchema.omit({ 
     farmId: true 
   });
+  
+  // Extended form schema to include parent info text fields
+  const extendedFormSchema = formSchema
+    .omit({ motherId: true, fatherId: true })
+    .extend({
+      motherInfo: z.string().optional(),
+      fatherInfo: z.string().optional(),
+    });
 
   // Setup form
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof extendedFormSchema>>({
+    resolver: zodResolver(extendedFormSchema),
     defaultValues: {
       name: '',
       speciesId: undefined,
@@ -132,8 +141,8 @@ export default function Animals() {
       birthDate: undefined,
       weight: undefined,
       status: 'healthy',
-      motherId: undefined,
-      fatherId: undefined,
+      motherInfo: '',
+      fatherInfo: '',
       lastVaccineDate: undefined,
       observations: '',
     },
@@ -141,12 +150,33 @@ export default function Animals() {
 
   // Create animal mutation
   const createAnimal = useMutation({
-    mutationFn: async (data: z.infer<typeof formSchema>) => {
+    mutationFn: async (data: z.infer<typeof extendedFormSchema>) => {
       if (!selectedFarmId) throw new Error("No farm selected");
+      
+      // Convert the extended form data back to the format expected by the API
+      // by removing our custom fields and adding the original schema fields
+      const { motherInfo, fatherInfo, ...restData } = data;
+      
+      // Add parent information to observations field if provided
+      let observations = data.observations || '';
+      if (motherInfo) {
+        observations += `\nMãe: ${motherInfo}`;
+      }
+      if (fatherInfo) {
+        observations += `\nPai: ${fatherInfo}`;
+      }
+      
+      // The API data with farmId and observations containing parent info
+      const apiData = {
+        ...restData,
+        observations: observations.trim(),
+        farmId: selectedFarmId
+      };
+      
       const response = await apiRequest(
         'POST', 
         `/api/farms/${selectedFarmId}/animals`, 
-        data
+        apiData
       );
       return response.json();
     },
@@ -169,7 +199,7 @@ export default function Animals() {
   });
 
   // Submit handler
-  const onSubmit = (data: z.infer<typeof formSchema>) => {
+  const onSubmit = (data: z.infer<typeof extendedFormSchema>) => {
     createAnimal.mutate(data);
   };
 
@@ -326,56 +356,38 @@ export default function Animals() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
-                      name="motherId"
+                      name="motherInfo"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>{t('animals.mother')}</FormLabel>
-                          <Select
-                            onValueChange={(value) => field.onChange(value && value !== "none" ? parseInt(value) : undefined)}
-                            value={field.value?.toString() || "none"}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder={t('animals.selectParent')} />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="none">{t('animals.noParent')}</SelectItem>
-                              {femaleAnimals.map((animal) => (
-                                <SelectItem key={animal.id} value={animal.id.toString()}>
-                                  {animal.name || animal.registrationCode || animal.id}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <FormControl>
+                            <Input 
+                              {...field} 
+                              placeholder={t('animals.enterParentInfo')}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            {t('animals.parentInfoOptional')}
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                     <FormField
                       control={form.control}
-                      name="fatherId"
+                      name="fatherInfo"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>{t('animals.father')}</FormLabel>
-                          <Select
-                            onValueChange={(value) => field.onChange(value && value !== "none" ? parseInt(value) : undefined)}
-                            value={field.value?.toString() || "none"}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder={t('animals.selectParent')} />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="none">{t('animals.noParent')}</SelectItem>
-                              {maleAnimals.map((animal) => (
-                                <SelectItem key={animal.id} value={animal.id.toString()}>
-                                  {animal.name || animal.registrationCode || animal.id}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <FormControl>
+                            <Input 
+                              {...field} 
+                              placeholder={t('animals.enterParentInfo')}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            {t('animals.parentInfoOptional')}
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -506,6 +518,31 @@ export default function Animals() {
                       )}
                     />
                   </div>
+                  {/* Observations field */}
+                  <div>
+                    <FormField
+                      control={form.control}
+                      name="observations"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('animals.observations')}</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              {...field}
+                              placeholder={t('animals.observationsPlaceholder')}
+                              className="resize-y"
+                              rows={3}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            {t('animals.observationsHelper')}
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
                   <DialogFooter>
                     <DialogClose asChild>
                       <Button variant="outline">{t('common.cancel')}</Button>
