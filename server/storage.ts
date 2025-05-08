@@ -9,6 +9,7 @@ import { tasks, type Task, type InsertTask } from "@shared/schema";
 import { goals, type Goal, type InsertGoal } from "@shared/schema";
 import { userFarms, type UserFarm, type InsertUserFarm } from "@shared/schema";
 import { userPermissions, type UserPermission, type InsertUserPermission } from "@shared/schema";
+import { animalVaccinations, type AnimalVaccination, type InsertAnimalVaccination } from "@shared/schema";
 import { UserRole, SystemModule, AccessLevel, GoalStatus, InventoryTransactionType } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
@@ -96,6 +97,13 @@ export interface IStorage {
   getGoalsByStatus(farmId: number, status: GoalStatus): Promise<Goal[]>;
   createGoal(goal: InsertGoal): Promise<Goal>;
   updateGoal(id: number, goal: Partial<Goal>): Promise<Goal | undefined>;
+  
+  // Animal Vaccination operations
+  getAnimalVaccination(id: number): Promise<AnimalVaccination | undefined>;
+  getAnimalVaccinationsByAnimal(animalId: number): Promise<AnimalVaccination[]>;
+  getAnimalVaccinationsByFarm(farmId: number): Promise<AnimalVaccination[]>;
+  createAnimalVaccination(vaccination: InsertAnimalVaccination): Promise<AnimalVaccination>;
+  updateAnimalVaccination(id: number, vaccination: Partial<AnimalVaccination>): Promise<AnimalVaccination | undefined>;
   
   // Session store
   sessionStore: any; // Using any to avoid type issues with SessionStore

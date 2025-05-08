@@ -1,10 +1,10 @@
 import { 
-  users, farms, userFarms, userPermissions, animals, species, crops, inventory, inventoryTransactions, tasks, goals,
+  users, farms, userFarms, userPermissions, animals, species, crops, inventory, inventoryTransactions, tasks, goals, animalVaccinations,
   type User, type InsertUser, type Farm, type InsertFarm, 
   type UserFarm, type InsertUserFarm, type UserPermission, type InsertUserPermission,
   type Animal, type InsertAnimal, type Species, type InsertSpecies, type Crop, type InsertCrop, 
   type Inventory, type InsertInventory, type InventoryTransaction, type InsertInventoryTransaction,
-  type Task, type InsertTask, type Goal, type InsertGoal
+  type Task, type InsertTask, type Goal, type InsertGoal, type AnimalVaccination, type InsertAnimalVaccination
 } from "@shared/schema";
 import { IStorage } from "./storage";
 import { db } from "./db";
@@ -793,5 +793,95 @@ export class DatabaseStorage implements IStorage {
       .where(eq(goals.id, id))
       .returning();
     return updatedGoal || undefined;
+  }
+
+  // Animal Vaccination operations
+  async getAnimalVaccination(id: number): Promise<AnimalVaccination | undefined> {
+    const [vaccination] = await db
+      .select()
+      .from(animalVaccinations)
+      .where(eq(animalVaccinations.id, id));
+    return vaccination || undefined;
+  }
+
+  async getAnimalVaccinationsByAnimal(animalId: number): Promise<AnimalVaccination[]> {
+    return await db
+      .select()
+      .from(animalVaccinations)
+      .where(eq(animalVaccinations.animalId, animalId))
+      .orderBy(desc(animalVaccinations.applicationDate));
+  }
+
+  async getAnimalVaccinationsByFarm(farmId: number): Promise<AnimalVaccination[]> {
+    return await db
+      .select()
+      .from(animalVaccinations)
+      .where(eq(animalVaccinations.farmId, farmId))
+      .orderBy(desc(animalVaccinations.applicationDate));
+  }
+
+  async createAnimalVaccination(vaccinationData: InsertAnimalVaccination): Promise<AnimalVaccination> {
+    // Processa a data de aplicação
+    let processedData = { ...vaccinationData };
+    if (typeof processedData.applicationDate === 'string') {
+      processedData.applicationDate = new Date(processedData.applicationDate);
+    }
+    
+    // Processa a data de expiração se existir
+    if (processedData.expirationDate && typeof processedData.expirationDate === 'string') {
+      processedData.expirationDate = new Date(processedData.expirationDate);
+    }
+    
+    // Processa a data da próxima aplicação se existir
+    if (processedData.nextApplicationDate && typeof processedData.nextApplicationDate === 'string') {
+      processedData.nextApplicationDate = new Date(processedData.nextApplicationDate);
+    }
+    
+    // Inserir o registro de vacinação
+    const [vaccination] = await db
+      .insert(animalVaccinations)
+      .values(processedData)
+      .returning();
+    
+    // Atualizar a data da última vacina no animal
+    await db
+      .update(animals)
+      .set({ lastVaccineDate: processedData.applicationDate })
+      .where(eq(animals.id, processedData.animalId));
+    
+    return vaccination;
+  }
+
+  async updateAnimalVaccination(id: number, vaccinationData: Partial<AnimalVaccination>): Promise<AnimalVaccination | undefined> {
+    // Processa a data de aplicação se existir
+    if (vaccinationData.applicationDate && typeof vaccinationData.applicationDate === 'string') {
+      vaccinationData.applicationDate = new Date(vaccinationData.applicationDate);
+    }
+    
+    // Processa a data de expiração se existir
+    if (vaccinationData.expirationDate && typeof vaccinationData.expirationDate === 'string') {
+      vaccinationData.expirationDate = new Date(vaccinationData.expirationDate);
+    }
+    
+    // Processa a data da próxima aplicação se existir
+    if (vaccinationData.nextApplicationDate && typeof vaccinationData.nextApplicationDate === 'string') {
+      vaccinationData.nextApplicationDate = new Date(vaccinationData.nextApplicationDate);
+    }
+    
+    const [updatedVaccination] = await db
+      .update(animalVaccinations)
+      .set(vaccinationData)
+      .where(eq(animalVaccinations.id, id))
+      .returning();
+    
+    // Se a data de aplicação foi alterada, atualizar a data da última vacina no animal
+    if (updatedVaccination && vaccinationData.applicationDate) {
+      await db
+        .update(animals)
+        .set({ lastVaccineDate: vaccinationData.applicationDate })
+        .where(eq(animals.id, updatedVaccination.animalId));
+    }
+    
+    return updatedVaccination || undefined;
   }
 }
