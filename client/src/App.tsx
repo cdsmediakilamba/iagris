@@ -33,7 +33,7 @@ function Router() {
       <ProtectedRoute path="/calendar" component={Calendar} />
       <ProtectedRoute path="/animals" component={Animals} />
       <ProtectedRoute path="/animals-new" component={AnimalsNew} />
-      <ProtectedRoute path="/animals/:id" component={AnimalDetails} />
+      <ProtectedRoute path="/animals-new/:id" component={AnimalDetails} />
       <ProtectedRoute path="/crops" component={Crops} />
       <ProtectedRoute path="/inventory" component={Inventory} />
       <ProtectedRoute path="/inventory-transactions" component={InventoryTransactions} />
