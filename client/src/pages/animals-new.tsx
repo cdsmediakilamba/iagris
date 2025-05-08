@@ -208,9 +208,51 @@ export default function NewAnimalsPage() {
       observationsText = `Pai: ${data.fatherInfo}\n${observationsText}`;
     }
     
-    // Format dates properly for API
-    const formattedBirthDate = data.birthDate ? new Date(data.birthDate).toISOString() : null;
-    const formattedLastVaccineDate = data.lastVaccineDate ? new Date(data.lastVaccineDate).toISOString() : null;
+    // Format dates properly for API, com tratamento de erros
+    let formattedBirthDate = null;
+    let formattedLastVaccineDate = null;
+    
+    try {
+      if (data.birthDate) {
+        const birthDate = new Date(data.birthDate);
+        if (!isNaN(birthDate.getTime())) {
+          formattedBirthDate = birthDate.toISOString();
+        } else {
+          console.error("Data de nascimento inválida:", data.birthDate);
+        }
+      }
+    } catch (error) {
+      console.error("Erro ao processar data de nascimento:", error);
+    }
+    
+    try {
+      if (data.lastVaccineDate) {
+        const vaccineDate = new Date(data.lastVaccineDate);
+        if (!isNaN(vaccineDate.getTime())) {
+          formattedLastVaccineDate = vaccineDate.toISOString();
+        } else {
+          console.error("Data de vacinação inválida:", data.lastVaccineDate);
+        }
+      }
+    } catch (error) {
+      console.error("Erro ao processar data de vacinação:", error);
+    }
+    
+    // Garantir que speciesId seja um número
+    let speciesId: number;
+    try {
+      speciesId = typeof data.speciesId === 'string' 
+        ? parseInt(data.speciesId) 
+        : Number(data.speciesId);
+      
+      if (isNaN(speciesId)) {
+        console.error("ID de espécie inválido:", data.speciesId);
+        throw new Error("ID de espécie inválido");
+      }
+    } catch (error) {
+      console.error("Erro ao processar ID de espécie:", error);
+      throw new Error("Espécie inválida ou não selecionada");
+    }
     
     // Ensure weight is a proper string with decimal places
     const formattedWeight = data.weight ? data.weight.toString() : null;
@@ -218,7 +260,7 @@ export default function NewAnimalsPage() {
     // Return processed data for API
     return {
       name: data.name || null,
-      speciesId: data.speciesId,
+      speciesId: speciesId,
       breed: data.breed,
       gender: data.gender,
       birthDate: formattedBirthDate,
@@ -285,11 +327,15 @@ export default function NewAnimalsPage() {
       console.log("Enviando dados do animal para API:", JSON.stringify(apiData, null, 2));
       
       try {
-        const response = await apiRequest(
-          'POST', 
-          `/api/farms/${selectedFarmId}/animals`, 
-          apiData
-        );
+        // Usar fetch diretamente em vez de apiRequest para ter mais controle
+        const response = await fetch(`/api/farms/${selectedFarmId}/animals`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(apiData),
+          credentials: 'include',
+        });
         
         // Log da resposta completa para diagnóstico
         console.log("Resposta do servidor:", {
@@ -298,25 +344,43 @@ export default function NewAnimalsPage() {
           headers: Object.fromEntries([...response.headers.entries()])
         });
         
+        // Se a resposta não for ok, tentar entender o erro
         if (!response.ok) {
-          try {
+          const contentType = response.headers.get('content-type');
+          
+          // Verifica se a resposta é JSON
+          if (contentType && contentType.includes('application/json')) {
             const errorData = await response.json();
-            console.error("Dados de erro:", errorData);
-            throw new Error(errorData.message || "Erro ao criar animal");
-          } catch (parseError) {
-            // Se não conseguir parsear como JSON, pega o texto bruto
+            console.error("Dados de erro JSON:", errorData);
+            throw new Error(errorData.message || `Erro ao criar animal (${response.status})`);
+          } else {
+            // Se não for JSON, trata como texto
             const errorText = await response.text();
-            console.error("Resposta de erro bruta:", errorText);
-            throw new Error(`Erro do servidor: ${response.status} - ${errorText.substring(0, 100)}...`);
+            console.error("Resposta de erro (não-JSON):", errorText);
+            throw new Error(`Erro do servidor: ${response.status} - Não é uma resposta JSON válida`);
           }
         }
         
-        const responseData = await response.json();
-        console.log("Dados de resposta:", responseData);
-        return responseData;
-      } catch (error) {
+        // Processar resposta bem-sucedida
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const responseData = await response.json();
+          console.log("Dados de resposta:", responseData);
+          return responseData;
+        } else {
+          // Se a resposta não for JSON, algo está errado
+          const textResponse = await response.text();
+          console.error("Resposta não é JSON:", textResponse);
+          throw new Error("Resposta do servidor não é um JSON válido");
+        }
+      } catch (error: any) {
         console.error("Erro completo ao criar animal:", error);
-        throw error;
+        // Garantir que sempre retornamos um erro formatado
+        if (error instanceof Error) {
+          throw error;
+        } else {
+          throw new Error("Erro desconhecido ao criar animal");
+        }
       }
     },
     onSuccess: (data) => {
@@ -329,11 +393,11 @@ export default function NewAnimalsPage() {
       form.reset();
       setDialogOpen(false);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("Erro ao criar animal:", error);
       toast({
         title: t('common.error'),
-        description: error.message,
+        description: error.message || "Erro ao tentar criar o animal",
         variant: 'destructive',
       });
     },
@@ -347,22 +411,67 @@ export default function NewAnimalsPage() {
       
       const apiData = processFormData(data);
       
-      console.log("Atualizando dados do animal:", apiData);
+      console.log("Atualizando dados do animal:", JSON.stringify(apiData, null, 2));
       
-      const response = await apiRequest(
-        'PATCH', 
-        `/api/farms/${selectedFarmId}/animals/${animalToEdit.id}`, 
-        apiData
-      );
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Erro ao atualizar animal");
+      try {
+        // Usar fetch diretamente em vez de apiRequest para ter mais controle
+        const response = await fetch(`/api/farms/${selectedFarmId}/animals/${animalToEdit.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(apiData),
+          credentials: 'include',
+        });
+        
+        // Log da resposta completa para diagnóstico
+        console.log("Resposta do servidor (atualização):", {
+          status: response.status,
+          statusText: response.statusText,
+          headers: Object.fromEntries([...response.headers.entries()])
+        });
+        
+        // Se a resposta não for ok, tentar entender o erro
+        if (!response.ok) {
+          const contentType = response.headers.get('content-type');
+          
+          // Verifica se a resposta é JSON
+          if (contentType && contentType.includes('application/json')) {
+            const errorData = await response.json();
+            console.error("Dados de erro JSON (atualização):", errorData);
+            throw new Error(errorData.message || `Erro ao atualizar animal (${response.status})`);
+          } else {
+            // Se não for JSON, trata como texto
+            const errorText = await response.text();
+            console.error("Resposta de erro (atualização, não-JSON):", errorText);
+            throw new Error(`Erro do servidor: ${response.status} - Não é uma resposta JSON válida`);
+          }
+        }
+        
+        // Processar resposta bem-sucedida
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const responseData = await response.json();
+          console.log("Dados de resposta (atualização):", responseData);
+          return responseData;
+        } else {
+          // Se a resposta não for JSON, algo está errado
+          const textResponse = await response.text();
+          console.error("Resposta não é JSON (atualização):", textResponse);
+          throw new Error("Resposta do servidor não é um JSON válido");
+        }
+      } catch (error: any) {
+        console.error("Erro completo ao atualizar animal:", error);
+        // Garantir que sempre retornamos um erro formatado
+        if (error instanceof Error) {
+          throw error;
+        } else {
+          throw new Error("Erro desconhecido ao atualizar animal");
+        }
       }
-      
-      return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Animal atualizado com sucesso:", data);
       queryClient.invalidateQueries({ queryKey: [`/api/farms/${selectedFarmId}/animals`] });
       toast({
         title: t('animals.animalUpdated'),
@@ -372,11 +481,11 @@ export default function NewAnimalsPage() {
       setEditDialogOpen(false);
       setAnimalToEdit(null);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("Erro ao atualizar animal:", error);
       toast({
         title: t('common.error'),
-        description: error.message,
+        description: error.message || "Erro ao tentar atualizar o animal",
         variant: 'destructive',
       });
     },
@@ -388,19 +497,66 @@ export default function NewAnimalsPage() {
       if (!animalToDelete) throw new Error("Nenhum animal para excluir");
       if (!selectedFarmId) throw new Error("Nenhuma fazenda selecionada");
       
-      const response = await apiRequest(
-        'DELETE', 
-        `/api/farms/${selectedFarmId}/animals/${animalToDelete.id}`
-      );
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Erro ao excluir animal");
+      try {
+        // Usar fetch diretamente em vez de apiRequest para ter mais controle
+        const response = await fetch(`/api/farms/${selectedFarmId}/animals/${animalToDelete.id}`, {
+          method: 'DELETE',
+          credentials: 'include',
+        });
+        
+        // Log da resposta completa para diagnóstico
+        console.log("Resposta do servidor (exclusão):", {
+          status: response.status,
+          statusText: response.statusText,
+          headers: Object.fromEntries([...response.headers.entries()])
+        });
+        
+        // Se a resposta não for ok, tentar entender o erro
+        if (!response.ok) {
+          const contentType = response.headers.get('content-type');
+          
+          // Verifica se a resposta é JSON
+          if (contentType && contentType.includes('application/json')) {
+            const errorData = await response.json();
+            console.error("Dados de erro JSON (exclusão):", errorData);
+            throw new Error(errorData.message || `Erro ao excluir animal (${response.status})`);
+          } else {
+            // Se não for JSON, trata como texto
+            const errorText = await response.text();
+            console.error("Resposta de erro (exclusão, não-JSON):", errorText);
+            throw new Error(`Erro do servidor: ${response.status} - Não é uma resposta JSON válida`);
+          }
+        }
+        
+        // Processar resposta bem-sucedida
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const responseData = await response.json();
+          console.log("Dados de resposta (exclusão):", responseData);
+          return responseData;
+        } else {
+          // Para métodos DELETE, é comum que a resposta seja vazia
+          if (response.status === 204) {
+            return { success: true };
+          }
+          
+          // Se não for 204 e nem JSON, algo está errado
+          const textResponse = await response.text();
+          console.error("Resposta não é JSON (exclusão):", textResponse);
+          throw new Error("Resposta do servidor não é um JSON válido");
+        }
+      } catch (error: any) {
+        console.error("Erro completo ao excluir animal:", error);
+        // Garantir que sempre retornamos um erro formatado
+        if (error instanceof Error) {
+          throw error;
+        } else {
+          throw new Error("Erro desconhecido ao excluir animal");
+        }
       }
-      
-      return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Animal excluído com sucesso:", data);
       queryClient.invalidateQueries({ queryKey: [`/api/farms/${selectedFarmId}/animals`] });
       toast({
         title: t('animals.animalDeleted'),
@@ -409,10 +565,11 @@ export default function NewAnimalsPage() {
       setDeleteDialogOpen(false);
       setAnimalToDelete(null);
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      console.error("Erro ao excluir animal:", error);
       toast({
         title: t('common.error'),
-        description: error.message,
+        description: error.message || "Erro ao tentar excluir o animal",
         variant: 'destructive',
       });
     },
