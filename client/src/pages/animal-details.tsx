@@ -69,10 +69,10 @@ import { Link } from 'wouter';
 
 // Extend the vaccination schema with form validation
 const vaccinationFormSchema = insertAnimalVaccinationSchema.extend({
-  vaccinationDate: z.date({
+  applicationDate: z.date({
     required_error: "Data de vacinação é obrigatória",
   }),
-  nextScheduledDate: z.date().optional().nullable(),
+  nextApplicationDate: z.date().optional().nullable(),
 });
 
 type VaccinationFormValues = z.infer<typeof vaccinationFormSchema>;
@@ -162,14 +162,15 @@ const AnimalDetails: React.FC = () => {
     resolver: zodResolver(vaccinationFormSchema),
     defaultValues: {
       animalId: animalId,
-      vaccinationDate: new Date(),
-      vaccineType: '',
+      applicationDate: new Date(),
+      vaccineName: '',
       status: VaccinationStatus.SCHEDULED,
       appliedBy: 0,
       batchNumber: '',
-      dosage: '',
+      doseNumber: null,
       notes: '',
-      nextScheduledDate: null,
+      nextApplicationDate: null,
+      farmId: animal?.farmId || 0,
     },
   });
 
@@ -178,14 +179,15 @@ const AnimalDetails: React.FC = () => {
     resolver: zodResolver(vaccinationFormSchema),
     defaultValues: {
       animalId: animalId,
-      vaccinationDate: new Date(),
-      vaccineType: '',
+      applicationDate: new Date(),
+      vaccineName: '',
       status: VaccinationStatus.SCHEDULED,
       appliedBy: 0,
       batchNumber: '',
-      dosage: '',
+      doseNumber: null,
       notes: '',
-      nextScheduledDate: null,
+      nextApplicationDate: null,
+      farmId: animal?.farmId || 0,
     },
   });
 
@@ -211,14 +213,15 @@ const AnimalDetails: React.FC = () => {
     // Pre-populate the form with existing values
     editForm.reset({
       animalId: vaccination.animalId,
-      vaccinationDate: new Date(vaccination.vaccinationDate),
-      vaccineType: vaccination.vaccineType,
+      applicationDate: new Date(vaccination.applicationDate),
+      vaccineName: vaccination.vaccineName,
       status: vaccination.status as VaccinationStatus,
       appliedBy: vaccination.appliedBy,
       batchNumber: vaccination.batchNumber || '',
-      dosage: vaccination.dosage || '',
+      doseNumber: vaccination.doseNumber,
       notes: vaccination.notes || '',
-      nextScheduledDate: vaccination.nextScheduledDate ? new Date(vaccination.nextScheduledDate) : null,
+      nextApplicationDate: vaccination.nextApplicationDate ? new Date(vaccination.nextApplicationDate) : null,
+      farmId: vaccination.farmId,
     });
     
     setIsEditVaccinationOpen(true);
@@ -370,7 +373,7 @@ const AnimalDetails: React.FC = () => {
                           {/* Vaccination date */}
                           <FormField
                             control={form.control}
-                            name="vaccinationDate"
+                            name="applicationDate"
                             render={({ field }) => (
                               <FormItem className="flex flex-col">
                                 <FormLabel>{t("vaccination.date")}</FormLabel>
@@ -407,10 +410,10 @@ const AnimalDetails: React.FC = () => {
                             )}
                           />
 
-                          {/* Vaccine Type */}
+                          {/* Vaccine Name */}
                           <FormField
                             control={form.control}
-                            name="vaccineType"
+                            name="vaccineName"
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>{t("vaccination.type")}</FormLabel>
@@ -473,15 +476,23 @@ const AnimalDetails: React.FC = () => {
                             )}
                           />
 
-                          {/* Dosage */}
+                          {/* Dose Number */}
                           <FormField
                             control={form.control}
-                            name="dosage"
+                            name="doseNumber"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>{t("vaccination.dosage")}</FormLabel>
+                                <FormLabel>{t("vaccination.doseNumber")}</FormLabel>
                                 <FormControl>
-                                  <Input {...field} />
+                                  <Input 
+                                    type="number" 
+                                    {...field} 
+                                    value={field.value === null ? '' : field.value}
+                                    onChange={(e) => {
+                                      const value = e.target.value === '' ? null : parseInt(e.target.value);
+                                      field.onChange(value);
+                                    }}
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -491,7 +502,7 @@ const AnimalDetails: React.FC = () => {
                           {/* Next Scheduled Date */}
                           <FormField
                             control={form.control}
-                            name="nextScheduledDate"
+                            name="nextApplicationDate"
                             render={({ field }) => (
                               <FormItem className="flex flex-col">
                                 <FormLabel>{t("vaccination.nextDate")}</FormLabel>
@@ -577,9 +588,9 @@ const AnimalDetails: React.FC = () => {
                       {vaccinations.map((vaccination) => (
                         <TableRow key={vaccination.id}>
                           <TableCell>
-                            {formatDate(vaccination.vaccinationDate, language)}
+                            {formatDate(vaccination.applicationDate, language)}
                           </TableCell>
-                          <TableCell>{vaccination.vaccineType}</TableCell>
+                          <TableCell>{vaccination.vaccineName}</TableCell>
                           <TableCell>
                             {getStatusBadge(vaccination.status)}
                           </TableCell>
@@ -587,8 +598,8 @@ const AnimalDetails: React.FC = () => {
                             {vaccination.batchNumber || t("common.notSpecified")}
                           </TableCell>
                           <TableCell>
-                            {vaccination.nextScheduledDate 
-                              ? formatDate(vaccination.nextScheduledDate, language) 
+                            {vaccination.nextApplicationDate 
+                              ? formatDate(vaccination.nextApplicationDate, language) 
                               : t("common.notSpecified")}
                           </TableCell>
                           <TableCell className="text-right">
@@ -657,7 +668,7 @@ const AnimalDetails: React.FC = () => {
               {/* Vaccination date */}
               <FormField
                 control={editForm.control}
-                name="vaccinationDate"
+                name="applicationDate"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>{t("vaccination.date")}</FormLabel>
@@ -694,10 +705,10 @@ const AnimalDetails: React.FC = () => {
                 )}
               />
 
-              {/* Vaccine Type */}
+              {/* Vaccine Name */}
               <FormField
                 control={editForm.control}
-                name="vaccineType"
+                name="vaccineName"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t("vaccination.type")}</FormLabel>
@@ -760,15 +771,23 @@ const AnimalDetails: React.FC = () => {
                 )}
               />
 
-              {/* Dosage */}
+              {/* Dose Number */}
               <FormField
                 control={editForm.control}
-                name="dosage"
+                name="doseNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("vaccination.dosage")}</FormLabel>
+                    <FormLabel>{t("vaccination.doseNumber")}</FormLabel>
                     <FormControl>
-                      <Input {...field} value={field.value || ''} />
+                      <Input 
+                        type="number" 
+                        {...field} 
+                        value={field.value === null ? '' : field.value}
+                        onChange={(e) => {
+                          const value = e.target.value === '' ? null : parseInt(e.target.value);
+                          field.onChange(value);
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -778,7 +797,7 @@ const AnimalDetails: React.FC = () => {
               {/* Next Scheduled Date */}
               <FormField
                 control={editForm.control}
-                name="nextScheduledDate"
+                name="nextApplicationDate"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>{t("vaccination.nextDate")}</FormLabel>
