@@ -166,6 +166,10 @@ export const pt = {
     noParent: 'Sem progenitor',
     noSpecies: 'Nenhuma espécie cadastrada',
     noSearchResults: 'Nenhum resultado encontrado',
+    enterParentInfo: 'Digite informações do progenitor',
+    parentInfoOptional: 'Informações de parentesco (opcional)',
+    observations: 'Observações',
+    observationsPlaceholder: 'Digite observações relevantes sobre o animal',
   },
   crops: {
     title: 'Gestão de Plantações',

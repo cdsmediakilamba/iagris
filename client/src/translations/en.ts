@@ -166,6 +166,10 @@ export const en = {
     noParent: 'No parent',
     noSpecies: 'No species registered',
     noSearchResults: 'No search results found',
+    enterParentInfo: 'Enter parent information',
+    parentInfoOptional: 'Parent information (optional)',
+    observations: 'Observations',
+    observationsPlaceholder: 'Enter relevant observations about the animal',
   },
   crops: {
     title: 'Crop Management',
