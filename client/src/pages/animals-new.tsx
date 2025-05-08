@@ -70,7 +70,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { HelpCircle, MoreVertical, Loader2, Plus, Search } from 'lucide-react';
+import { HelpCircle, MoreVertical, Loader2, Plus, Search, ChevronLeft, ChevronRight, Edit, Trash2 } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 
 // Base form schema
 const animalFormSchema = z.object({
@@ -105,6 +106,18 @@ export default function NewAnimalsPage() {
   const [selectedFarmId, setSelectedFarmId] = useState<number | null>(null);
   const [animalToEdit, setAnimalToEdit] = useState<Animal | null>(null);
   const [animalToDelete, setAnimalToDelete] = useState<Animal | null>(null);
+  
+  // Estados para paginação
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  
+  // Estados para filtros
+  const [filters, setFilters] = useState({
+    species: '',
+    status: '',
+    gender: '',
+    searchTerm: '',
+  });
 
   // Load farms
   const { data: farms = [] } = useQuery({
@@ -129,20 +142,37 @@ export default function NewAnimalsPage() {
     queryKey: ['/api/species'],
   });
 
-  // Filter animals based on search term
+  // Filter animals based on filters and search term
   const filteredAnimals = React.useMemo(() => {
     if (!animals) return [];
     
-    if (!searchTerm.trim()) return animals;
-    
-    const search = searchTerm.toLowerCase();
-    return animals.filter((animal) => 
-      (animal.name && animal.name.toLowerCase().includes(search)) ||
-      animal.registrationCode.toLowerCase().includes(search) ||
-      animal.breed.toLowerCase().includes(search) ||
-      animal.status.toLowerCase().includes(search)
-    );
-  }, [animals, searchTerm]);
+    return animals.filter(animal => {
+      // Aplicar filtros
+      if (filters.species && animal.speciesId.toString() !== filters.species) {
+        return false;
+      }
+      
+      if (filters.status && animal.status !== filters.status) {
+        return false;
+      }
+      
+      if (filters.gender && animal.gender !== filters.gender) {
+        return false;
+      }
+      
+      // Aplicar termo de busca se houver
+      if (filters.searchTerm) {
+        const search = filters.searchTerm.toLowerCase();
+        return (
+          (animal.name && animal.name.toLowerCase().includes(search)) ||
+          animal.registrationCode.toLowerCase().includes(search) ||
+          animal.breed.toLowerCase().includes(search)
+        );
+      }
+      
+      return true;
+    });
+  }, [animals, filters]);
 
   // Setup form
   const form = useForm<AnimalFormValues>({
@@ -594,6 +624,48 @@ export default function NewAnimalsPage() {
   const handleDeleteAnimal = (animal: Animal) => {
     setAnimalToDelete(animal);
     setDeleteDialogOpen(true);
+  };
+  
+  // Funções para paginação
+  const paginatedAnimals = React.useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredAnimals.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredAnimals, currentPage, itemsPerPage]);
+  
+  const totalPages = React.useMemo(() => {
+    return Math.ceil(filteredAnimals.length / itemsPerPage);
+  }, [filteredAnimals, itemsPerPage]);
+  
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+  
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+  
+  // Função para limpar filtros
+  const handleClearFilters = () => {
+    setFilters({
+      species: '',
+      status: '',
+      gender: '',
+      searchTerm: '',
+    });
+    setCurrentPage(1);
+  };
+  
+  // Função para atualizar filtros
+  const handleFilterChange = (filterName: string, value: string) => {
+    setFilters({
+      ...filters,
+      [filterName]: value,
+    });
+    setCurrentPage(1); // Reset to first page when changing filters
   };
 
   return (
