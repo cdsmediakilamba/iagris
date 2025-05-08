@@ -208,17 +208,24 @@ export default function NewAnimalsPage() {
       observationsText = `Pai: ${data.fatherInfo}\n${observationsText}`;
     }
     
+    // Format dates properly for API
+    const formattedBirthDate = data.birthDate ? new Date(data.birthDate).toISOString() : null;
+    const formattedLastVaccineDate = data.lastVaccineDate ? new Date(data.lastVaccineDate).toISOString() : null;
+    
+    // Ensure weight is a proper string with decimal places
+    const formattedWeight = data.weight ? data.weight.toString() : null;
+    
     // Return processed data for API
     return {
       name: data.name || null,
       speciesId: data.speciesId,
       breed: data.breed,
       gender: data.gender,
-      birthDate: data.birthDate,
-      weight: data.weight,
+      birthDate: formattedBirthDate,
+      weight: formattedWeight,
       status: data.status,
       observations: observationsText.trim() || null,
-      lastVaccineDate: data.lastVaccineDate || null,
+      lastVaccineDate: formattedLastVaccineDate,
       // These will be extracted from observations on the server
       motherId: null,
       fatherId: null,
@@ -275,22 +282,45 @@ export default function NewAnimalsPage() {
       
       const apiData = processFormData(data);
       
-      console.log("Enviando dados do animal para API:", apiData);
+      console.log("Enviando dados do animal para API:", JSON.stringify(apiData, null, 2));
       
-      const response = await apiRequest(
-        'POST', 
-        `/api/farms/${selectedFarmId}/animals`, 
-        apiData
-      );
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Erro ao criar animal");
+      try {
+        const response = await apiRequest(
+          'POST', 
+          `/api/farms/${selectedFarmId}/animals`, 
+          apiData
+        );
+        
+        // Log da resposta completa para diagnóstico
+        console.log("Resposta do servidor:", {
+          status: response.status,
+          statusText: response.statusText,
+          headers: Object.fromEntries([...response.headers.entries()])
+        });
+        
+        if (!response.ok) {
+          try {
+            const errorData = await response.json();
+            console.error("Dados de erro:", errorData);
+            throw new Error(errorData.message || "Erro ao criar animal");
+          } catch (parseError) {
+            // Se não conseguir parsear como JSON, pega o texto bruto
+            const errorText = await response.text();
+            console.error("Resposta de erro bruta:", errorText);
+            throw new Error(`Erro do servidor: ${response.status} - ${errorText.substring(0, 100)}...`);
+          }
+        }
+        
+        const responseData = await response.json();
+        console.log("Dados de resposta:", responseData);
+        return responseData;
+      } catch (error) {
+        console.error("Erro completo ao criar animal:", error);
+        throw error;
       }
-      
-      return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Animal criado com sucesso:", data);
       queryClient.invalidateQueries({ queryKey: [`/api/farms/${selectedFarmId}/animals`] });
       toast({
         title: t('animals.animalAdded'),
