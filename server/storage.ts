@@ -121,6 +121,7 @@ export class MemStorage implements IStorage {
   private goalItems: Map<number, Goal>;
   private userFarms: Map<number, UserFarm>;
   private userPermissions: Map<number, UserPermission>;
+  private animalVaccinations: Map<number, AnimalVaccination>;
   
   sessionStore: any; // Use any para evitar problemas com tipos
   
@@ -136,6 +137,7 @@ export class MemStorage implements IStorage {
   private goalId = 1;
   private userFarmId = 1;
   private userPermissionId = 1;
+  private vaccinationId = 1;
   
   // Maps para acompanhar os contadores diários de registro animal
   private dailyAnimalCounters: Map<string, number> = new Map();
@@ -152,6 +154,7 @@ export class MemStorage implements IStorage {
     this.goalItems = new Map();
     this.userFarms = new Map();
     this.userPermissions = new Map();
+    this.animalVaccinations = new Map();
     
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000 // Clear expired sessions every 24h

@@ -176,6 +176,133 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
+  // Animal Vaccination routes
+  app.get("/api/animals/:animalId/vaccinations",
+    checkModuleAccess(SystemModule.ANIMALS, AccessLevel.READ_ONLY),
+    async (req, res) => {
+      try {
+        const animalId = parseInt(req.params.animalId, 10);
+        
+        // First, get the animal to check permissions
+        const animal = await storage.getAnimal(animalId);
+        if (!animal) {
+          return res.status(404).json({ message: "Animal not found" });
+        }
+        
+        // Check if user has permission to view this animal's data
+        const hasAccess = await storage.checkUserAccess(
+          req.user.id,
+          animal.farmId,
+          SystemModule.ANIMALS,
+          AccessLevel.READ_ONLY
+        );
+        
+        if (!hasAccess) {
+          return res.status(403).json({ message: "You don't have permission to view this animal's vaccinations" });
+        }
+        
+        const vaccinations = await storage.getAnimalVaccinationsByAnimal(animalId);
+        res.json(vaccinations);
+      } catch (error) {
+        console.error("Error fetching animal vaccinations:", error);
+        res.status(500).json({ message: "Failed to fetch animal vaccinations" });
+      }
+    }
+  );
+  
+  app.get("/api/farms/:farmId/vaccinations",
+    checkModuleAccess(SystemModule.ANIMALS, AccessLevel.READ_ONLY),
+    async (req, res) => {
+      try {
+        const farmId = parseInt(req.params.farmId, 10);
+        const vaccinations = await storage.getAnimalVaccinationsByFarm(farmId);
+        res.json(vaccinations);
+      } catch (error) {
+        console.error("Error fetching farm vaccinations:", error);
+        res.status(500).json({ message: "Failed to fetch farm vaccinations" });
+      }
+    }
+  );
+  
+  app.post("/api/animals/:animalId/vaccinations",
+    checkModuleAccess(SystemModule.ANIMALS, AccessLevel.FULL),
+    async (req, res) => {
+      try {
+        const animalId = parseInt(req.params.animalId, 10);
+        
+        // First, get the animal to check permissions and get farmId
+        const animal = await storage.getAnimal(animalId);
+        if (!animal) {
+          return res.status(404).json({ message: "Animal not found" });
+        }
+        
+        // Check if user has permission to add vaccinations
+        const hasAccess = await storage.checkUserAccess(
+          req.user.id,
+          animal.farmId,
+          SystemModule.ANIMALS,
+          AccessLevel.FULL
+        );
+        
+        if (!hasAccess) {
+          return res.status(403).json({ message: "You don't have permission to add vaccinations" });
+        }
+        
+        // Create the vaccination record
+        const newVaccination = await storage.createAnimalVaccination({
+          ...req.body,
+          animalId,
+          farmId: animal.farmId,
+          appliedBy: req.body.appliedBy || req.user.id // Use the specified user or default to current user
+        });
+        
+        res.status(201).json(newVaccination);
+      } catch (error) {
+        console.error("Error creating vaccination record:", error);
+        res.status(500).json({ message: "Failed to create vaccination record" });
+      }
+    }
+  );
+  
+  app.patch("/api/vaccinations/:vaccinationId",
+    checkModuleAccess(SystemModule.ANIMALS, AccessLevel.FULL),
+    async (req, res) => {
+      try {
+        const vaccinationId = parseInt(req.params.vaccinationId, 10);
+        
+        // Get the vaccination to check permissions
+        const vaccination = await storage.getAnimalVaccination(vaccinationId);
+        if (!vaccination) {
+          return res.status(404).json({ message: "Vaccination record not found" });
+        }
+        
+        // Check if user has permission to update vaccinations
+        const hasAccess = await storage.checkUserAccess(
+          req.user.id,
+          vaccination.farmId,
+          SystemModule.ANIMALS,
+          AccessLevel.FULL
+        );
+        
+        if (!hasAccess) {
+          return res.status(403).json({ message: "You don't have permission to update vaccination records" });
+        }
+        
+        // Update the vaccination record
+        const updatedVaccination = await storage.updateAnimalVaccination(vaccinationId, req.body);
+        
+        if (!updatedVaccination) {
+          return res.status(404).json({ message: "Failed to update vaccination record" });
+        }
+        
+        res.json(updatedVaccination);
+      } catch (error) {
+        console.error("Error updating vaccination record:", error);
+        res.status(500).json({ message: "Failed to update vaccination record" });
+      }
+    }
+  );
+
   // Crop routes
   app.get("/api/farms/:farmId/crops", 
     checkModuleAccess(SystemModule.CROPS, AccessLevel.READ_ONLY), 
