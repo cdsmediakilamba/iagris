@@ -25,6 +25,13 @@ export interface IStorage {
   updateUser(id: number, user: Partial<User>): Promise<User | undefined>;
   getUsersByRole(role: UserRole): Promise<User[]>;
   
+  // Animal Vaccination operations
+  getAnimalVaccination(id: number): Promise<AnimalVaccination | undefined>;
+  getAnimalVaccinationsByAnimal(animalId: number): Promise<AnimalVaccination[]>;
+  getAnimalVaccinationsByFarm(farmId: number): Promise<AnimalVaccination[]>;
+  createAnimalVaccination(vaccination: InsertAnimalVaccination): Promise<AnimalVaccination>;
+  updateAnimalVaccination(id: number, vaccination: Partial<AnimalVaccination>): Promise<AnimalVaccination | undefined>;
+  
   // Farm operations
   getFarm(id: number): Promise<Farm | undefined>;
   getAllFarms(): Promise<Farm[]>;
@@ -58,6 +65,13 @@ export interface IStorage {
   createAnimal(animal: InsertAnimal): Promise<Animal>;
   updateAnimal(id: number, animal: Partial<Animal>): Promise<Animal | undefined>;
   generateAnimalRegistrationCode(speciesId: number, farmId: number): Promise<string>;
+  
+  // Animal Vaccination operations
+  getAnimalVaccination(id: number): Promise<AnimalVaccination | undefined>;
+  getAnimalVaccinationsByAnimal(animalId: number): Promise<AnimalVaccination[]>;
+  getAnimalVaccinationsByFarm(farmId: number): Promise<AnimalVaccination[]>;
+  createAnimalVaccination(vaccination: InsertAnimalVaccination): Promise<AnimalVaccination>;
+  updateAnimalVaccination(id: number, vaccination: Partial<AnimalVaccination>): Promise<AnimalVaccination | undefined>;
   
   // Crop operations
   getCrop(id: number): Promise<Crop | undefined>;
@@ -97,13 +111,6 @@ export interface IStorage {
   getGoalsByStatus(farmId: number, status: GoalStatus): Promise<Goal[]>;
   createGoal(goal: InsertGoal): Promise<Goal>;
   updateGoal(id: number, goal: Partial<Goal>): Promise<Goal | undefined>;
-  
-  // Animal Vaccination operations
-  getAnimalVaccination(id: number): Promise<AnimalVaccination | undefined>;
-  getAnimalVaccinationsByAnimal(animalId: number): Promise<AnimalVaccination[]>;
-  getAnimalVaccinationsByFarm(farmId: number): Promise<AnimalVaccination[]>;
-  createAnimalVaccination(vaccination: InsertAnimalVaccination): Promise<AnimalVaccination>;
-  updateAnimalVaccination(id: number, vaccination: Partial<AnimalVaccination>): Promise<AnimalVaccination | undefined>;
   
   // Session store
   sessionStore: any; // Using any to avoid type issues with SessionStore
@@ -1230,6 +1237,45 @@ export class MemStorage implements IStorage {
     
     // Generate code in format [ABBREVIATION]-[YYYYMMDD]-[SEQUENTIAL]
     return `${abbreviation}-${dateString}-${sequentialNumber}`;
+  }
+
+  // Animal Vaccination methods
+  async getAnimalVaccination(id: number): Promise<AnimalVaccination | undefined> {
+    return this.animalVaccinations.get(id);
+  }
+
+  async getAnimalVaccinationsByAnimal(animalId: number): Promise<AnimalVaccination[]> {
+    return Array.from(this.animalVaccinations.values())
+      .filter(vaccination => vaccination.animalId === animalId);
+  }
+
+  async getAnimalVaccinationsByFarm(farmId: number): Promise<AnimalVaccination[]> {
+    return Array.from(this.animalVaccinations.values())
+      .filter(vaccination => vaccination.farmId === farmId);
+  }
+
+  async createAnimalVaccination(vaccination: InsertAnimalVaccination): Promise<AnimalVaccination> {
+    const id = this.vaccinationId++;
+    const newVaccination: AnimalVaccination = {
+      ...vaccination,
+      id,
+      createdAt: new Date(),
+      notes: vaccination.notes || null,
+      batchNumber: vaccination.batchNumber || null,
+      dosage: vaccination.dosage || null,
+      nextScheduledDate: vaccination.nextScheduledDate || null
+    };
+    this.animalVaccinations.set(id, newVaccination);
+    return newVaccination;
+  }
+
+  async updateAnimalVaccination(id: number, vaccinationData: Partial<AnimalVaccination>): Promise<AnimalVaccination | undefined> {
+    const vaccination = this.animalVaccinations.get(id);
+    if (!vaccination) return undefined;
+
+    const updatedVaccination = { ...vaccination, ...vaccinationData };
+    this.animalVaccinations.set(id, updatedVaccination);
+    return updatedVaccination;
   }
 }
 
