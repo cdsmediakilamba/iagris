@@ -931,14 +931,85 @@ export default function NewAnimalsPage() {
         </div>
 
         <div className="mb-4">
-          <div className="relative">
-            <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder={t('common.search')}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-8"
-            />
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Barra de pesquisa */}
+            <div className="relative flex-1">
+              <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder={t('common.search')}
+                value={filters.searchTerm}
+                onChange={(e) => handleFilterChange('searchTerm', e.target.value)}
+                className="pl-8"
+              />
+            </div>
+            
+            {/* Filtros */}
+            <div className="flex flex-wrap gap-2">
+              {/* Espécie */}
+              <Select 
+                value={filters.species} 
+                onValueChange={(value) => handleFilterChange('species', value)}
+              >
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue placeholder={t('animals.species')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todos</SelectItem>
+                  {speciesList.map((species) => (
+                    <SelectItem key={species.id} value={species.id.toString()}>
+                      {species.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              {/* Status */}
+              <Select 
+                value={filters.status} 
+                onValueChange={(value) => handleFilterChange('status', value)}
+              >
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue placeholder={t('animals.healthStatus')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="healthy">{t('animals.status.healthy')}</SelectItem>
+                  <SelectItem value="sick">{t('animals.status.sick')}</SelectItem>
+                  <SelectItem value="treatment">{t('animals.status.treatment')}</SelectItem>
+                  <SelectItem value="quarantine">{t('animals.status.quarantine')}</SelectItem>
+                  <SelectItem value="pregnant">{t('animals.status.pregnant')}</SelectItem>
+                  <SelectItem value="lactating">{t('animals.status.lactating')}</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              {/* Gênero */}
+              <Select 
+                value={filters.gender} 
+                onValueChange={(value) => handleFilterChange('gender', value)}
+              >
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue placeholder={t('animals.gender')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="male">{t('animals.genders.male')}</SelectItem>
+                  <SelectItem value="female">{t('animals.genders.female')}</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              {/* Limpar filtros */}
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={handleClearFilters}
+                title={t('common.clearFilters') || "Limpar filtros"}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </Button>
+            </div>
           </div>
         </div>
 
