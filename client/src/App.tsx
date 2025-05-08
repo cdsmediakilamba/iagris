@@ -8,6 +8,7 @@ import AuthPage from "@/pages/auth-page";
 import { ProtectedRoute } from "@/lib/protected-route";
 import Dashboard from "@/pages/dashboard";
 import Animals from "@/pages/animals";
+import AnimalsNew from "@/pages/animals-new";
 import Crops from "@/pages/crops";
 import Inventory from "@/pages/inventory";
 import InventoryTransactions from "@/pages/inventory-transactions";
@@ -30,6 +31,7 @@ function Router() {
       <ProtectedRoute path="/" component={Dashboard} />
       <ProtectedRoute path="/calendar" component={Calendar} />
       <ProtectedRoute path="/animals" component={Animals} />
+      <ProtectedRoute path="/animals-new" component={AnimalsNew} />
       <ProtectedRoute path="/crops" component={Crops} />
       <ProtectedRoute path="/inventory" component={Inventory} />
       <ProtectedRoute path="/inventory-transactions" component={InventoryTransactions} />
