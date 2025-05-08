@@ -113,9 +113,9 @@ export default function NewAnimalsPage() {
   
   // Estados para filtros
   const [filters, setFilters] = useState({
-    species: '',
-    status: '',
-    gender: '',
+    species: 'all',
+    status: 'all',
+    gender: 'all',
     searchTerm: '',
   });
 
@@ -148,15 +148,15 @@ export default function NewAnimalsPage() {
     
     return animals.filter(animal => {
       // Aplicar filtros
-      if (filters.species && animal.speciesId.toString() !== filters.species) {
+      if (filters.species && filters.species !== 'all' && animal.speciesId.toString() !== filters.species) {
         return false;
       }
       
-      if (filters.status && animal.status !== filters.status) {
+      if (filters.status && filters.status !== 'all' && animal.status !== filters.status) {
         return false;
       }
       
-      if (filters.gender && animal.gender !== filters.gender) {
+      if (filters.gender && filters.gender !== 'all' && animal.gender !== filters.gender) {
         return false;
       }
       
@@ -651,9 +651,9 @@ export default function NewAnimalsPage() {
   // Função para limpar filtros
   const handleClearFilters = () => {
     setFilters({
-      species: '',
-      status: '',
-      gender: '',
+      species: 'all',
+      status: 'all',
+      gender: 'all',
       searchTerm: '',
     });
     setCurrentPage(1);
@@ -954,7 +954,7 @@ export default function NewAnimalsPage() {
                   <SelectValue placeholder={t('animals.species')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   {speciesList.map((species) => (
                     <SelectItem key={species.id} value={species.id.toString()}>
                       {species.name}
@@ -972,7 +972,7 @@ export default function NewAnimalsPage() {
                   <SelectValue placeholder={t('animals.healthStatus')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="healthy">{t('animals.status.healthy')}</SelectItem>
                   <SelectItem value="sick">{t('animals.status.sick')}</SelectItem>
                   <SelectItem value="treatment">{t('animals.status.treatment')}</SelectItem>
@@ -991,7 +991,7 @@ export default function NewAnimalsPage() {
                   <SelectValue placeholder={t('animals.gender')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="male">{t('animals.genders.male')}</SelectItem>
                   <SelectItem value="female">{t('animals.genders.female')}</SelectItem>
                 </SelectContent>
@@ -1046,7 +1046,7 @@ export default function NewAnimalsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredAnimals.map((animal) => {
+                    {paginatedAnimals.map((animal) => {
                       const species = speciesList.find(s => s.id === animal.speciesId);
                       
                       return (
@@ -1106,6 +1106,56 @@ export default function NewAnimalsPage() {
                     })}
                   </TableBody>
                 </Table>
+              </div>
+            )}
+            
+            {/* Controles de paginação */}
+            {filteredAnimals.length > 0 && (
+              <div className="flex items-center justify-between mt-6">
+                <div className="text-sm text-muted-foreground">
+                  {t('common.showing') || "Mostrando"} {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, filteredAnimals.length)} {t('common.of') || "de"} {filteredAnimals.length}
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handlePrevPage}
+                    disabled={currentPage <= 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    <span className="sr-only">Página anterior</span>
+                  </Button>
+                  <div className="text-sm font-medium">
+                    {t('common.page') || "Página"} {currentPage} {t('common.of') || "de"} {totalPages}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNextPage}
+                    disabled={currentPage >= totalPages}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                    <span className="sr-only">Próxima página</span>
+                  </Button>
+                  
+                  <Select 
+                    value={itemsPerPage.toString()} 
+                    onValueChange={(value) => {
+                      setItemsPerPage(parseInt(value));
+                      setCurrentPage(1);
+                    }}
+                  >
+                    <SelectTrigger className="w-[130px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">5 {t('common.itemsPerPage') || "por página"}</SelectItem>
+                      <SelectItem value="10">10 {t('common.itemsPerPage') || "por página"}</SelectItem>
+                      <SelectItem value="20">20 {t('common.itemsPerPage') || "por página"}</SelectItem>
+                      <SelectItem value="50">50 {t('common.itemsPerPage') || "por página"}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             )}
           </CardContent>
