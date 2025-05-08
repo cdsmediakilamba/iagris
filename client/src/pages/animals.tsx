@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { insertAnimalSchema, Animal, Species } from '@shared/schema';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { Link } from 'wouter';
 import { formatDate } from '@/lib/i18n';
 import {
   Card,
@@ -70,7 +71,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, PlusCircle, Search, FileText, Tag, Calendar, Weight, PawPrint, Edit, Trash2, ChevronDown } from 'lucide-react';
+import { Eye, Loader2, PlusCircle, Search, FileText, Tag, Calendar, Weight, PawPrint, Edit, Trash2, ChevronDown } from 'lucide-react';
 
 const formSchema = insertAnimalSchema;
 
@@ -1132,6 +1133,15 @@ export default function AnimalsPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
+                          <Link href={`/animals/${animal.id}`}>
+                            <Button 
+                              variant="ghost"
+                              size="icon"
+                              className="text-blue-600"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </Link>
                           <Button 
                             variant="ghost" 
                             size="icon"
