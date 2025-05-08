@@ -219,6 +219,32 @@ export const goals = pgTable("goals", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Define o status das vacinas para animais
+export enum VaccinationStatus {
+  SCHEDULED = "scheduled",  // Agendada
+  COMPLETED = "completed",  // Concluída
+  MISSED = "missed",        // Não realizada
+  CANCELLED = "cancelled"   // Cancelada
+}
+
+// Animal Vaccination table schema - Registro de vacinações dos animais
+export const animalVaccinations = pgTable("animal_vaccinations", {
+  id: serial("id").primaryKey(),
+  animalId: integer("animal_id").notNull(), // FK para o animal
+  vaccineName: text("vaccine_name").notNull(), // Nome da vacina
+  applicationDate: timestamp("application_date").notNull(), // Data de aplicação
+  doseNumber: integer("dose_number"), // Número da dose (1ª, 2ª, etc)
+  batchNumber: text("batch_number"), // Número do lote da vacina
+  expirationDate: timestamp("expiration_date"), // Data de validade da vacina
+  applicationSite: text("application_site"), // Local de aplicação (ex: pescoço, anca)
+  status: text("status").notNull().default(VaccinationStatus.COMPLETED), // Status da vacinação
+  nextApplicationDate: timestamp("next_application_date"), // Data da próxima aplicação
+  appliedBy: integer("applied_by"), // Usuário que aplicou a vacina (veterinário ou funcionário)
+  farmId: integer("farm_id").notNull(), // Fazenda relacionada
+  notes: text("notes"), // Observações
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Insert schemas using drizzle-zod
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -278,6 +304,11 @@ export const insertInventoryTransactionSchema = createInsertSchema(inventoryTran
   createdAt: true,
 });
 
+export const insertAnimalVaccinationSchema = createInsertSchema(animalVaccinations).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Export types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -311,3 +342,6 @@ export type Task = typeof tasks.$inferSelect;
 
 export type InsertGoal = z.infer<typeof insertGoalSchema>;
 export type Goal = typeof goals.$inferSelect;
+
+export type InsertAnimalVaccination = z.infer<typeof insertAnimalVaccinationSchema>;
+export type AnimalVaccination = typeof animalVaccinations.$inferSelect;
