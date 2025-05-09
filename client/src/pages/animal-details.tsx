@@ -313,30 +313,30 @@ const AnimalDetails: React.FC = () => {
               </span>
             </CardTitle>
             <CardDescription>
-              {getSpeciesName(animal.speciesId)} • {animal.breed} • {t(`animal.gender.${animal.gender}`)}
+              {getSpeciesName(animal.speciesId)} • {animal.breed} • {t(`animals.genders.${animal.gender}`)}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <p className="text-sm font-medium">{t("animal.status")}:</p>
-                <p>{t(`animal.status.${animal.status}`)}</p>
+                <p className="text-sm font-medium">{t("animals.healthStatus")}:</p>
+                <p>{t(`animals.statuses.${animal.status}`)}</p>
               </div>
               <div>
-                <p className="text-sm font-medium">{t("animal.birthDate")}:</p>
+                <p className="text-sm font-medium">{t("animals.birthDate")}:</p>
                 <p>{animal.birthDate ? formatDate(animal.birthDate, language) : t("common.notSpecified")}</p>
               </div>
               <div>
-                <p className="text-sm font-medium">{t("animal.weight")}:</p>
+                <p className="text-sm font-medium">{t("animals.weight")}:</p>
                 <p>{animal.weight ? `${animal.weight} kg` : t("common.notSpecified")}</p>
               </div>
               <div>
-                <p className="text-sm font-medium">{t("animal.lastVaccineDate")}:</p>
+                <p className="text-sm font-medium">{t("animals.lastVaccineDate")}:</p>
                 <p>{animal.lastVaccineDate ? formatDate(animal.lastVaccineDate, language) : t("common.notSpecified")}</p>
               </div>
               {animal.observations && (
                 <div className="col-span-2">
-                  <p className="text-sm font-medium">{t("animal.observations")}:</p>
+                  <p className="text-sm font-medium">{t("animals.observations")}:</p>
                   <p>{animal.observations}</p>
                 </div>
               )}
