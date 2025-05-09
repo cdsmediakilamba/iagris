@@ -236,7 +236,7 @@ export const animalVaccinations = pgTable("animal_vaccinations", {
   doseNumber: integer("dose_number"), // Número da dose (1ª, 2ª, etc)
   batchNumber: text("batch_number"), // Número do lote da vacina
   // Campo expirationDate removido para corresponder à tabela física
-  applicationSite: text("application_site"), // Local de aplicação (ex: pescoço, anca)
+  // Campo applicationSite removido para corresponder à tabela física
   status: text("status").notNull().default(VaccinationStatus.COMPLETED), // Status da vacinação
   nextApplicationDate: timestamp("next_application_date"), // Data da próxima aplicação
   appliedBy: integer("applied_by"), // Usuário que aplicou a vacina (veterinário ou funcionário)
