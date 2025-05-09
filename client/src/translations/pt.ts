@@ -156,11 +156,11 @@ export const pt = {
     healthStatus: 'Estado de Saúde',
     male: 'Macho',
     female: 'Fêmea',
-    gender: 'Gênero',
     genders: {
       male: 'Macho',
       female: 'Fêmea',
     },
+    gender: 'Gênero',
     status: 'Status',
     statuses: {
       healthy: 'Saudável',
