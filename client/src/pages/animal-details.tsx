@@ -80,7 +80,7 @@ type VaccinationFormValues = z.infer<typeof vaccinationFormSchema>;
 const AnimalDetails: React.FC = () => {
   const { t, language } = useLanguage();
   const { toast } = useToast();
-  const [, params] = useRoute('/animals/:id');
+  const [, params] = useRoute('/animals-new/:id');
   const animalId = parseInt(params?.id || '0');
   const [isAddVaccinationOpen, setIsAddVaccinationOpen] = useState(false);
   const [isEditVaccinationOpen, setIsEditVaccinationOpen] = useState(false);
@@ -293,7 +293,7 @@ const AnimalDetails: React.FC = () => {
     <DashboardLayout>
       <div className="space-y-4">
         <div className="flex items-center">
-          <Link href="/animals">
+          <Link href="/animals-new">
             <Button variant="ghost" className="mb-4">
               <ArrowLeft className="h-4 w-4 mr-2" />
               {t("common.back")}
