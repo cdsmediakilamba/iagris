@@ -170,6 +170,7 @@ export const pt = {
     parentInfoOptional: 'Informações de parentesco (opcional)',
     observations: 'Observações',
     observationsPlaceholder: 'Digite observações relevantes sobre o animal',
+    notFound: 'Animal não encontrado',
   },
   crops: {
     title: 'Gestão de Plantações',

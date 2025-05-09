@@ -175,6 +175,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     }
   );
+  
+  // Get a single animal by ID
+  app.get("/api/animals/:animalId",
+    checkModuleAccess(SystemModule.ANIMALS, AccessLevel.READ_ONLY),
+    async (req, res) => {
+      try {
+        const animalId = parseInt(req.params.animalId, 10);
+        const animal = await storage.getAnimal(animalId);
+        
+        if (!animal) {
+          return res.status(404).json({ message: "Animal not found" });
+        }
+        
+        // Check if user has permission to view this animal's data
+        const hasAccess = await storage.checkUserAccess(
+          req.user.id,
+          animal.farmId,
+          SystemModule.ANIMALS,
+          AccessLevel.READ_ONLY
+        );
+        
+        if (!hasAccess) {
+          return res.status(403).json({ message: "You don't have permission to view this animal" });
+        }
+        
+        res.json(animal);
+      } catch (error) {
+        console.error("Error fetching animal:", error);
+        res.status(500).json({ message: "Failed to fetch animal details" });
+      }
+    }
+  );
 
   // Animal Vaccination routes
   app.get("/api/animals/:animalId/vaccinations",
