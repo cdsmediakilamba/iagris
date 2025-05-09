@@ -25,6 +25,7 @@ import Sync from "@/pages/sync";
 import UserRegistration from "@/pages/user-registration";
 import { UserRole } from "@shared/schema";
 import { AuthProvider } from "@/hooks/use-auth";
+import { LanguageProvider } from "@/context/LanguageContext";
 
 function Router() {
   return (
@@ -68,10 +69,12 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
+        <LanguageProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Router />
+          </TooltipProvider>
+        </LanguageProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
