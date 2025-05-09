@@ -1082,35 +1082,40 @@ export default function NewAnimalsPage() {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem asChild>
-                                  <Link href={`/animals-new/${animal.id}`}>
-                                    <div className="flex items-center w-full">
-                                      <Eye className="h-4 w-4 mr-2" />
-                                      {t('common.view')}
-                                    </div>
-                                  </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleEditAnimal(animal)}>
-                                  <Edit className="h-4 w-4 mr-2" />
-                                  {t('common.edit')}
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem 
-                                  className="text-destructive focus:text-destructive"
-                                  onClick={() => handleDeleteAnimal(animal)}
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  {t('common.delete')}
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                            <div className="flex items-center space-x-2">
+                              {/* Botão Ver Detalhes */}
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                asChild
+                                title={t('common.view') || "Ver detalhes"}
+                              >
+                                <Link href={`/animals-new/${animal.id}`}>
+                                  <Eye className="h-4 w-4" />
+                                </Link>
+                              </Button>
+                              
+                              {/* Botão Editar */}
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={() => handleEditAnimal(animal)}
+                                title={t('common.edit') || "Editar"}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              
+                              {/* Botão Excluir */}
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={() => handleDeleteAnimal(animal)}
+                                title={t('common.delete') || "Excluir"}
+                                className="text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       );
