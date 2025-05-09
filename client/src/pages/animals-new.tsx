@@ -821,23 +821,7 @@ export default function NewAnimalsPage() {
                         )}
                       />
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <FormField
-                        control={form.control}
-                        name="lastVaccineDate"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t('animals.lastVaccine')}</FormLabel>
-                            <FormControl>
-                              <Input 
-                                type="date" 
-                                {...field} 
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                    <div>
                       <FormField
                         control={form.control}
                         name="status"
@@ -1301,23 +1285,7 @@ export default function NewAnimalsPage() {
                     )}
                   />
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <FormField
-                    control={editForm.control}
-                    name="lastVaccineDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('animals.lastVaccine')}</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="date" 
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                <div>
                   <FormField
                     control={editForm.control}
                     name="status"
