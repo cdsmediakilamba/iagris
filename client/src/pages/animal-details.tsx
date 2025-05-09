@@ -348,7 +348,7 @@ const AnimalDetails: React.FC = () => {
         <Tabs defaultValue="vaccinations">
           <TabsList>
             <TabsTrigger value="vaccinations">{t("vaccination.vaccinations")}</TabsTrigger>
-            <TabsTrigger value="details">{t("animal.details")}</TabsTrigger>
+            <TabsTrigger value="details">{t("animals.details")}</TabsTrigger>
           </TabsList>
           
           {/* Vaccinations Tab */}
@@ -626,27 +626,27 @@ const AnimalDetails: React.FC = () => {
           <TabsContent value="details">
             <Card>
               <CardHeader>
-                <CardTitle>{t("animal.detailedInfo")}</CardTitle>
+                <CardTitle>{t("animals.detailedInfo")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm font-medium">{t("animal.registrationCode")}:</p>
+                    <p className="text-sm font-medium">{t("animals.registrationCode")}:</p>
                     <p>{animal.registrationCode}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium">{t("animal.createdAt")}:</p>
+                    <p className="text-sm font-medium">{t("animals.createdAt")}:</p>
                     <p>{formatDate(animal.createdAt, language)}</p>
                   </div>
                   {animal.fatherId && (
                     <div>
-                      <p className="text-sm font-medium">{t("animal.fatherId")}:</p>
+                      <p className="text-sm font-medium">{t("animals.fatherId")}:</p>
                       <p>{animal.fatherId}</p>
                     </div>
                   )}
                   {animal.motherId && (
                     <div>
-                      <p className="text-sm font-medium">{t("animal.motherId")}:</p>
+                      <p className="text-sm font-medium">{t("animals.motherId")}:</p>
                       <p>{animal.motherId}</p>
                     </div>
                   )}

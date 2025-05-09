@@ -160,7 +160,6 @@ export const pt = {
       male: 'Macho',
       female: 'Fêmea',
     },
-    gender: 'Gênero',
     status: 'Status',
     statuses: {
       healthy: 'Saudável',
