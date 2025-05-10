@@ -4,12 +4,62 @@ import { setupAuth } from "./auth";
 import { storage } from "./storage";
 import { UserRole, SystemModule, AccessLevel } from "@shared/schema";
 
+// Helper function to check if a user has access to a farm
+async function hasAccessToFarm(user: any, farmId: number): Promise<boolean> {
+  // Super admin has access to all farms
+  if (user.role === UserRole.SUPER_ADMIN) {
+    return true;
+  }
+  
+  // Farm admin or user assigned to this farm
+  const userFarms = await storage.getUserFarms(user.id);
+  return userFarms.some(uf => uf.farmId === farmId);
+}
+
+// Helper function to check if a user has permission to modify farm data (for a specific module)
+async function hasAccessToModify(user: any, farmId: number, module: SystemModule): Promise<boolean> {
+  // Super admin has full access to all modules
+  if (user.role === UserRole.SUPER_ADMIN) {
+    return true;
+  }
+  
+  // Check if user is a farm admin for this farm
+  const userFarms = await storage.getUserFarms(user.id);
+  const hasFarmAdminAccess = userFarms.some(uf => uf.farmId === farmId && uf.role === 'admin');
+  
+  if (hasFarmAdminAccess) {
+    return true;
+  }
+  
+  // Check specific module permission
+  const permissions = await storage.getUserPermissions(user.id, farmId);
+  const modulePermission = permissions.find(p => p.module === module);
+  
+  if (modulePermission && (
+    modulePermission.accessLevel === AccessLevel.FULL || 
+    modulePermission.accessLevel === AccessLevel.MANAGE || 
+    modulePermission.accessLevel === AccessLevel.EDIT
+  )) {
+    return true;
+  }
+  
+  return false;
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes
   setupAuth(app);
   
   // Define middleware for role and module access checking
   const { checkRole, checkModuleAccess } = app.locals;
+  
+  // Simple authentication middleware
+  const checkAuth = (req, res, next) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    next();
+  };
 
   // Farm routes
   app.get("/api/farms", async (req, res) => {
@@ -1259,6 +1309,159 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     }
   );
+
+  // COSTS MANAGEMENT ROUTES
+  // Get all costs for a farm
+  app.get("/api/farms/:farmId/costs", checkAuth, async (req, res) => {
+    try {
+      const farmId = parseInt(req.params.farmId, 10);
+      
+      // Ensure the farm exists
+      const farm = await storage.getFarm(farmId);
+      if (!farm) {
+        return res.status(404).json({ message: "Farm not found" });
+      }
+      
+      // Check if the user has access to this farm
+      if (!await hasAccessToFarm(req.user, farmId)) {
+        return res.status(403).json({ message: "You don't have access to this farm" });
+      }
+      
+      // Parse query parameters for filtering
+      const { category, startDate, endDate } = req.query;
+      
+      let costs;
+      
+      if (category && typeof category === 'string') {
+        // Filter by category
+        costs = await storage.getCostsByCategory(farmId, category);
+      } else if (startDate && endDate && typeof startDate === 'string' && typeof endDate === 'string') {
+        // Filter by date range
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        costs = await storage.getCostsByPeriod(farmId, start, end);
+      } else {
+        // Get all costs for the farm
+        costs = await storage.getCostsByFarm(farmId);
+      }
+      
+      res.json(costs);
+    } catch (error) {
+      console.error("Error fetching farm costs:", error);
+      res.status(500).json({ message: "Failed to fetch farm costs" });
+    }
+  });
+  
+  // Get a specific cost by ID
+  app.get("/api/costs/:id", checkAuth, async (req, res) => {
+    try {
+      const costId = parseInt(req.params.id, 10);
+      
+      const cost = await storage.getCost(costId);
+      if (!cost) {
+        return res.status(404).json({ message: "Cost not found" });
+      }
+      
+      // Check if the user has access to the farm this cost belongs to
+      if (!await hasAccessToFarm(req.user, cost.farmId)) {
+        return res.status(403).json({ message: "You don't have access to this cost" });
+      }
+      
+      res.json(cost);
+    } catch (error) {
+      console.error("Error fetching cost:", error);
+      res.status(500).json({ message: "Failed to fetch cost" });
+    }
+  });
+  
+  // Create a new cost
+  app.post("/api/farms/:farmId/costs", checkAuth, async (req, res) => {
+    try {
+      const farmId = parseInt(req.params.farmId, 10);
+      
+      // Ensure the farm exists
+      const farm = await storage.getFarm(farmId);
+      if (!farm) {
+        return res.status(404).json({ message: "Farm not found" });
+      }
+      
+      // Check if the user has access to modify this farm
+      if (!await hasAccessToModify(req.user, farmId, SystemModule.COSTS)) {
+        return res.status(403).json({ message: "You don't have permission to add costs to this farm" });
+      }
+      
+      // Prepare cost data
+      const costData = {
+        ...req.body,
+        farmId,
+        createdBy: req.user.id
+      };
+      
+      // Create the cost
+      const newCost = await storage.createCost(costData);
+      
+      res.status(201).json(newCost);
+    } catch (error) {
+      console.error("Error creating cost:", error);
+      res.status(500).json({ message: "Failed to create cost" });
+    }
+  });
+  
+  // Update a cost
+  app.patch("/api/costs/:id", checkAuth, async (req, res) => {
+    try {
+      const costId = parseInt(req.params.id, 10);
+      
+      // Get the existing cost
+      const existingCost = await storage.getCost(costId);
+      if (!existingCost) {
+        return res.status(404).json({ message: "Cost not found" });
+      }
+      
+      // Check if the user has access to modify this cost
+      if (!await hasAccessToModify(req.user, existingCost.farmId, SystemModule.COSTS)) {
+        return res.status(403).json({ message: "You don't have permission to update this cost" });
+      }
+      
+      // Update the cost
+      const updatedCost = await storage.updateCost(costId, req.body);
+      
+      res.json(updatedCost);
+    } catch (error) {
+      console.error("Error updating cost:", error);
+      res.status(500).json({ message: "Failed to update cost" });
+    }
+  });
+  
+  // Delete a cost
+  app.delete("/api/costs/:id", checkAuth, async (req, res) => {
+    try {
+      const costId = parseInt(req.params.id, 10);
+      
+      // Get the existing cost
+      const existingCost = await storage.getCost(costId);
+      if (!existingCost) {
+        return res.status(404).json({ message: "Cost not found" });
+      }
+      
+      // Check if the user has access to delete this cost
+      if (!await hasAccessToModify(req.user, existingCost.farmId, SystemModule.COSTS)) {
+        return res.status(403).json({ message: "You don't have permission to delete this cost" });
+      }
+      
+      // Delete the cost
+      const deleted = await storage.deleteCost(costId);
+      
+      if (deleted) {
+        res.status(204).send();
+      } else {
+        res.status(500).json({ message: "Failed to delete the cost" });
+      }
+    } catch (error) {
+      console.error("Error deleting cost:", error);
+      res.status(500).json({ message: "Failed to delete cost" });
+    }
+  });
 
   // Create HTTP server
   const httpServer = createServer(app);
