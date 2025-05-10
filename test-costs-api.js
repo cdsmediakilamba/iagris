@@ -1,4 +1,4 @@
-const fetch = require('node-fetch');
+import fetch from 'node-fetch';
 
 // URL base para a API
 const API_URL = 'http://localhost:5000';
@@ -6,7 +6,7 @@ const API_URL = 'http://localhost:5000';
 // Credenciais para login
 const CREDENTIALS = {
   username: 'admin',
-  password: 'admin' // Tente diferentes senhas se necessário
+  password: 'admin123' // Senha correta encontrada
 };
 
 // ID de uma fazenda para testes
