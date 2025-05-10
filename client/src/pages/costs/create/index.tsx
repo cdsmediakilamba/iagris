@@ -1,13 +1,13 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useNavigate, useParams } from 'wouter';
+import { useLocation, useParams } from 'wouter';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { insertCostSchema, CostCategory, type InsertCost } from '@shared/schema';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import { useTranslation } from '@/lib/translations';
+import { useLanguage } from '@/context/LanguageContext';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -27,7 +27,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import { CalendarIcon } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
@@ -49,9 +49,9 @@ type CreateCostFormValues = z.infer<typeof createCostSchema>;
 
 const CreateCostPage = () => {
   const { farmId } = useParams();
-  const navigate = useNavigate();
+  const [_, navigate] = useLocation();
   const { toast } = useToast();
-  const { t, locale } = useTranslation();
+  const { language: locale, t } = useLanguage();
   const queryClient = useQueryClient();
   
   const dateLocale = locale === 'pt' ? pt : enUS;
