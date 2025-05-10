@@ -43,8 +43,8 @@ function Router() {
       <ProtectedRoute path="/tasks" component={Tasks} />
       <ProtectedRoute path="/farms/:farmId/goals" component={Goals} />
       <ProtectedRoute path="/financial" component={Financial} />
-      <ProtectedRoute path="/costs" component={Costs} />
       <ProtectedRoute path="/costs/create/:farmId" component={CreateCost} />
+      <ProtectedRoute path="/costs" component={Costs} />
       <ProtectedRoute 
         path="/employees" 
         component={Employees} 

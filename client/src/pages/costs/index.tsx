@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
+import { Link, useLocation } from 'wouter';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/use-auth';
