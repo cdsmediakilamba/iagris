@@ -25,6 +25,8 @@ import Sync from "@/pages/sync";
 import UserRegistration from "@/pages/user-registration";
 import Costs from "@/pages/costs";
 import CreateCost from "@/pages/costs/create";
+import CostDetailsPage from "@/pages/costs/[id]";
+import EditCostPage from "@/pages/costs/edit/[id]";
 import { UserRole } from "@shared/schema";
 import { AuthProvider } from "@/hooks/use-auth";
 import { LanguageProvider } from "@/context/LanguageContext";
@@ -44,6 +46,8 @@ function Router() {
       <ProtectedRoute path="/farms/:farmId/goals" component={Goals} />
       <ProtectedRoute path="/financial" component={Financial} />
       <ProtectedRoute path="/costs/create/:farmId" component={CreateCost} />
+      <ProtectedRoute path="/costs/edit/:id" component={EditCostPage} />
+      <ProtectedRoute path="/costs/:id" component={CostDetailsPage} />
       <ProtectedRoute path="/costs" component={Costs} />
       <ProtectedRoute 
         path="/employees" 
