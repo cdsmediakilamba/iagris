@@ -56,7 +56,7 @@ const CostsPage = () => {
       let url = `/api/farms/${farmId}/costs`;
       const params = new URLSearchParams();
       
-      if (categoryFilter) {
+      if (categoryFilter && categoryFilter !== 'all') {
         params.append('category', categoryFilter);
       }
       
@@ -152,7 +152,7 @@ const CostsPage = () => {
                 <SelectValue placeholder={t('costs.selectCategory') || 'Selecionar categoria'} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">{t('common.all') || 'Todas'}</SelectItem>
+                <SelectItem value="all">{t('common.all') || 'Todas'}</SelectItem>
                 <SelectItem value="supplies">{t('costs.categories.supplies') || 'Suprimentos'}</SelectItem>
                 <SelectItem value="equipment">{t('costs.categories.equipment') || 'Equipamentos'}</SelectItem>
                 <SelectItem value="maintenance">{t('costs.categories.maintenance') || 'Manutenção'}</SelectItem>
