@@ -10,7 +10,8 @@ import { goals, type Goal, type InsertGoal } from "@shared/schema";
 import { userFarms, type UserFarm, type InsertUserFarm } from "@shared/schema";
 import { userPermissions, type UserPermission, type InsertUserPermission } from "@shared/schema";
 import { animalVaccinations, type AnimalVaccination, type InsertAnimalVaccination } from "@shared/schema";
-import { UserRole, SystemModule, AccessLevel, GoalStatus, InventoryTransactionType } from "@shared/schema";
+import { costs, type Cost, type InsertCost } from "@shared/schema";
+import { UserRole, SystemModule, AccessLevel, GoalStatus, InventoryTransactionType, CostCategory } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
 
@@ -112,6 +113,15 @@ export interface IStorage {
   createGoal(goal: InsertGoal): Promise<Goal>;
   updateGoal(id: number, goal: Partial<Goal>): Promise<Goal | undefined>;
   
+  // Cost operations
+  getCost(id: number): Promise<Cost | undefined>;
+  getCostsByFarm(farmId: number): Promise<Cost[]>;
+  getCostsByCategory(farmId: number, category: string): Promise<Cost[]>;
+  getCostsByPeriod(farmId: number, startDate: Date, endDate: Date): Promise<Cost[]>;
+  createCost(cost: InsertCost): Promise<Cost>;
+  updateCost(id: number, cost: Partial<Cost>): Promise<Cost | undefined>;
+  deleteCost(id: number): Promise<boolean>;
+  
   // Session store
   sessionStore: any; // Using any to avoid type issues with SessionStore
 }
@@ -129,6 +139,7 @@ export class MemStorage implements IStorage {
   private userFarms: Map<number, UserFarm>;
   private userPermissions: Map<number, UserPermission>;
   private animalVaccinations: Map<number, AnimalVaccination>;
+  private costItems: Map<number, Cost>;
   
   sessionStore: any; // Use any para evitar problemas com tipos
   
@@ -145,6 +156,7 @@ export class MemStorage implements IStorage {
   private userFarmId = 1;
   private userPermissionId = 1;
   private vaccinationId = 1;
+  private costId = 1;
   
   // Maps para acompanhar os contadores diários de registro animal
   private dailyAnimalCounters: Map<string, number> = new Map();
@@ -162,6 +174,7 @@ export class MemStorage implements IStorage {
     this.userFarms = new Map();
     this.userPermissions = new Map();
     this.animalVaccinations = new Map();
+    this.costItems = new Map();
     
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000 // Clear expired sessions every 24h

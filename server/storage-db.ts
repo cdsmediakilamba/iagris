@@ -1,10 +1,11 @@
 import { 
-  users, farms, userFarms, userPermissions, animals, species, crops, inventory, inventoryTransactions, tasks, goals, animalVaccinations,
+  users, farms, userFarms, userPermissions, animals, species, crops, inventory, inventoryTransactions, tasks, goals, animalVaccinations, costs,
   type User, type InsertUser, type Farm, type InsertFarm, 
   type UserFarm, type InsertUserFarm, type UserPermission, type InsertUserPermission,
   type Animal, type InsertAnimal, type Species, type InsertSpecies, type Crop, type InsertCrop, 
   type Inventory, type InsertInventory, type InventoryTransaction, type InsertInventoryTransaction,
-  type Task, type InsertTask, type Goal, type InsertGoal, type AnimalVaccination, type InsertAnimalVaccination
+  type Task, type InsertTask, type Goal, type InsertGoal, type AnimalVaccination, type InsertAnimalVaccination,
+  type Cost, type InsertCost
 } from "@shared/schema";
 import { IStorage } from "./storage";
 import { db } from "./db";
