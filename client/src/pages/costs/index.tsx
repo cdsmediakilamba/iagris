@@ -324,14 +324,14 @@ const CostsPage = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => window.location.href = `/costs/${cost.id}?farmId=${farmId}`}
+                          onClick={() => setLocation(`/costs/${cost.id}?farmId=${farmId}`)}
                         >
                           {t('common.view') || 'Ver'}
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => window.location.href = `/costs/${cost.id}/edit?farmId=${farmId}`}
+                          onClick={() => setLocation(`/costs/edit/${cost.id}?farmId=${farmId}`)}
                         >
                           {t('common.edit') || 'Editar'}
                         </Button>
