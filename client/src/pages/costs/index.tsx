@@ -135,7 +135,14 @@ const CostsPage = () => {
           <h1 className="text-2xl font-bold">{t('common.costs') || 'Custos'}</h1>
           
           <div className="flex flex-col sm:flex-row gap-2">
-            <Button size="sm" variant="outline" onClick={() => window.location.href = `/costs/create?farmId=${farmId}`}>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={() => {
+                const [_, navigate] = useLocation();
+                navigate(`/costs/create/${farmId}`);
+              }}
+            >
               {t('common.create') || 'Criar'} {t('common.new') || 'Novo'}
             </Button>
           </div>
