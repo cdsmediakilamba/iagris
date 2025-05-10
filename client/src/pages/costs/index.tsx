@@ -40,6 +40,7 @@ const CostsPage = () => {
   const { t, language } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
+  const [_, navigate] = useLocation();
   const farmId = 6; // Por padrão, usamos a fazenda com ID 6 para demonstração
   
   // Estado para paginação
@@ -136,11 +137,16 @@ const CostsPage = () => {
           <h1 className="text-2xl font-bold">{t('common.costs') || 'Custos'}</h1>
           
           <div className="flex flex-col sm:flex-row gap-2">
-            <Link href={`/costs/create/${farmId}`}>
-              <Button size="sm" variant="outline">
-                {t('common.create') || 'Criar'} {t('common.new') || 'Novo'}
-              </Button>
-            </Link>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={() => {
+                console.log("Tentando navegar para:", `/costs/create/${farmId}`);
+                navigate(`/costs/create/${farmId}`);
+              }}
+            >
+              {t('common.create') || 'Criar'} {t('common.new') || 'Novo'}
+            </Button>
           </div>
         </div>
         

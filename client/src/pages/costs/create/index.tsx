@@ -29,10 +29,14 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 
 const CreateCostPage = () => {
-  const { farmId } = useParams();
+  const params = useParams();
+  const farmId = params.farmId;
   const [_, navigate] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  console.log("Parâmetros na URL:", params);
+  console.log("Farm ID recebido:", farmId);
   
   // Estados do formulário
   const [date, setDate] = useState<Date>(new Date());
