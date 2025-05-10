@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 import { Link, useLocation } from 'wouter';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/hooks/use-auth';
-import { Cost } from '@shared/schema';
+import { Cost, CostCategory } from '@shared/schema';
 import { format } from 'date-fns';
 import { ptBR, enUS } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
@@ -27,6 +28,24 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Textarea } from '@/components/ui/textarea';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { CalendarIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import {
   Pagination,
   PaginationContent,
   PaginationEllipsis,
@@ -40,8 +59,21 @@ const CostsPage = () => {
   const { t, language } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [_, navigate] = useLocation();
   const farmId = 6; // Por padrão, usamos a fazenda com ID 6 para demonstração
+  
+  // Estado para o modal de criação de custo
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [date, setDate] = useState<Date>(new Date());
+  const [category, setCategory] = useState<string>(CostCategory.OTHER);
+  const [amount, setAmount] = useState<string>('');
+  const [description, setDescription] = useState<string>('');
+  const [supplier, setSupplier] = useState<string>('');
+  const [paymentMethod, setPaymentMethod] = useState<string>('');
+  const [documentNumber, setDocumentNumber] = useState<string>('');
+  const [notes, setNotes] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   
   // Estado para paginação
   const [currentPage, setCurrentPage] = useState(1);
@@ -130,6 +162,66 @@ const CostsPage = () => {
     return categories[category] || category;
   };
   
+  // Mutation para criar um novo custo
+  const createCost = useMutation({
+    mutationFn: async (data: any) => {
+      return await apiRequest(`/api/farms/${farmId}/costs`, {
+        method: 'POST',
+        data,
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Custo adicionado com sucesso',
+        description: 'O novo custo foi registrado no sistema.',
+      });
+      
+      // Resetar os campos do formulário
+      setDate(new Date());
+      setCategory(CostCategory.OTHER);
+      setAmount('');
+      setDescription('');
+      setSupplier('');
+      setPaymentMethod('');
+      setDocumentNumber('');
+      setNotes('');
+      
+      // Fechar o modal
+      setIsDialogOpen(false);
+      
+      // Invalidar a query de custos para atualizar a lista
+      queryClient.invalidateQueries({ queryKey: ['/api/farms', farmId, 'costs'] });
+    },
+    onError: () => {
+      toast({
+        title: 'Erro ao adicionar custo',
+        description: 'Ocorreu um erro ao registrar o custo. Tente novamente.',
+        variant: 'destructive',
+      });
+      setIsSubmitting(false);
+    },
+  });
+  
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    const data = {
+      farmId: parseInt(farmId.toString()),
+      date,
+      category,
+      amount,
+      description,
+      supplier,
+      paymentMethod,
+      documentNumber,
+      notes,
+      createdBy: 0, // Será substituído no backend pelo ID do usuário autenticado
+    };
+    
+    createCost.mutate(data);
+  };
+  
   return (
     <DashboardLayout title={t('common.costs') || 'Custos'}>
       <div className="container mx-auto py-6">
@@ -140,10 +232,7 @@ const CostsPage = () => {
             <Button 
               size="sm" 
               variant="outline" 
-              onClick={() => {
-                console.log("Tentando navegar para:", `/costs/create/${farmId}`);
-                navigate(`/costs/create/${farmId}`);
-              }}
+              onClick={() => setIsDialogOpen(true)}
             >
               {t('common.create') || 'Criar'} {t('common.new') || 'Novo'}
             </Button>
