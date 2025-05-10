@@ -1312,7 +1312,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // COSTS MANAGEMENT ROUTES
   // Get all costs for a farm
-  app.get("/api/farms/:farmId/costs", checkAuth, async (req, res) => {
+  app.get("/api/farms/:farmId/costs", (req, res, next) => {
+    checkAuth(req, res, next);
+  }, async (req, res) => {
     try {
       const farmId = parseInt(req.params.farmId, 10);
       
@@ -1353,7 +1355,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Get a specific cost by ID
-  app.get("/api/costs/:id", checkAuth, async (req, res) => {
+  app.get("/api/costs/:id", (req, res, next) => {
+    checkAuth(req, res, next);
+  }, async (req, res) => {
     try {
       const costId = parseInt(req.params.id, 10);
       
@@ -1375,7 +1379,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Create a new cost
-  app.post("/api/farms/:farmId/costs", checkAuth, async (req, res) => {
+  app.post("/api/farms/:farmId/costs", (req, res, next) => {
+    checkAuth(req, res, next);
+  }, async (req, res) => {
     try {
       const farmId = parseInt(req.params.farmId, 10);
       
@@ -1408,7 +1414,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Update a cost
-  app.patch("/api/costs/:id", checkAuth, async (req, res) => {
+  app.patch("/api/costs/:id", (req, res, next) => {
+    checkAuth(req, res, next);
+  }, async (req, res) => {
     try {
       const costId = parseInt(req.params.id, 10);
       
@@ -1434,7 +1442,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Delete a cost
-  app.delete("/api/costs/:id", checkAuth, async (req, res) => {
+  app.delete("/api/costs/:id", (req, res, next) => {
+    checkAuth(req, res, next);
+  }, async (req, res) => {
     try {
       const costId = parseInt(req.params.id, 10);
       
