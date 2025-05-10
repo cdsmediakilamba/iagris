@@ -1290,6 +1290,55 @@ export class MemStorage implements IStorage {
     this.animalVaccinations.set(id, updatedVaccination);
     return updatedVaccination;
   }
+
+  // Cost operations
+  async getCost(id: number): Promise<Cost | undefined> {
+    return this.costItems.get(id);
+  }
+
+  async getCostsByFarm(farmId: number): Promise<Cost[]> {
+    return Array.from(this.costItems.values())
+      .filter(cost => cost.farmId === farmId);
+  }
+
+  async getCostsByCategory(farmId: number, category: string): Promise<Cost[]> {
+    return Array.from(this.costItems.values())
+      .filter(cost => cost.farmId === farmId && cost.category === category);
+  }
+
+  async getCostsByPeriod(farmId: number, startDate: Date, endDate: Date): Promise<Cost[]> {
+    return Array.from(this.costItems.values())
+      .filter(cost => {
+        return cost.farmId === farmId && 
+               cost.date >= startDate && 
+               cost.date <= endDate;
+      });
+  }
+
+  async createCost(costData: InsertCost): Promise<Cost> {
+    const id = this.costId++;
+    const cost: Cost = {
+      ...costData,
+      id,
+      createdAt: new Date()
+    };
+    this.costItems.set(id, cost);
+    return cost;
+  }
+
+  async updateCost(id: number, costData: Partial<Cost>): Promise<Cost | undefined> {
+    const cost = this.costItems.get(id);
+    if (!cost) return undefined;
+
+    const updatedCost = { ...cost, ...costData };
+    this.costItems.set(id, updatedCost);
+    return updatedCost;
+  }
+
+  async deleteCost(id: number): Promise<boolean> {
+    if (!this.costItems.has(id)) return false;
+    return this.costItems.delete(id);
+  }
 }
 
 // Export a storage instance

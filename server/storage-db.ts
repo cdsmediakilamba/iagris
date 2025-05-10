@@ -885,4 +885,82 @@ export class DatabaseStorage implements IStorage {
     
     return updatedVaccination || undefined;
   }
+
+  // Cost operations
+  async getCost(id: number): Promise<Cost | undefined> {
+    const [cost] = await db
+      .select()
+      .from(costs)
+      .where(eq(costs.id, id));
+    return cost || undefined;
+  }
+
+  async getCostsByFarm(farmId: number): Promise<Cost[]> {
+    return await db
+      .select()
+      .from(costs)
+      .where(eq(costs.farmId, farmId))
+      .orderBy(desc(costs.date));
+  }
+
+  async getCostsByCategory(farmId: number, category: string): Promise<Cost[]> {
+    return await db
+      .select()
+      .from(costs)
+      .where(and(
+        eq(costs.farmId, farmId),
+        eq(costs.category, category)
+      ))
+      .orderBy(desc(costs.date));
+  }
+
+  async getCostsByPeriod(farmId: number, startDate: Date, endDate: Date): Promise<Cost[]> {
+    return await db
+      .select()
+      .from(costs)
+      .where(and(
+        eq(costs.farmId, farmId),
+        gte(costs.date, startDate),
+        lte(costs.date, endDate)
+      ))
+      .orderBy(desc(costs.date));
+  }
+
+  async createCost(costData: InsertCost): Promise<Cost> {
+    // Process date if it's a string
+    let processedData = { ...costData };
+    if (typeof processedData.date === 'string') {
+      processedData.date = new Date(processedData.date);
+    }
+
+    const [cost] = await db
+      .insert(costs)
+      .values(processedData)
+      .returning();
+    
+    return cost;
+  }
+
+  async updateCost(id: number, costData: Partial<Cost>): Promise<Cost | undefined> {
+    // Process date if it's a string
+    if (costData.date && typeof costData.date === 'string') {
+      costData.date = new Date(costData.date);
+    }
+
+    const [updatedCost] = await db
+      .update(costs)
+      .set(costData)
+      .where(eq(costs.id, id))
+      .returning();
+    
+    return updatedCost || undefined;
+  }
+
+  async deleteCost(id: number): Promise<boolean> {
+    const result = await db
+      .delete(costs)
+      .where(eq(costs.id, id));
+    
+    return result.rowCount > 0;
+  }
 }
