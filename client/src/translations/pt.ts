@@ -18,6 +18,8 @@ export const pt = {
     today: 'Hoje',
     tomorrow: 'Amanhã',
     viewAll: 'Ver todos',
+    backToDashboard: 'Voltar para o Dashboard',
+    costs: 'Custos',
     save: 'Salvar',
     cancel: 'Cancelar',
     edit: 'Editar',
@@ -483,6 +485,7 @@ export const pt = {
     networkError: 'Erro de conexão. Verifique sua internet.',
     unauthorized: 'Não autorizado. Faça login novamente.',
     notFound: 'Recurso não encontrado.',
+    pageDoesNotExist: 'A página que você está procurando não existe.',
     offline: 'Você está offline. Algumas funções podem estar indisponíveis.',
   }
 };
