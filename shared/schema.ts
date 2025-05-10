@@ -40,6 +40,7 @@ export enum SystemModule {
   FINANCIAL = "financial",
   REPORTS = "reports",
   GOALS = "goals",
+  COSTS = "costs", // Novo módulo de custos
   ADMINISTRATION = "administration" // Módulo para administração do sistema
 }
 
@@ -227,6 +228,45 @@ export enum VaccinationStatus {
   CANCELLED = "cancelled"   // Cancelada
 }
 
+// Define categorias de custos
+export enum CostCategory {
+  SUPPLIES = "supplies",           // Suprimentos
+  EQUIPMENT = "equipment",         // Equipamentos
+  MAINTENANCE = "maintenance",     // Manutenção
+  LABOR = "labor",                 // Mão de obra
+  FEED = "feed",                   // Alimentação animal
+  FERTILIZER = "fertilizer",       // Fertilizantes
+  SEEDS = "seeds",                 // Sementes
+  PESTICIDES = "pesticides",       // Pesticidas
+  FUEL = "fuel",                   // Combustível
+  UTILITIES = "utilities",         // Serviços públicos (água, luz, etc)
+  VETERINARY = "veterinary",       // Serviços veterinários
+  TAXES = "taxes",                 // Impostos e taxas
+  LAND = "land",                   // Terreno/aluguel
+  TRANSPORTATION = "transportation", // Transporte
+  MARKETING = "marketing",         // Marketing e vendas
+  INSURANCE = "insurance",         // Seguros
+  OTHER = "other"                  // Outros
+}
+
+// Costs table schema - Sistema de custos
+export const costs = pgTable("costs", {
+  id: serial("id").primaryKey(),
+  description: text("description").notNull(),        // Descrição do custo
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(), // Valor do custo
+  date: timestamp("date").notNull(),                 // Data do custo
+  category: text("category").notNull(),              // Categoria do custo (usar enum CostCategory)
+  farmId: integer("farm_id").notNull(),              // Fazenda relacionada
+  paymentMethod: text("payment_method"),             // Método de pagamento
+  documentNumber: text("document_number"),           // Número do documento fiscal
+  supplier: text("supplier"),                        // Fornecedor
+  notes: text("notes"),                              // Observações adicionais
+  relatedArea: text("related_area"),                 // Área relacionada (animais, culturas, etc)
+  relatedId: integer("related_id"),                  // ID relacionado (ID do animal, cultura, etc)
+  createdBy: integer("created_by").notNull(),        // Usuário que registrou o custo
+  createdAt: timestamp("created_at").defaultNow(),   // Data de criação do registro
+});
+
 // Animal Vaccination table schema - Registro de vacinações dos animais
 export const animalVaccinations = pgTable("animal_vaccinations", {
   id: serial("id").primaryKey(),
@@ -309,6 +349,11 @@ export const insertAnimalVaccinationSchema = createInsertSchema(animalVaccinatio
   createdAt: true,
 });
 
+export const insertCostSchema = createInsertSchema(costs).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Export types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -345,3 +390,6 @@ export type Goal = typeof goals.$inferSelect;
 
 export type InsertAnimalVaccination = z.infer<typeof insertAnimalVaccinationSchema>;
 export type AnimalVaccination = typeof animalVaccinations.$inferSelect;
+
+export type InsertCost = z.infer<typeof insertCostSchema>;
+export type Cost = typeof costs.$inferSelect;
