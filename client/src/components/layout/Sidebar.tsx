@@ -104,6 +104,12 @@ export default function Sidebar({ isOpen }: SidebarProps) {
       show: isManager,
     },
     {
+      title: t('common.costs') || 'Custos',
+      icon: <BarChart3 className="mr-4 h-5 w-5" />,
+      path: '/costs',
+      active: location === '/costs' || location.includes('/costs'),
+    },
+    {
       title: t('common.reports'),
       icon: <FileText className="mr-4 h-5 w-5" />,
       path: '/reports',
