@@ -1,11 +1,9 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useLanguage } from "@/context/LanguageContext";
 import { useLocation } from "wouter";
 
 export default function NotFound() {
-  const { t } = useLanguage();
   const [, setLocation] = useLocation();
 
   return (
@@ -15,16 +13,16 @@ export default function NotFound() {
           <div className="flex flex-col items-center text-center">
             <AlertCircle className="h-16 w-16 text-red-500 mb-4" />
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              404 - {t('errors.notFound')}
+              404 - Página não encontrada
             </h1>
             <p className="text-gray-600 mb-6">
-              {t('errors.pageDoesNotExist')}
+              A página que você está procurando não existe.
             </p>
             <Button 
               onClick={() => setLocation('/')}
               className="bg-primary hover:bg-primary-dark"
             >
-              {t('common.backToDashboard')}
+              Voltar para o Dashboard
             </Button>
           </div>
         </CardContent>
