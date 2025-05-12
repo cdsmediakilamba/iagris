@@ -511,6 +511,21 @@ export default function Calendar() {
                   <h4 className="text-sm font-medium mb-2">{t('calendar.legend')}</h4>
                   <div className="space-y-2">
                     <div className="flex items-center">
+                      <div className="flex-shrink-0 w-4 h-4 mr-2 rounded-sm border-l-4 border-primary bg-white"></div>
+                      <span className="text-xs text-gray-600 flex items-center">
+                        <Clock className="h-3 w-3 mr-1" />
+                        {t('calendar.taskItems')}
+                      </span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0 w-4 h-4 mr-2 rounded-sm border-l-4 border-orange-500 bg-white"></div>
+                      <span className="text-xs text-gray-600 flex items-center">
+                        <Target className="h-3 w-3 mr-1 text-orange-500" />
+                        {t('calendar.goalItems')}
+                      </span>
+                    </div>
+                    <Separator className="my-2" />
+                    <div className="flex items-center">
                       <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
                         {t('tasks.status.completed')}
                       </Badge>

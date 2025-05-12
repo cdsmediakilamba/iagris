@@ -517,12 +517,19 @@ export const pt = {
     allFarms: 'Todas as Fazendas',
     filterByStatus: 'Filtrar por Status',
     allStatuses: 'Todos os Status',
+    eventType: 'Tipo de Evento',
+    allEvents: 'Todos os Eventos',
+    onlyTasks: 'Somente Tarefas',
+    onlyGoals: 'Somente Metas',
     legend: 'Legenda',
+    taskItems: 'Tarefas',
+    goalItems: 'Metas/Objetivos',
+    deadline: 'Prazo final',
     completedDesc: 'Tarefas concluídas',
     pendingDesc: 'Tarefas pendentes',
     overdueDesc: 'Tarefas atrasadas',
-    noTasks: 'Nenhuma tarefa para este período',
-    moreTasks: 'mais tarefas'
+    noTasks: 'Nenhuma atividade para este período',
+    moreTasks: 'mais itens'
   },
   errors: {
     required: 'Este campo é obrigatório',
