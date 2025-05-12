@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { insertAnimalSchema, Animal, Species } from '@shared/schema';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import { formatDate } from '@/lib/i18n';
 import {
   Card,
@@ -1133,15 +1133,14 @@ export default function AnimalsPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <Link href={`/animals/${animal.id}`}>
-                            <Button 
+                          <Button 
                               variant="ghost"
                               size="icon"
                               className="text-blue-600"
+                              onClick={() => setLocation(`/animals/${animal.id}`)}
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
-                          </Link>
                           <Button 
                             variant="ghost" 
                             size="icon"

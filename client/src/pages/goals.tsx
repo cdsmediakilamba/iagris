@@ -381,12 +381,13 @@ export default function GoalsPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Link href="/dashboard">
-            <Button variant="outline">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Voltar ao Dashboard
-            </Button>
-          </Link>
+          <Button 
+            variant="outline"
+            onClick={() => setLocation("/dashboard")}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Voltar ao Dashboard
+          </Button>
           <Button 
             variant="outline" 
             onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/farms', farmId, 'goals'] })}
