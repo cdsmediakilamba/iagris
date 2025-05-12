@@ -1161,6 +1161,10 @@ export class MemStorage implements IStorage {
     );
   }
   
+  async getAllGoals(): Promise<Goal[]> {
+    return Array.from(this.goalItems.values());
+  }
+  
   async createGoal(insertGoal: InsertGoal): Promise<Goal> {
     const id = this.goalId++;
     const goal: Goal = {

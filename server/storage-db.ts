@@ -773,6 +773,13 @@ export class DatabaseStorage implements IStorage {
       )
       .orderBy(desc(goals.endDate));
   }
+  
+  async getAllGoals(): Promise<Goal[]> {
+    return await db
+      .select()
+      .from(goals)
+      .orderBy(desc(goals.endDate));
+  }
 
   async createGoal(goalData: InsertGoal): Promise<Goal> {
     const [goal] = await db.insert(goals).values(goalData).returning();
