@@ -20,6 +20,8 @@ export const pt = {
     viewAll: 'Ver todos',
     backToDashboard: 'Voltar para o Dashboard',
     costs: 'Custos',
+    create: 'Criar',
+    new: 'novo',
     save: 'Salvar',
     cancel: 'Cancelar',
     edit: 'Editar',
