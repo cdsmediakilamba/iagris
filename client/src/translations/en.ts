@@ -336,7 +336,7 @@ export const en = {
     notFoundDescription: 'The requested cost was not found or you do not have permission to view it.',
     tableCaption: 'List of registered costs',
     selectCategory: 'Select category',
-    selectMonth: 'Select month',
+    selectMonth: 'Jan to Dec',
     noCosts: 'No costs found',
     categories: {
       supplies: 'Supplies',

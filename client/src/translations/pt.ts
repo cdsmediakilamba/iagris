@@ -386,7 +386,7 @@ export const pt = {
     notFoundDescription: 'O custo solicitado não foi encontrado ou você não tem permissão para visualizá-lo.',
     tableCaption: 'Lista de custos registrados',
     selectCategory: 'Selecione a categoria',
-    selectMonth: 'Selecionar mês',
+    selectMonth: 'Jan a Dez',
     noCosts: 'Nenhum custo encontrado',
     categories: {
       supplies: 'Suprimentos',
