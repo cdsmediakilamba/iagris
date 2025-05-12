@@ -309,6 +309,7 @@ export const pt = {
       inProgress: 'Em Andamento',
       completed: 'Concluída',
       cancelled: 'Cancelada',
+      overdue: 'Atrasada',
     },
     priorities: {
       low: 'Baixa',

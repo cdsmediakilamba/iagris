@@ -205,13 +205,13 @@ export default function Calendar() {
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'completed':
-        return t('tasks.status.completed');
+        return t('tasks.statuses.completed');
       case 'overdue':
-        return t('tasks.status.overdue');
+        return t('tasks.statuses.overdue');
       case 'in_progress':
-        return t('tasks.status.inProgress');
+        return t('tasks.statuses.inProgress');
       case 'pending':
-        return t('tasks.status.pending');
+        return t('tasks.statuses.pending');
       default:
         return status;
     }
@@ -499,10 +499,10 @@ export default function Calendar() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{t('calendar.allStatuses')}</SelectItem>
-                      <SelectItem value="pending">{t('tasks.status.pending')}</SelectItem>
-                      <SelectItem value="in_progress">{t('tasks.status.inProgress')}</SelectItem>
-                      <SelectItem value="completed">{t('tasks.status.completed')}</SelectItem>
-                      <SelectItem value="overdue">{t('tasks.status.overdue')}</SelectItem>
+                      <SelectItem value="pending">{t('tasks.statuses.pending')}</SelectItem>
+                      <SelectItem value="in_progress">{t('tasks.statuses.inProgress')}</SelectItem>
+                      <SelectItem value="completed">{t('tasks.statuses.completed')}</SelectItem>
+                      <SelectItem value="overdue">{t('tasks.statuses.overdue')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -527,7 +527,7 @@ export default function Calendar() {
                     <Separator className="my-2" />
                     <div className="flex items-center">
                       <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
-                        {t('tasks.status.completed')}
+                        {t('tasks.statuses.completed')}
                       </Badge>
                       <span className="ml-2 text-xs text-gray-600 flex items-center">
                         <CheckCircle2 className="h-3 w-3 mr-1 text-green-500" />
@@ -536,7 +536,7 @@ export default function Calendar() {
                     </div>
                     <div className="flex items-center">
                       <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200">
-                        {t('tasks.status.pending')}
+                        {t('tasks.statuses.pending')}
                       </Badge>
                       <span className="ml-2 text-xs text-gray-600 flex items-center">
                         <Clock className="h-3 w-3 mr-1 text-yellow-500" />
@@ -545,7 +545,7 @@ export default function Calendar() {
                     </div>
                     <div className="flex items-center">
                       <Badge variant="outline" className="bg-red-100 text-red-800 border-red-200">
-                        {t('tasks.status.overdue')}
+                        {t('tasks.statuses.overdue')}
                       </Badge>
                       <span className="ml-2 text-xs text-gray-600 flex items-center">
                         <AlertCircle className="h-3 w-3 mr-1 text-red-500" />
