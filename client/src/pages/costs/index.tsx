@@ -398,7 +398,7 @@ const CostsPage = () => {
         
         {/* Dialog para adicionar novo custo */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-y-auto">
+          <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-y-auto p-4 sm:p-6">
             <DialogHeader>
               <DialogTitle>{t('costs.createNew') || 'Adicionar Novo Custo'}</DialogTitle>
               <DialogDescription>
@@ -432,6 +432,7 @@ const CostsPage = () => {
                       selected={date}
                       onSelect={(date) => date && setDate(date)}
                       initialFocus
+                      className="rounded-md"
                     />
                   </PopoverContent>
                 </Popover>
@@ -485,6 +486,7 @@ const CostsPage = () => {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   required
+                  className="min-h-[60px]"
                 />
               </div>
               
@@ -525,7 +527,7 @@ const CostsPage = () => {
               </div>
               
               {/* Observações */}
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <label className="block text-sm font-medium">
                   {t('common.notes') || 'Observações'}
                 </label>
@@ -533,6 +535,7 @@ const CostsPage = () => {
                   placeholder={t('costs.notesPlaceholder') || 'Observações adicionais...'}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
+                  className="min-h-[60px]"
                 />
               </div>
               
