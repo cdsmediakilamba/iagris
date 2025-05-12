@@ -18,6 +18,8 @@ export const en = {
     today: 'Today',
     tomorrow: 'Tomorrow',
     viewAll: 'View all',
+    create: 'Create',
+    new: 'new',
     save: 'Save',
     cancel: 'Cancel',
     edit: 'Edit',
