@@ -398,7 +398,7 @@ const CostsPage = () => {
         
         {/* Dialog para adicionar novo custo */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="sm:max-w-[600px]">
+          <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{t('costs.createNew') || 'Adicionar Novo Custo'}</DialogTitle>
               <DialogDescription>
@@ -406,9 +406,9 @@ const CostsPage = () => {
               </DialogDescription>
             </DialogHeader>
             
-            <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+            <form onSubmit={handleSubmit} className="space-y-3 mt-2">
               {/* Data */}
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <label className="block text-sm font-medium">
                   {t('common.date') || 'Data'}
                 </label>
@@ -438,7 +438,7 @@ const CostsPage = () => {
               </div>
               
               {/* Categoria */}
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <label className="block text-sm font-medium">
                   {t('costs.category') || 'Categoria'}
                 </label>
@@ -461,7 +461,7 @@ const CostsPage = () => {
               </div>
               
               {/* Valor */}
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <label className="block text-sm font-medium">
                   {t('costs.amount') || 'Valor (AOA)'}
                 </label>
@@ -476,7 +476,7 @@ const CostsPage = () => {
               </div>
               
               {/* Descrição */}
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <label className="block text-sm font-medium">
                   {t('common.description') || 'Descrição'}
                 </label>
@@ -489,7 +489,7 @@ const CostsPage = () => {
               </div>
               
               {/* Fornecedor */}
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <label className="block text-sm font-medium">
                   {t('costs.supplier') || 'Fornecedor'}
                 </label>
@@ -501,7 +501,7 @@ const CostsPage = () => {
               </div>
               
               {/* Método de pagamento */}
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <label className="block text-sm font-medium">
                   {t('costs.paymentMethod') || 'Método de Pagamento'}
                 </label>
@@ -513,7 +513,7 @@ const CostsPage = () => {
               </div>
               
               {/* Número do documento */}
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <label className="block text-sm font-medium">
                   {t('costs.documentNumber') || 'Número do Documento'}
                 </label>
