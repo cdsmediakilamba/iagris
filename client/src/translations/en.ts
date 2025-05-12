@@ -467,12 +467,19 @@ export const en = {
     allFarms: 'All Farms',
     filterByStatus: 'Filter by Status',
     allStatuses: 'All Statuses',
+    eventType: 'Event Type',
+    allEvents: 'All Events',
+    onlyTasks: 'Tasks Only',
+    onlyGoals: 'Goals Only',
     legend: 'Legend',
+    taskItems: 'Tasks',
+    goalItems: 'Goals/Objectives',
+    deadline: 'Deadline',
     completedDesc: 'Completed tasks',
     pendingDesc: 'Pending tasks',
     overdueDesc: 'Overdue tasks',
-    noTasks: 'No tasks for this period',
-    moreTasks: 'more tasks'
+    noTasks: 'No activities for this period',
+    moreTasks: 'more items'
   },
   errors: {
     required: 'This field is required',
