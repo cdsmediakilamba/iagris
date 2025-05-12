@@ -247,11 +247,11 @@ const CostsPage = () => {
               onValueChange={(value) => setCategoryFilter(value)}
             >
               <SelectTrigger>
-                <SelectValue placeholder={t('Selecionar categoria') || 'Select category'} />
+                <SelectValue placeholder={t('costs.selectCategory') || 'Selecione a categoria'} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{t('common.all') || 'Todas'}</SelectItem>
-                <SelectItem value="supplies">{t('Suprimentos') || 'Supplies'}</SelectItem>
+                <SelectItem value="supplies">{t('costs.categories.supplies') || 'Suprimentos'}</SelectItem>
                 <SelectItem value="equipment">{t('costs.categories.equipment') || 'Equipamentos'}</SelectItem>
                 <SelectItem value="maintenance">{t('costs.categories.maintenance') || 'Manutenção'}</SelectItem>
                 <SelectItem value="labor">{t('costs.categories.labor') || 'Mão de obra'}</SelectItem>

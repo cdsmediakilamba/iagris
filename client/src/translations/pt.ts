@@ -329,7 +329,6 @@ export const pt = {
     confirmDelete: 'Tem certeza que deseja excluir esta tarefa?',
     markAsCompleted: 'Marcar como Concluída',
     markAsInProgress: 'Marcar como Em Andamento',
-    selectMonth: 'Selecionar mês',
   },
   employees: {
     title: 'Gestão de Funcionários',
@@ -387,6 +386,7 @@ export const pt = {
     notFoundDescription: 'O custo solicitado não foi encontrado ou você não tem permissão para visualizá-lo.',
     tableCaption: 'Lista de custos registrados',
     selectCategory: 'Selecione a categoria',
+    selectMonth: 'Selecionar mês',
     noCosts: 'Nenhum custo encontrado',
     categories: {
       supplies: 'Suprimentos',
