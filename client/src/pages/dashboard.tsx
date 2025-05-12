@@ -9,9 +9,8 @@ import AnimalHealthTable from '@/components/dashboard/AnimalHealthTable';
 import WeatherCard from '@/components/dashboard/WeatherCard';
 import InventoryAlert from '@/components/dashboard/InventoryAlert';
 import HarvestTracker from '@/components/dashboard/HarvestTracker';
-import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/i18n';
-import { PawPrint, Leaf, DollarSign, CalendarDays, MapPin, Plus } from 'lucide-react';
+import { PawPrint, Leaf, DollarSign, CalendarDays, MapPin } from 'lucide-react';
 import { Task, Animal, Crop, Inventory, Farm } from '@shared/schema';
 
 export default function Dashboard() {
@@ -91,12 +90,7 @@ export default function Dashboard() {
               {currentFarm?.location ? `, ${currentFarm.location}` : ''}
             </span>
           </span>
-          <div className="ml-auto">
-            <Button size="sm" className="bg-primary text-white">
-              <Plus className="h-4 w-4 mr-1" />
-              {t('common.newTask')}
-            </Button>
-          </div>
+
         </div>
       </div>
       
