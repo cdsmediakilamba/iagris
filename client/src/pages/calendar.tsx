@@ -307,7 +307,7 @@ export default function Calendar() {
                 }
                 
                 const dateStr = format(day, 'yyyy-MM-dd');
-                const dayTasks = tasksByDate[dateStr] || [];
+                const dayEvents = eventsByDate[dateStr] || [];
                 const isToday = isSameDay(day, new Date());
                 
                 return (
@@ -330,14 +330,20 @@ export default function Calendar() {
                     </div>
                     
                     <div className="mt-1 space-y-1 max-h-[80px] overflow-y-auto">
-                      {dayTasks.slice(0, 3).map(task => (
-                        <div key={task.id} className="text-xs p-1 bg-white border rounded truncate text-gray-700 cursor-pointer">
-                          {task.title}
+                      {dayEvents.slice(0, 3).map(event => (
+                        <div 
+                          key={`${event.type}-${event.id}`} 
+                          className={`text-xs p-1 bg-white border-l-2 ${
+                            event.type === 'goal' ? 'border-orange-500' : 'border-primary'
+                          } rounded truncate text-gray-700 cursor-pointer`}
+                        >
+                          {event.type === 'goal' && <span className="mr-1">🎯</span>}
+                          {event.title}
                         </div>
                       ))}
-                      {dayTasks.length > 3 && (
+                      {dayEvents.length > 3 && (
                         <div className="text-xs text-gray-500 p-1">
-                          +{dayTasks.length - 3} {t('calendar.moreTasks')}
+                          +{dayEvents.length - 3} {t('calendar.moreTasks')}
                         </div>
                       )}
                     </div>
@@ -359,9 +365,9 @@ export default function Calendar() {
           {formatDate(currentDate, 'PPPP')}
         </h3>
         
-        {filteredTasks && filteredTasks.length > 0 ? (
+        {filteredEvents && filteredEvents.length > 0 ? (
           <div className="space-y-4">
-            {filteredTasks.map(renderTaskItem)}
+            {filteredEvents.map(renderEventItem)}
           </div>
         ) : (
           <div className="text-center py-8 text-gray-500">
@@ -457,6 +463,25 @@ export default function Calendar() {
                           {farm.name}
                         </SelectItem>
                       ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <label className="text-sm text-gray-500 mb-1 block">
+                    {t('calendar.eventType')}
+                  </label>
+                  <Select
+                    value={eventType}
+                    onValueChange={(value) => setEventType(value as 'all' | 'tasks' | 'goals')}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder={t('calendar.allEvents')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{t('calendar.allEvents')}</SelectItem>
+                      <SelectItem value="tasks">{t('calendar.onlyTasks')}</SelectItem>
+                      <SelectItem value="goals">{t('calendar.onlyGoals')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
