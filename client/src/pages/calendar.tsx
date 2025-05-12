@@ -28,9 +28,11 @@ import {
   CheckCircle2,
   AlertCircle,
   Clock,
-  Filter
+  Filter,
+  Target,
+  Flag
 } from 'lucide-react';
-import { Task } from '@shared/schema';
+import { Task, Goal } from '@shared/schema';
 
 export default function Calendar() {
   const { t, language } = useLanguage();
@@ -38,16 +40,25 @@ export default function Calendar() {
   const [view, setView] = useState<'month' | 'agenda'>('month');
   const [selectedFarm, setSelectedFarm] = useState<string | null>(null);
   const [filteredStatus, setFilteredStatus] = useState<string | null>(null);
+  const [eventType, setEventType] = useState<'all' | 'tasks' | 'goals'>('all');
 
   // Load tasks from the API
-  const { data: tasks, isLoading } = useQuery<Task[]>({
+  const { data: tasks, isLoading: tasksLoading } = useQuery<Task[]>({
     queryKey: ['/api/tasks'],
+  });
+
+  // Load goals from the API
+  const { data: goals, isLoading: goalsLoading } = useQuery<Goal[]>({
+    queryKey: ['/api/goals'],
   });
 
   // Load farms from the API for the filter
   const { data: farms } = useQuery({
     queryKey: ['/api/farms'],
   });
+  
+  // Check if any data is still loading
+  const isLoading = tasksLoading || goalsLoading;
 
   // Get the appropriate locale for date formatting
   const dateLocale = language === 'pt' ? ptBR : enUS;
@@ -89,36 +100,90 @@ export default function Calendar() {
     return formatDate(new Date(2021, 0, day + 3), 'EEEEEE');
   });
 
-  // Filter tasks based on the currently selected filters and date
-  const filteredTasks = tasks?.filter(task => {
-    // Filter by farm if a farm is selected
-    if (selectedFarm && selectedFarm !== 'all' && task.farmId !== parseInt(selectedFarm)) {
+  // Interface para representar os dois tipos de eventos no calendário
+  interface CalendarEvent {
+    id: number;
+    title: string;
+    description: string | null;
+    date: Date;
+    status: string;
+    farmId: number;
+    type: 'task' | 'goal';
+    originalItem: Task | Goal;
+  }
+
+  // Converter tarefas em eventos de calendário
+  const taskEvents: CalendarEvent[] = tasks ? tasks.map(task => ({
+    id: task.id,
+    title: task.title,
+    description: task.description,
+    date: new Date(task.dueDate),
+    status: task.status,
+    farmId: task.farmId,
+    type: 'task',
+    originalItem: task
+  })) : [];
+
+  // Converter metas em eventos de calendário (usando endDate como data principal)
+  const goalEvents: CalendarEvent[] = goals ? goals.map(goal => ({
+    id: goal.id,
+    title: goal.name,
+    description: goal.description,
+    date: new Date(goal.endDate), // Usando a data de término para exibir no calendário
+    status: goal.status,
+    farmId: goal.farmId,
+    type: 'goal',
+    originalItem: goal
+  })) : [];
+  
+  // Combinando todos os eventos
+  let allEvents: CalendarEvent[] = [...taskEvents];
+  
+  // Adicionar eventos de metas com base na seleção
+  if (eventType === 'all' || eventType === 'goals') {
+    allEvents = [...allEvents, ...goalEvents];
+  }
+  
+  // Se apenas metas estiverem selecionadas, remover tarefas
+  if (eventType === 'goals') {
+    allEvents = goalEvents;
+  }
+  
+  // Se apenas tarefas estiverem selecionadas, já temos apenas tarefas
+  if (eventType === 'tasks') {
+    allEvents = taskEvents;
+  }
+
+  // Filtrar eventos com base nos filtros selecionados
+  const filteredEvents = allEvents.filter(event => {
+    // Filtrar por fazenda
+    if (selectedFarm && selectedFarm !== 'all' && event.farmId !== parseInt(selectedFarm)) {
       return false;
     }
     
-    // Filter by status if a status is selected
-    if (filteredStatus && filteredStatus !== 'all' && task.status !== filteredStatus) {
+    // Filtrar por status
+    if (filteredStatus && filteredStatus !== 'all' && event.status !== filteredStatus) {
       return false;
     }
 
-    // For month view, include all tasks in the current month
+    // Para visualização mensal, incluir todos os eventos do mês atual
     if (view === 'month') {
-      return isSameMonth(new Date(task.dueDate), currentDate);
+      return isSameMonth(event.date, currentDate);
     }
     
-    // For agenda view, include only tasks due on the selected date
-    return isSameDay(new Date(task.dueDate), currentDate);
+    // Para visualização de agenda, incluir apenas eventos da data selecionada
+    return isSameDay(event.date, currentDate);
   });
 
-  // Group tasks by date for the month view
-  const tasksByDate = filteredTasks?.reduce<Record<string, Task[]>>((acc, task) => {
-    const dateStr = format(new Date(task.dueDate), 'yyyy-MM-dd');
+  // Agrupar eventos por data para a visualização do mês
+  const eventsByDate = filteredEvents.reduce<Record<string, CalendarEvent[]>>((acc, event) => {
+    const dateStr = format(event.date, 'yyyy-MM-dd');
     if (!acc[dateStr]) {
       acc[dateStr] = [];
     }
-    acc[dateStr].push(task);
+    acc[dateStr].push(event);
     return acc;
-  }, {}) || {};
+  }, {});
 
   // Get status badge color
   const getStatusColor = (status: string) => {
@@ -152,20 +217,35 @@ export default function Calendar() {
     }
   };
 
-  // Render task item for agenda view
-  const renderTaskItem = (task: Task) => (
-    <div key={task.id} className="p-3 border-l-4 border-primary bg-gray-50 rounded-md mb-2">
+  // Render event item for agenda view
+  const renderEventItem = (event: CalendarEvent) => (
+    <div key={`${event.type}-${event.id}`} className={`p-3 border-l-4 ${event.type === 'goal' ? 'border-orange-500' : 'border-primary'} bg-gray-50 rounded-md mb-2`}>
       <div className="flex items-start justify-between">
         <div>
-          <h4 className="font-medium text-gray-900">{task.title}</h4>
-          <p className="text-sm text-gray-600 mt-1">{task.description}</p>
+          <div className="flex items-center">
+            {event.type === 'goal' ? 
+              <Target className="h-4 w-4 mr-2 text-orange-500" /> : 
+              <Clock className="h-4 w-4 mr-2 text-primary" />
+            }
+            <h4 className="font-medium text-gray-900">{event.title}</h4>
+          </div>
+          <p className="text-sm text-gray-600 mt-1">{event.description}</p>
           <div className="flex items-center mt-2 text-sm">
-            <Badge variant="outline" className={getStatusColor(task.status)}>
-              {getStatusLabel(task.status)}
+            <Badge variant="outline" className={getStatusColor(event.status)}>
+              {getStatusLabel(event.status)}
             </Badge>
             <span className="text-gray-500 ml-2 flex items-center">
-              <Clock className="h-3 w-3 mr-1" />
-              {formatDate(new Date(task.dueDate), 'p')}
+              {event.type === 'goal' ? (
+                <>
+                  <Flag className="h-3 w-3 mr-1" />
+                  {t('calendar.deadline')}: {formatDate(event.date, 'PPP')}
+                </>
+              ) : (
+                <>
+                  <Clock className="h-3 w-3 mr-1" />
+                  {formatDate(event.date, 'p')}
+                </>
+              )}
             </span>
           </div>
         </div>
