@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useLocation, useRoute } from 'wouter';
+import { useLocation, useRoute, Link } from 'wouter';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -49,7 +49,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 // Usar o Loader2 diretamente, pois o Spinner pode não estar disponível
 import { Loader2 } from "lucide-react";
-import { CalendarIcon, Plus, RefreshCw, Check } from "lucide-react";
+import { CalendarIcon, Plus, RefreshCw, Check, ArrowLeft } from "lucide-react";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
@@ -381,6 +381,12 @@ export default function GoalsPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Link href="/dashboard">
+            <Button variant="outline">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Voltar ao Dashboard
+            </Button>
+          </Link>
           <Button 
             variant="outline" 
             onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/farms', farmId, 'goals'] })}
