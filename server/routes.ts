@@ -1027,6 +1027,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
   
+  // Nova rota para obter todas as metas
+  app.get("/api/goals", 
+    async (req, res) => {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
+      const user = req.user as any;
+      
+      try {
+        // Para super admins, retornar todas as metas
+        if (user.role === UserRole.SUPER_ADMIN) {
+          const goals = await storage.getAllGoals();
+          return res.json(goals);
+        }
+        
+        // Para outros usuários, buscar apenas metas das fazendas a que têm acesso
+        const farms = await storage.getFarmsAccessibleByUser(user.id);
+        const farmIds = farms.map(farm => farm.id);
+        
+        if (farmIds.length === 0) {
+          return res.json([]);
+        }
+        
+        // Buscar todas as metas e filtrar por fazendas acessíveis
+        const allGoals = await storage.getAllGoals();
+        const accessibleGoals = allGoals.filter(goal => farmIds.includes(goal.farmId));
+        
+        res.json(accessibleGoals);
+      } catch (error) {
+        console.error("Error fetching all goals:", error);
+        res.status(500).json({ message: "Failed to fetch goals" });
+      }
+    }
+  );
+
   app.get("/api/users/:userId/goals", 
     async (req, res) => {
       if (!req.isAuthenticated()) {
