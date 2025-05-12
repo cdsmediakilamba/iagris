@@ -398,87 +398,105 @@ const CostsPage = () => {
         
         {/* Dialog para adicionar novo custo */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-y-auto p-4 sm:p-6">
-            <DialogHeader>
+          <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-y-auto p-3 sm:p-4">
+            <DialogHeader className="pb-2">
               <DialogTitle>{t('costs.createNew') || 'Adicionar Novo Custo'}</DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="text-xs sm:text-sm">
                 {t('costs.createNewDescription') || 'Preencha os dados abaixo para adicionar um novo custo ao sistema.'}
               </DialogDescription>
             </DialogHeader>
             
-            <form onSubmit={handleSubmit} className="space-y-3 mt-2">
-              {/* Data */}
-              <div className="space-y-1">
-                <label className="block text-sm font-medium">
-                  {t('common.date') || 'Data'}
-                </label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start text-left font-normal"
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {date ? (
-                        format(date, "PPP", { locale: language === 'pt' ? ptBR : enUS })
-                      ) : (
-                        <span>{t('common.pickDate') || 'Selecione uma data'}</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={date}
-                      onSelect={(date) => date && setDate(date)}
-                      initialFocus
-                      className="rounded-md"
-                    />
-                  </PopoverContent>
-                </Popover>
+            <form onSubmit={handleSubmit} className="space-y-2 mt-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {/* Data */}
+                <div className="space-y-1">
+                  <label className="block text-xs font-medium">
+                    {t('common.date') || 'Data'}
+                  </label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal h-9"
+                      >
+                        <CalendarIcon className="mr-2 h-3 w-3" />
+                        {date ? (
+                          format(date, "PPP", { locale: language === 'pt' ? ptBR : enUS })
+                        ) : (
+                          <span>{t('common.pickDate') || 'Selecione uma data'}</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={date}
+                        onSelect={(date) => date && setDate(date)}
+                        initialFocus
+                        className="rounded-md"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                
+                {/* Categoria */}
+                <div className="space-y-1">
+                  <label className="block text-xs font-medium">
+                    {t('costs.category') || 'Categoria'}
+                  </label>
+                  <Select
+                    value={category}
+                    onValueChange={setCategory}
+                    defaultValue={CostCategory.OTHER}
+                  >
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder={t('costs.selectCategory') || 'Selecione a categoria'} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.values(CostCategory).map((cat) => (
+                        <SelectItem key={cat} value={cat}>
+                          {translateCategory(cat)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               
-              {/* Categoria */}
-              <div className="space-y-1">
-                <label className="block text-sm font-medium">
-                  {t('costs.category') || 'Categoria'}
-                </label>
-                <Select
-                  value={category}
-                  onValueChange={setCategory}
-                  defaultValue={CostCategory.OTHER}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('costs.selectCategory') || 'Selecione a categoria'} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.values(CostCategory).map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {translateCategory(cat)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              {/* Valor */}
-              <div className="space-y-1">
-                <label className="block text-sm font-medium">
-                  {t('costs.amount') || 'Valor (AOA)'}
-                </label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  required
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {/* Valor */}
+                <div className="space-y-1">
+                  <label className="block text-xs font-medium">
+                    {t('costs.amount') || 'Valor (AOA)'}
+                  </label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    required
+                    className="h-9"
+                  />
+                </div>
+                
+                {/* Fornecedor */}
+                <div className="space-y-1">
+                  <label className="block text-xs font-medium">
+                    {t('costs.supplier') || 'Fornecedor'}
+                  </label>
+                  <Input
+                    placeholder={t('costs.supplierPlaceholder') || 'Nome do fornecedor'}
+                    value={supplier}
+                    onChange={(e) => setSupplier(e.target.value)}
+                    className="h-9"
+                  />
+                </div>
               </div>
               
               {/* Descrição */}
               <div className="space-y-1">
-                <label className="block text-sm font-medium">
+                <label className="block text-xs font-medium">
                   {t('common.description') || 'Descrição'}
                 </label>
                 <Textarea
@@ -486,70 +504,64 @@ const CostsPage = () => {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   required
-                  className="min-h-[60px]"
+                  className="min-h-[50px]"
                 />
               </div>
               
-              {/* Fornecedor */}
-              <div className="space-y-1">
-                <label className="block text-sm font-medium">
-                  {t('costs.supplier') || 'Fornecedor'}
-                </label>
-                <Input
-                  placeholder={t('costs.supplierPlaceholder') || 'Nome do fornecedor'}
-                  value={supplier}
-                  onChange={(e) => setSupplier(e.target.value)}
-                />
-              </div>
-              
-              {/* Método de pagamento */}
-              <div className="space-y-1">
-                <label className="block text-sm font-medium">
-                  {t('costs.paymentMethod') || 'Método de Pagamento'}
-                </label>
-                <Input
-                  placeholder={t('costs.paymentMethodPlaceholder') || 'Ex: Dinheiro, Transferência, Cartão'}
-                  value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                />
-              </div>
-              
-              {/* Número do documento */}
-              <div className="space-y-1">
-                <label className="block text-sm font-medium">
-                  {t('costs.documentNumber') || 'Número do Documento'}
-                </label>
-                <Input
-                  placeholder={t('costs.documentNumberPlaceholder') || 'Número da fatura ou recibo'}
-                  value={documentNumber}
-                  onChange={(e) => setDocumentNumber(e.target.value)}
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {/* Método de pagamento */}
+                <div className="space-y-1">
+                  <label className="block text-xs font-medium">
+                    {t('costs.paymentMethod') || 'Método de Pagamento'}
+                  </label>
+                  <Input
+                    placeholder={t('costs.paymentMethodPlaceholder') || 'Ex: Dinheiro, Transferência, Cartão'}
+                    value={paymentMethod}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                    className="h-9"
+                  />
+                </div>
+                
+                {/* Número do documento */}
+                <div className="space-y-1">
+                  <label className="block text-xs font-medium">
+                    {t('costs.documentNumber') || 'Número do Documento'}
+                  </label>
+                  <Input
+                    placeholder={t('costs.documentNumberPlaceholder') || 'Número da fatura ou recibo'}
+                    value={documentNumber}
+                    onChange={(e) => setDocumentNumber(e.target.value)}
+                    className="h-9"
+                  />
+                </div>
               </div>
               
               {/* Observações */}
               <div className="space-y-1">
-                <label className="block text-sm font-medium">
+                <label className="block text-xs font-medium">
                   {t('common.notes') || 'Observações'}
                 </label>
                 <Textarea
                   placeholder={t('costs.notesPlaceholder') || 'Observações adicionais...'}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="min-h-[60px]"
+                  className="min-h-[50px]"
                 />
               </div>
               
-              <DialogFooter>
+              <DialogFooter className="pt-2">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setIsDialogOpen(false)}
+                  className="h-8"
                 >
                   {t('common.cancel') || 'Cancelar'}
                 </Button>
                 <Button
                   type="submit"
                   disabled={isSubmitting}
+                  className="h-8"
                 >
                   {isSubmitting ? (
                     <>{t('common.saving') || 'Salvando'}...</>
