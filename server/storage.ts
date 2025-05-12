@@ -110,6 +110,7 @@ export interface IStorage {
   getGoalsByFarm(farmId: number): Promise<Goal[]>;
   getGoalsByAssignee(userId: number): Promise<Goal[]>;
   getGoalsByStatus(farmId: number, status: GoalStatus): Promise<Goal[]>;
+  getAllGoals(): Promise<Goal[]>;
   createGoal(goal: InsertGoal): Promise<Goal>;
   updateGoal(id: number, goal: Partial<Goal>): Promise<Goal | undefined>;
   
