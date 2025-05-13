@@ -230,6 +230,7 @@ export const pt = {
   crops: {
     title: 'Gestão de Plantações',
     addCrop: 'Adicionar Plantação',
+    addCropDescription: 'Preencha os campos abaixo para adicionar uma nova plantação.',
     editCrop: 'Editar Plantação',
     name: 'Nome',
     sector: 'Setor',
