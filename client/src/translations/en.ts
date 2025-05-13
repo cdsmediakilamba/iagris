@@ -66,6 +66,15 @@ export const en = {
     pickDate: 'Pick a date',
     all: 'All',
   },
+  validation: {
+    required: 'This field is required',
+    email: 'Please enter a valid email',
+    min: 'Must be at least {0} characters',
+    max: 'Cannot exceed {0} characters',
+    passwordMismatch: 'Passwords do not match',
+    number: 'Please enter a valid number',
+    date: 'Please enter a valid date',
+  },
   auth: {
     login: 'Login',
     register: 'Register',

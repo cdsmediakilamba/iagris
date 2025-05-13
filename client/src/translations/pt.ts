@@ -83,6 +83,15 @@ export const pt = {
     pickDate: 'Selecione uma data',
     all: 'Todos',
   },
+  validation: {
+    required: 'Este campo é obrigatório',
+    email: 'Por favor, insira um email válido',
+    min: 'Deve ter pelo menos {0} caracteres',
+    max: 'Não pode exceder {0} caracteres',
+    passwordMismatch: 'As senhas não correspondem',
+    number: 'Por favor, insira um número válido',
+    date: 'Por favor, insira uma data válida',
+  },
   auth: {
     login: 'Login',
     register: 'Registrar',
