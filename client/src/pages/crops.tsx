@@ -129,7 +129,14 @@ export default function Crops() {
         title: t('crops.cropAdded'),
         description: t('common.success'),
       });
-      form.reset();
+      form.reset({
+        name: '',
+        sector: '',
+        area: 0,
+        plantingDate: null,
+        expectedHarvestDate: null,
+        status: 'growing',
+      });
       setDialogOpen(false);
     },
     onError: (error) => {
@@ -368,6 +375,8 @@ export default function Crops() {
                               }}
                               // Garantir que nunca ficará undefined, sempre será string vazia
                               value={field.value ? (field.value instanceof Date ? field.value.toISOString().substring(0, 10) : '') : ''}
+                              // Desabilitar autocomplete do navegador
+                              autoComplete="off"
                             />
                           </FormControl>
                           <FormMessage />
@@ -384,10 +393,14 @@ export default function Crops() {
                             <Input 
                               type="date" 
                               onChange={(e) => {
+                                // Converter string de data para objeto Date ou null
                                 const value = e.target.value ? new Date(e.target.value) : null;
                                 field.onChange(value);
                               }}
+                              // Garantir que nunca ficará undefined, sempre string vazia
                               value={field.value ? (field.value instanceof Date ? field.value.toISOString().substring(0, 10) : '') : ''}
+                              // Desabilitar autocomplete do navegador
+                              autoComplete="off"
                             />
                           </FormControl>
                           <FormMessage />
