@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
+  CardFooter,
 } from '@/components/ui/card';
 import {
   Table,
@@ -27,7 +28,14 @@ import {
   Filter, 
   RefreshCw,
   ArrowDown,
-  ArrowUp
+  ArrowUp,
+  Calendar,
+  Search,
+  X,
+  Edit,
+  Info,
+  AlertCircle,
+  CheckCircle2
 } from 'lucide-react';
 import {
   Select,
@@ -43,6 +51,35 @@ import {
   AlertDescription,
   AlertTitle,
 } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose
+} from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetFooter,
+  SheetClose
+} from "@/components/ui/sheet";
+import {
+  Badge
+} from "@/components/ui/badge";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 
 // Tipos básicos para o plantação
 interface Crop {
@@ -53,6 +90,8 @@ interface Crop {
   farmId: number;
   status: string;
   createdAt: string;
+  plantingDate?: string;
+  expectedHarvestDate?: string;
 }
 
 // Interface para fazendas
@@ -63,6 +102,21 @@ interface Farm {
   size: number;
   type: string;
 }
+
+// Tipo para filtros de busca
+interface FilterOptions {
+  search: string;
+  status: string | null;
+  sector: string | null;
+}
+
+// Status possíveis para uma plantação
+const CROP_STATUSES = [
+  { value: "growing", label: "Em Crescimento", color: "bg-green-100 text-green-800" },
+  { value: "harvested", label: "Colhido", color: "bg-amber-100 text-amber-800" },
+  { value: "waiting", label: "Aguardando", color: "bg-blue-100 text-blue-800" },
+  { value: "finished", label: "Finalizada", color: "bg-purple-100 text-purple-800" }
+];
 
 export default function CropsPage() {
   const { t } = useLanguage();
