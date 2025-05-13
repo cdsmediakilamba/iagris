@@ -181,6 +181,7 @@ export const en = {
   crops: {
     title: 'Crop Management',
     addCrop: 'Add Crop',
+    addCropDescription: 'Fill out the fields below to add a new crop.',
     editCrop: 'Edit Crop',
     name: 'Name',
     sector: 'Sector',
