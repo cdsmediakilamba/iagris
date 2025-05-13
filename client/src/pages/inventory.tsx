@@ -58,6 +58,7 @@ import {
   Edit,
   Loader2,
   ArrowDownCircle,
+  ArrowUpCircle,
   AlertTriangle,
   Truck,
   BarChart3,
@@ -247,10 +248,21 @@ export default function Inventory() {
   const [restockDialogOpen, setRestockDialogOpen] = useState(false);
   const [selectedItemForRestock, setSelectedItemForRestock] = useState<InventoryType | null>(null);
   
+  // Estado para diálogo de retirada (withdraw)
+  const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false);
+  const [selectedItemForWithdraw, setSelectedItemForWithdraw] = useState<InventoryType | null>(null);
+  
   // Schema do formulário de reposição
   const restockFormSchema = z.object({
     quantity: z.string().min(1, { message: t('validation.required') }),
     notes: z.string().optional(),
+  });
+  
+  // Schema do formulário de retirada
+  const withdrawFormSchema = z.object({
+    quantity: z.string().min(1, { message: t('validation.required') }),
+    notes: z.string().optional(),
+    destination: z.string().optional(),
   });
   
   // Formulário de reposição
@@ -259,6 +271,16 @@ export default function Inventory() {
     defaultValues: {
       quantity: "",
       notes: "",
+    },
+  });
+  
+  // Formulário de retirada
+  const withdrawForm = useForm<z.infer<typeof withdrawFormSchema>>({
+    resolver: zodResolver(withdrawFormSchema),
+    defaultValues: {
+      quantity: "",
+      notes: "",
+      destination: "",
     },
   });
   
@@ -294,6 +316,39 @@ export default function Inventory() {
     },
   });
   
+  // Mutação para retirar estoque
+  const withdrawInventoryMutation = useMutation({
+    mutationFn: async (data: { itemId: number, farmId: number, quantity: string, notes?: string, destination?: string }) => {
+      return apiRequest(`/api/inventory/${data.itemId}/withdrawal`, {
+        method: 'POST',
+        data: {
+          quantity: data.quantity,
+          notes: data.notes,
+          destination: data.destination,
+          farmId: data.farmId,
+        },
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: t('inventory.withdrawSuccess'),
+        description: t('inventory.withdrawSuccessDescription'),
+      });
+      setWithdrawDialogOpen(false);
+      withdrawForm.reset();
+      queryClient.invalidateQueries({ queryKey: [`/api/farms/${selectedFarmId}/inventory`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/farms/${selectedFarmId}/inventory/critical`] });
+    },
+    onError: (error) => {
+      console.error("Error withdrawing inventory item:", error);
+      toast({
+        title: t('common.error'),
+        description: t('inventory.withdrawError'),
+        variant: "destructive",
+      });
+    },
+  });
+  
   // Submeter formulário de reposição
   const handleRestockSubmit = (data: z.infer<typeof restockFormSchema>) => {
     if (!selectedItemForRestock || !selectedFarmId) return;
@@ -303,6 +358,19 @@ export default function Inventory() {
       farmId: selectedFarmId,
       quantity: data.quantity,
       notes: data.notes,
+    });
+  };
+  
+  // Submeter formulário de retirada
+  const handleWithdrawSubmit = (data: z.infer<typeof withdrawFormSchema>) => {
+    if (!selectedItemForWithdraw || !selectedFarmId) return;
+    
+    withdrawInventoryMutation.mutate({
+      itemId: selectedItemForWithdraw.id,
+      farmId: selectedFarmId,
+      quantity: data.quantity,
+      notes: data.notes,
+      destination: data.destination,
     });
   };
   
