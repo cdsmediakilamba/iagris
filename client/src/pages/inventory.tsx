@@ -557,10 +557,14 @@ export default function Inventory() {
                         {getStockLevelIndicator(item)}
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <Button variant="outline" size="sm" className="text-blue-600" onClick={() => handleOpenRestockDialog(item)}>
                             <ArrowDownCircle className="h-4 w-4 mr-1" />
                             {t('inventory.restockItem')}
+                          </Button>
+                          <Button variant="outline" size="sm" className="text-red-600" onClick={() => handleOpenWithdrawDialog(item)}>
+                            <ArrowUpCircle className="h-4 w-4 mr-1" />
+                            {t('inventory.withdrawItem')}
                           </Button>
                           <Button variant="ghost" size="icon">
                             <Edit className="h-4 w-4" />
