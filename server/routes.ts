@@ -703,10 +703,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req, res) => {
       try {
         const itemId = parseInt(req.params.itemId, 10);
-        const { quantity, notes, documentNumber, unitPrice } = req.body;
+        const { quantity, notes, documentNumber, unitPrice, farmId } = req.body;
         
         if (!quantity || quantity <= 0) {
           return res.status(400).json({ message: "Valid quantity is required" });
+        }
+        
+        const item = await storage.getInventoryItem(itemId);
+        if (!item) {
+          return res.status(404).json({ message: "Inventory item not found" });
+        }
+        
+        // Verificar se farmId foi fornecido e se combina com o farmId do item
+        if (farmId && item.farmId !== farmId) {
+          return res.status(400).json({ message: "Farm ID does not match item's farm" });
         }
         
         const result = await storage.registerInventoryEntry(
