@@ -10,7 +10,7 @@ import Dashboard from "@/pages/dashboard";
 import Animals from "@/pages/animals";
 import AnimalsNew from "@/pages/animals-new";
 import AnimalDetails from "@/pages/animal-details";
-import Crops from "@/pages/crops";
+import CropsBasic from "@/pages/crops-basic";
 import Inventory from "@/pages/inventory";
 import InventoryTransactions from "@/pages/inventory-transactions";
 import Tasks from "@/pages/tasks";
@@ -39,7 +39,7 @@ function Router() {
       <ProtectedRoute path="/animals" component={Animals} />
       <ProtectedRoute path="/animals-new" component={AnimalsNew} />
       <ProtectedRoute path="/animals-new/:id" component={AnimalDetails} />
-      <ProtectedRoute path="/crops" component={Crops} />
+      <ProtectedRoute path="/crops" component={CropsBasic} />
       <ProtectedRoute path="/inventory" component={Inventory} />
       <ProtectedRoute path="/inventory-transactions" component={InventoryTransactions} />
       <ProtectedRoute path="/tasks" component={Tasks} />
