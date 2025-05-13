@@ -105,9 +105,9 @@ export default function Crops() {
     defaultValues: {
       name: '',
       sector: '',
-      area: undefined,
-      plantingDate: undefined,
-      expectedHarvestDate: undefined,
+      area: 0,
+      plantingDate: null,
+      expectedHarvestDate: null,
       status: 'growing',
     },
   });
@@ -360,11 +360,13 @@ export default function Crops() {
                           <FormLabel>{t('crops.plantingDate')}</FormLabel>
                           <FormControl>
                             <Input 
-                              type="date" 
+                              type="date"
                               onChange={(e) => {
+                                // Converter string de data para objeto Date ou null
                                 const value = e.target.value ? new Date(e.target.value) : null;
                                 field.onChange(value);
                               }}
+                              // Garantir que nunca ficará undefined, sempre será string vazia
                               value={field.value ? (field.value instanceof Date ? field.value.toISOString().substring(0, 10) : '') : ''}
                             />
                           </FormControl>
