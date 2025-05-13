@@ -160,11 +160,11 @@ export default function Inventory() {
 
   // Submit handler
   const onSubmit = (data: z.infer<typeof formSchema>) => {
-    // Convert numeric fields
+    // Converter todos os valores numéricos para strings para corresponder ao schema esperado pela API
     const formattedData = {
       ...data,
-      quantity: typeof data.quantity === 'string' ? parseInt(data.quantity) : data.quantity,
-      minimumLevel: typeof data.minimumLevel === 'string' ? parseInt(data.minimumLevel) : data.minimumLevel,
+      quantity: data.quantity?.toString() || "",
+      minimumLevel: data.minimumLevel?.toString() || null,
     };
     createInventoryItem.mutate(formattedData);
   };
