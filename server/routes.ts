@@ -391,10 +391,129 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req, res) => {
       try {
         const farmId = parseInt(req.params.farmId, 10);
-        const crops = await storage.getCropsByFarm(farmId);
+        const { status, sector, search } = req.query;
+        
+        // Obter todas as plantações da fazenda
+        let crops = await storage.getCropsByFarm(farmId);
+        
+        // Filtrar por status se especificado
+        if (status) {
+          crops = crops.filter(crop => crop.status === status);
+        }
+        
+        // Filtrar por setor se especificado
+        if (sector) {
+          crops = crops.filter(crop => crop.sector === sector);
+        }
+        
+        // Filtrar por texto de busca se especificado
+        if (search) {
+          const searchTerm = search.toString().toLowerCase();
+          crops = crops.filter(crop => 
+            crop.name.toLowerCase().includes(searchTerm) || 
+            crop.sector.toLowerCase().includes(searchTerm)
+          );
+        }
+        
         res.json(crops);
       } catch (error) {
+        console.error("Erro ao buscar plantações:", error);
         res.status(500).json({ message: "Failed to fetch crops" });
+      }
+    }
+  );
+  
+  // Obter uma plantação específica
+  app.get("/api/farms/:farmId/crops/:cropId", 
+    checkModuleAccess(SystemModule.CROPS, AccessLevel.READ_ONLY), 
+    async (req, res) => {
+      try {
+        const farmId = parseInt(req.params.farmId, 10);
+        const cropId = parseInt(req.params.cropId, 10);
+        
+        const crop = await storage.getCrop(cropId);
+        
+        if (!crop) {
+          return res.status(404).json({ message: "Plantação não encontrada" });
+        }
+        
+        // Verificar se a plantação pertence à fazenda especificada
+        if (crop.farmId !== farmId) {
+          return res.status(403).json({ message: "Plantação não pertence à fazenda especificada" });
+        }
+        
+        res.json(crop);
+      } catch (error) {
+        console.error("Erro ao buscar plantação:", error);
+        res.status(500).json({ message: "Falha ao buscar detalhes da plantação" });
+      }
+    }
+  );
+  
+  // Atualizar uma plantação específica
+  app.patch("/api/farms/:farmId/crops/:cropId", 
+    checkModuleAccess(SystemModule.CROPS, AccessLevel.FULL), 
+    async (req, res) => {
+      try {
+        const farmId = parseInt(req.params.farmId, 10);
+        const cropId = parseInt(req.params.cropId, 10);
+        
+        // Verificar se a plantação existe
+        const crop = await storage.getCrop(cropId);
+        if (!crop) {
+          return res.status(404).json({ message: "Plantação não encontrada" });
+        }
+        
+        // Verificar se a plantação pertence à fazenda especificada
+        if (crop.farmId !== farmId) {
+          return res.status(403).json({ message: "Plantação não pertence à fazenda especificada" });
+        }
+        
+        // Validar os dados enviados
+        if (req.body.area !== undefined) {
+          const area = Number(req.body.area);
+          if (isNaN(area) || area <= 0) {
+            return res.status(400).json({ message: "Área deve ser um número positivo" });
+          }
+          req.body.area = area;
+        }
+        
+        // Validar status se fornecido
+        const validStatuses = ['growing', 'harvested', 'finished', 'waiting'];
+        if (req.body.status && !validStatuses.includes(req.body.status)) {
+          return res.status(400).json({ 
+            message: "Status inválido", 
+            validStatuses 
+          });
+        }
+        
+        // Processar datas se fornecidas
+        if (req.body.plantingDate) {
+          try {
+            req.body.plantingDate = new Date(req.body.plantingDate);
+          } catch (e) {
+            return res.status(400).json({ message: "Data de plantio inválida" });
+          }
+        }
+        
+        if (req.body.expectedHarvestDate) {
+          try {
+            req.body.expectedHarvestDate = new Date(req.body.expectedHarvestDate);
+          } catch (e) {
+            return res.status(400).json({ message: "Data esperada de colheita inválida" });
+          }
+        }
+        
+        // Atualizar a plantação
+        const updatedCrop = await storage.updateCrop(cropId, req.body);
+        
+        res.json(updatedCrop);
+      } catch (error) {
+        console.error("Erro ao atualizar plantação:", error);
+        res.status(500).json({ 
+          message: "Falha ao atualizar plantação",
+          error: error instanceof Error ? error.message : String(error)
+        });
       }
     }
   );
@@ -424,6 +543,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (isNaN(area) || area <= 0) {
           return res.status(400).json({ 
             message: "Área deve ser um número positivo" 
+          });
+        }
+        
+        // Validar status se fornecido
+        const validStatuses = ['growing', 'harvested', 'finished', 'waiting'];
+        if (req.body.status && !validStatuses.includes(req.body.status)) {
+          return res.status(400).json({ 
+            message: "Status inválido", 
+            validStatuses 
           });
         }
         

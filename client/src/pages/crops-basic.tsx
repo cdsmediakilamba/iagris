@@ -129,6 +129,14 @@ export default function CropsPage() {
   const [selectedFarmId, setSelectedFarmId] = useState<number | null>(null);
   const [sortField, setSortField] = useState<string>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [selectedCrop, setSelectedCrop] = useState<Crop | null>(null);
+  
+  // Estado para os filtros
+  const [filters, setFilters] = useState<FilterOptions>({
+    search: '',
+    status: null,
+    sector: null
+  });
   
   // Carregar fazendas
   const { data: farms, isLoading: loadingFarms } = useQuery<Farm[]>({
@@ -189,6 +197,38 @@ export default function CropsPage() {
     }
   });
   
+  // Mutação para atualizar uma plantação
+  const updateCrop = useMutation({
+    mutationFn: async ({ cropId, data }: { cropId: number, data: any }) => {
+      if (!selectedFarmId) throw new Error("Nenhuma fazenda selecionada");
+      
+      return await apiRequest(
+        `/api/farms/${selectedFarmId}/crops/${cropId}`,
+        {
+          method: 'PATCH',
+          data
+        }
+      );
+    },
+    onSuccess: () => {
+      // Atualizar a lista de plantações
+      refetchCrops();
+      
+      // Mostrar mensagem de sucesso
+      toast({
+        title: "Sucesso",
+        description: "Plantação atualizada com sucesso",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar a plantação: " + error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -210,7 +250,6 @@ export default function CropsPage() {
       area: areaValue,
       status: "growing",
       farmId: selectedFarmId
-      // Remove plantingDate por enquanto para simplificar
     };
     
     createCrop.mutate(cropData);
@@ -221,11 +260,85 @@ export default function CropsPage() {
     setSelectedFarmId(Number(farmId));
   };
   
+  // Função para abrir a visualização detalhada de uma plantação
+  const handleCropClick = (crop: Crop) => {
+    setSelectedCrop(crop);
+  };
+  
+  // Função para atualizar o status de uma plantação
+  const handleStatusChange = (newStatus: string) => {
+    if (!selectedCrop) return;
+    
+    updateCrop.mutate({
+      cropId: selectedCrop.id,
+      data: { status: newStatus }
+    });
+    
+    // Atualizar o estado local para mostrar a mudança imediatamente
+    setSelectedCrop({
+      ...selectedCrop,
+      status: newStatus
+    });
+  };
+  
+  // Função de busca e filtragem
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFilters({
+      ...filters,
+      search: e.target.value
+    });
+  };
+  
+  const handleStatusFilterChange = (value: string | null) => {
+    setFilters({
+      ...filters,
+      status: value
+    });
+  };
+  
+  const handleSectorFilterChange = (value: string | null) => {
+    setFilters({
+      ...filters,
+      sector: value
+    });
+  };
+  
+  const clearFilters = () => {
+    setFilters({
+      search: '',
+      status: null,
+      sector: null
+    });
+  };
+  
   // Função para ordenar a lista de plantações
-  const getSortedCrops = () => {
+  const getSortedAndFilteredCrops = () => {
     if (!crops) return [];
     
-    return [...crops].sort((a, b) => {
+    // Primeiro filtrar
+    let filtered = [...crops];
+    
+    // Filtrar por texto de busca
+    if (filters.search) {
+      const searchTerm = filters.search.toLowerCase();
+      filtered = filtered.filter(crop => 
+        crop.name.toLowerCase().includes(searchTerm) || 
+        crop.sector.toLowerCase().includes(searchTerm)
+      );
+    }
+    
+    // Filtrar por status
+    if (filters.status) {
+      filtered = filtered.filter(crop => crop.status === filters.status);
+    }
+    
+    // Filtrar por setor
+    if (filters.sector) {
+      filtered = filtered.filter(crop => crop.sector === filters.sector);
+    }
+    
+    // Depois ordenar
+    return filtered.sort((a, b) => {
       if (sortField === 'name') {
         return sortDirection === 'asc' 
           ? a.name.localeCompare(b.name)
@@ -253,6 +366,13 @@ export default function CropsPage() {
     }
   };
   
+  // Extrair setores únicos para filtro
+  const getUniqueSectors = () => {
+    if (!crops) return [];
+    const sectors = new Set(crops.map(crop => crop.sector));
+    return Array.from(sectors);
+  };
+  
   if (loadingFarms || !farms) {
     return (
       <DashboardLayout>
@@ -263,8 +383,9 @@ export default function CropsPage() {
     );
   }
   
-  const sortedCrops = getSortedCrops();
+  const filteredAndSortedCrops = getSortedAndFilteredCrops();
   const currentFarm = farms.find(farm => farm.id === selectedFarmId);
+  const uniqueSectors = getUniqueSectors();
   
   return (
     <DashboardLayout>
@@ -380,6 +501,84 @@ export default function CropsPage() {
         </CardContent>
       </Card>
       
+      {/* Filtros avançados */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex justify-between items-center">
+            <span>Filtros</span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={clearFilters}
+              disabled={!filters.search && !filters.status && !filters.sector}
+            >
+              <X className="h-4 w-4 mr-1" /> Limpar
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <label className="text-sm font-medium mb-2 block">Pesquisa</label>
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar por nome ou setor..."
+                  className="pl-8"
+                  value={filters.search}
+                  onChange={handleSearchChange}
+                />
+              </div>
+            </div>
+            
+            <div className="w-full md:w-[180px]">
+              <label className="text-sm font-medium mb-2 block">Status</label>
+              <Select
+                value={filters.status || ""}
+                onValueChange={(value) => handleStatusFilterChange(value === "" ? null : value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos os status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todos</SelectItem>
+                  {CROP_STATUSES.map(status => (
+                    <SelectItem key={status.value} value={status.value}>
+                      {status.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="w-full md:w-[180px]">
+              <label className="text-sm font-medium mb-2 block">Setor</label>
+              <Select
+                value={filters.sector || ""}
+                onValueChange={(value) => handleSectorFilterChange(value === "" ? null : value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos os setores" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todos</SelectItem>
+                  {uniqueSectors.map(sector => (
+                    <SelectItem key={sector} value={sector}>
+                      {sector}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          {/* Contador de resultados */}
+          <div className="mt-4 text-sm text-muted-foreground">
+            {filteredAndSortedCrops.length} resultados encontrados
+          </div>
+        </CardContent>
+      </Card>
+      
       {/* Tabela de plantações */}
       <Card>
         <CardHeader>
@@ -393,7 +592,7 @@ export default function CropsPage() {
             <div className="flex justify-center items-center py-8">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
-          ) : sortedCrops.length > 0 ? (
+          ) : filteredAndSortedCrops.length > 0 ? (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -429,39 +628,169 @@ export default function CropsPage() {
                       </div>
                     </TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {sortedCrops.map((crop) => (
-                    <TableRow key={crop.id}>
-                      <TableCell className="font-medium">{crop.name}</TableCell>
-                      <TableCell>{crop.sector}</TableCell>
-                      <TableCell>{crop.area}</TableCell>
-                      <TableCell>
-                        <span className={`px-2 py-1 rounded-full text-xs 
-                          ${crop.status === 'growing' ? 'bg-green-100 text-green-800' : 
-                            crop.status === 'harvested' ? 'bg-amber-100 text-amber-800' : 
-                            'bg-blue-100 text-blue-800'}`}>
-                          {crop.status === 'growing' ? 'Em Crescimento' : 
-                           crop.status === 'harvested' ? 'Colhido' : 'Preparado'}
-                        </span>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {filteredAndSortedCrops.map((crop) => {
+                    const statusInfo = CROP_STATUSES.find(s => s.value === crop.status) || CROP_STATUSES[0];
+                    return (
+                      <TableRow key={crop.id} className="cursor-pointer hover:bg-muted/50" onClick={() => handleCropClick(crop)}>
+                        <TableCell className="font-medium">{crop.name}</TableCell>
+                        <TableCell>{crop.sector}</TableCell>
+                        <TableCell>{crop.area}</TableCell>
+                        <TableCell>
+                          <span className={`px-2 py-1 rounded-full text-xs ${statusInfo.color}`}>
+                            {statusInfo.label}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <SheetTrigger asChild onClick={(e) => {
+                            e.stopPropagation();
+                            handleCropClick(crop);
+                          }}>
+                            <Button variant="ghost" size="icon" title="Ver detalhes">
+                              <Info className="h-4 w-4" />
+                            </Button>
+                          </SheetTrigger>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
           ) : (
             <div className="text-center py-8">
               <Leaf className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500">Nenhuma plantação cadastrada para esta fazenda</p>
+              <p className="text-gray-500">Nenhuma plantação encontrada com os filtros atuais</p>
               <p className="text-sm text-gray-400 mt-1">
-                Utilize o formulário acima para adicionar uma nova plantação
+                {crops?.length ? 'Tente ajustar seus filtros' : 'Utilize o formulário acima para adicionar uma nova plantação'}
               </p>
             </div>
           )}
         </CardContent>
       </Card>
+      
+      {/* Painel lateral para detalhes da plantação */}
+      <Sheet open={!!selectedCrop} onOpenChange={(open) => !open && setSelectedCrop(null)}>
+        <SheetContent className="w-full sm:max-w-md">
+          {selectedCrop && (
+            <>
+              <SheetHeader className="mb-5">
+                <SheetTitle>Detalhes da Plantação</SheetTitle>
+                <SheetDescription>
+                  Visualize e edite informações da plantação selecionada
+                </SheetDescription>
+              </SheetHeader>
+              
+              <Tabs defaultValue="details">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="details">Detalhes</TabsTrigger>
+                  <TabsTrigger value="status">Status</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="details" className="space-y-6 py-4">
+                  <div className="grid gap-4">
+                    <div>
+                      <h3 className="text-md font-semibold">{selectedCrop.name}</h3>
+                      <p className="text-sm text-muted-foreground">Plantação #{selectedCrop.id}</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <div className="text-sm font-medium mb-1">Setor</div>
+                        <div className="text-sm">{selectedCrop.sector}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium mb-1">Área</div>
+                        <div className="text-sm">{selectedCrop.area} m²</div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <div className="text-sm font-medium mb-1">Status atual</div>
+                      <div>
+                        {(() => {
+                          const statusInfo = CROP_STATUSES.find(s => s.value === selectedCrop.status) || CROP_STATUSES[0];
+                          return (
+                            <Badge className={`${statusInfo.color} border-0`}>{statusInfo.label}</Badge>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <div className="text-sm font-medium mb-1">Data de criação</div>
+                        <div className="text-sm">
+                          {new Date(selectedCrop.createdAt).toLocaleDateString('pt-BR')}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium mb-1">Data de plantio</div>
+                        <div className="text-sm">
+                          {selectedCrop.plantingDate ? 
+                            new Date(selectedCrop.plantingDate).toLocaleDateString('pt-BR') : 
+                            "Não especificada"}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <div className="text-sm font-medium mb-1">Data esperada de colheita</div>
+                      <div className="text-sm">
+                        {selectedCrop.expectedHarvestDate ? 
+                          new Date(selectedCrop.expectedHarvestDate).toLocaleDateString('pt-BR') : 
+                          "Não especificada"}
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="status" className="space-y-6 py-4">
+                  <div className="space-y-4">
+                    <div className="text-sm font-medium mb-1">Status atual</div>
+                    <div>
+                      {(() => {
+                        const statusInfo = CROP_STATUSES.find(s => s.value === selectedCrop.status) || CROP_STATUSES[0];
+                        return (
+                          <Badge className={`${statusInfo.color} border-0`}>{statusInfo.label}</Badge>
+                        );
+                      })()}
+                    </div>
+                    
+                    <div className="text-sm font-medium mb-1">Atualizar status</div>
+                    <div className="grid grid-cols-2 gap-3">
+                      {CROP_STATUSES.filter(s => s.value !== selectedCrop.status).map(status => (
+                        <Button 
+                          key={status.value}
+                          variant="outline"
+                          className={`justify-start ${status.color.replace('bg-', 'hover:bg-')}`}
+                          disabled={updateCrop.isPending}
+                          onClick={() => handleStatusChange(status.value)}
+                        >
+                          {status.value === 'growing' && <AlertCircle className="h-4 w-4 mr-2" />}
+                          {status.value === 'harvested' && <CheckCircle2 className="h-4 w-4 mr-2" />}
+                          {status.value === 'waiting' && <Loader2 className="h-4 w-4 mr-2" />}
+                          {status.value === 'finished' && <CheckCircle2 className="h-4 w-4 mr-2" />}
+                          {status.label}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
+              
+              <SheetFooter className="mt-6">
+                <SheetClose asChild>
+                  <Button variant="outline">Fechar</Button>
+                </SheetClose>
+              </SheetFooter>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </DashboardLayout>
   );
 }
