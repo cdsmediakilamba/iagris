@@ -144,7 +144,7 @@ export default function Inventory() {
       queryClient.invalidateQueries({ queryKey: ['/api/farms', selectedFarmId, 'inventory/critical'] });
       toast({
         title: t('inventory.itemAdded'),
-        description: t('common.success'),
+        description: "Item adicionado com sucesso", // Texto fixo ao invés de chave de tradução
       });
       form.reset();
       setDialogOpen(false);
@@ -152,7 +152,7 @@ export default function Inventory() {
     onError: (error) => {
       toast({
         title: t('common.error'),
-        description: error.message,
+        description: "Erro ao adicionar item ao inventário", // Texto fixo ao invés de usar error.message
         variant: 'destructive',
       });
     },
