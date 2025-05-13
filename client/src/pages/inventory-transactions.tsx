@@ -394,14 +394,14 @@ export default function InventoryTransactions() {
 
             {inventory && inventory.length > 0 && (
               <Select
-                value={selectedItemId?.toString() || ""}
-                onValueChange={(value) => setSelectedItemId(value ? parseInt(value) : null)}
+                value={selectedItemId?.toString() || "all"}
+                onValueChange={(value) => setSelectedItemId(value && value !== "all" ? parseInt(value) : null)}
               >
                 <SelectTrigger className="w-full sm:w-64">
                   <SelectValue placeholder={t('inventory.selectItem')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">{t('common.all')}</SelectItem>
+                  <SelectItem value="all">{t('common.all')}</SelectItem>
                   {inventory.map((item) => (
                     <SelectItem key={item.id} value={item.id.toString()}>
                       {item.name} ({item.quantity} {item.unit})
