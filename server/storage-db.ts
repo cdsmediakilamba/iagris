@@ -242,7 +242,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getInventoryByFarm(farmId: number): Promise<Inventory[]> {
-    return await db.select().from(inventory).where(eq(inventory.farmId, farmId));
+    try {
+      console.log(`getInventoryByFarm: buscando itens para fazenda ${farmId}`);
+      const items = await db.select().from(inventory).where(eq(inventory.farmId, farmId));
+      console.log(`getInventoryByFarm: encontrados ${items.length} itens`);
+      console.log(JSON.stringify(items, null, 2));
+      return items;
+    } catch (error) {
+      console.error("Erro em getInventoryByFarm:", error);
+      throw error;
+    }
   }
 
   async getCriticalInventory(farmId: number): Promise<Inventory[]> {

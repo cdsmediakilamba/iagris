@@ -587,9 +587,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req, res) => {
       try {
         const farmId = parseInt(req.params.farmId, 10);
+        console.log(`Buscando inventário para fazenda: ${farmId}`);
         const inventory = await storage.getInventoryByFarm(farmId);
+        console.log(`Inventário recuperado: ${inventory.length} itens`);
+        console.log(inventory);
         res.json(inventory);
       } catch (error) {
+        console.error("Erro ao buscar inventário:", error);
         res.status(500).json({ message: "Failed to fetch inventory" });
       }
     }
