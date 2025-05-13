@@ -143,11 +143,17 @@ export default function Crops() {
 
   // Submit handler
   const onSubmit = (data: z.infer<typeof formSchema>) => {
-    // Convert area to number
+    // Prepare data for submission
     const formattedData = {
       ...data,
+      // Convert area to number
       area: typeof data.area === 'string' ? parseInt(data.area) : data.area,
+      // Ensure dates are properly formatted
+      plantingDate: data.plantingDate instanceof Date ? data.plantingDate : data.plantingDate ? new Date(data.plantingDate) : null,
+      expectedHarvestDate: data.expectedHarvestDate instanceof Date ? data.expectedHarvestDate : data.expectedHarvestDate ? new Date(data.expectedHarvestDate) : null,
     };
+    
+    // Send the data to the server
     createCrop.mutate(formattedData);
   };
 
@@ -355,8 +361,11 @@ export default function Crops() {
                           <FormControl>
                             <Input 
                               type="date" 
-                              {...field} 
-                              value={field.value instanceof Date ? field.value.toISOString().substring(0, 10) : field.value || ''} 
+                              onChange={(e) => {
+                                const value = e.target.value ? new Date(e.target.value) : null;
+                                field.onChange(value);
+                              }}
+                              value={field.value ? (field.value instanceof Date ? field.value.toISOString().substring(0, 10) : '') : ''}
                             />
                           </FormControl>
                           <FormMessage />
@@ -372,8 +381,11 @@ export default function Crops() {
                           <FormControl>
                             <Input 
                               type="date" 
-                              {...field} 
-                              value={field.value instanceof Date ? field.value.toISOString().substring(0, 10) : field.value || ''} 
+                              onChange={(e) => {
+                                const value = e.target.value ? new Date(e.target.value) : null;
+                                field.onChange(value);
+                              }}
+                              value={field.value ? (field.value instanceof Date ? field.value.toISOString().substring(0, 10) : '') : ''}
                             />
                           </FormControl>
                           <FormMessage />
