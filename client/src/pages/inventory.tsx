@@ -94,6 +94,12 @@ export default function Inventory() {
   const { data: inventory, isLoading: isLoadingInventory } = useQuery<InventoryType[]>({
     queryKey: ['/api/farms', selectedFarmId, 'inventory'],
     enabled: !!selectedFarmId,
+    onSuccess: (data) => {
+      console.log(`Inventário carregado com sucesso para fazenda ${selectedFarmId}:`, data);
+    },
+    onError: (error) => {
+      console.error(`Erro ao carregar inventário para fazenda ${selectedFarmId}:`, error);
+    }
   });
 
   // Get critical inventory for selected farm
@@ -104,12 +110,23 @@ export default function Inventory() {
 
   // Determine which inventory to display based on tab
   const displayInventory = activeTab === 'critical' ? criticalInventory : inventory;
+  
+  console.log('Display inventory antes de filtrar:', displayInventory);
 
   // Filter inventory by search term
-  const filteredInventory = displayInventory?.filter(item => 
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredInventory = displayInventory?.filter(item => {
+    if (!item) {
+      console.log('Item é undefined ou null no filtro');
+      return false;
+    }
+    
+    const nameMatch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const categoryMatch = item.category.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    return nameMatch || categoryMatch;
+  });
+  
+  console.log('Inventário filtrado:', filteredInventory);
 
   // Inventory form schema
   const formSchema = insertInventorySchema.omit({ 
