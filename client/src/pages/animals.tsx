@@ -392,31 +392,31 @@ export default function AnimalsPage() {
       case 'sick':
         return (
           <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
-            {t('animals.status.sick')}
+            {t('animals.statuses.sick')}
           </Badge>
         );
       case 'treatment':
         return (
           <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-            {t('animals.status.treatment')}
+            {t('animals.statuses.treatment')}
           </Badge>
         );
       case 'quarantine':
         return (
           <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-            {t('animals.status.quarantine')}
+            {t('animals.statuses.quarantine')}
           </Badge>
         );
       case 'pregnant':
         return (
           <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
-            {t('animals.status.pregnant')}
+            {t('animals.statuses.pregnant')}
           </Badge>
         );
       case 'needsAttention':
         return (
           <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
-            {t('animals.status.needsAttention')}
+            {t('animals.statuses.needsAttention')}
           </Badge>
         );
       default:
