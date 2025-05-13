@@ -110,13 +110,16 @@ export default function CropsPage() {
       return;
     }
     
+    // Garantir que area seja um número, mesmo que venha de um input
+    const areaValue = Number(area);
+    
     const cropData = {
       name,
       sector,
-      area: Number(area),
+      area: areaValue,
       status: "growing",
-      farmId: selectedFarmId,
-      plantingDate: new Date()
+      farmId: selectedFarmId
+      // Remove plantingDate por enquanto para simplificar
     };
     
     createCrop.mutate(cropData);

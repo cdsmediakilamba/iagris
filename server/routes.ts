@@ -404,13 +404,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req, res) => {
       try {
         const farmId = parseInt(req.params.farmId, 10);
-        const newCrop = await storage.createCrop({
-          ...req.body,
-          farmId,
+        
+        // Log detalhes da requisição para diagnóstico
+        console.log("Creating crop with data:", { 
+          body: req.body,
+          farmId 
         });
+        
+        // Garantir que os campos obrigatórios estão presentes
+        if (!req.body.name || !req.body.sector || req.body.area === undefined) {
+          return res.status(400).json({ 
+            message: "Campos obrigatórios ausentes", 
+            requiredFields: ["name", "sector", "area"] 
+          });
+        }
+        
+        // Garantir que a área é um número
+        const area = Number(req.body.area);
+        if (isNaN(area) || area <= 0) {
+          return res.status(400).json({ 
+            message: "Área deve ser um número positivo" 
+          });
+        }
+        
+        // Criar a plantação com dados validados
+        const cropData = {
+          name: req.body.name,
+          sector: req.body.sector,
+          area: area,
+          status: req.body.status || "growing",
+          farmId: farmId,
+          plantingDate: req.body.plantingDate ? new Date(req.body.plantingDate) : new Date(),
+          expectedHarvestDate: req.body.expectedHarvestDate ? new Date(req.body.expectedHarvestDate) : null,
+        };
+        
+        console.log("Sending validated crop data to storage:", cropData);
+        const newCrop = await storage.createCrop(cropData);
+        
+        console.log("Crop created successfully:", newCrop);
         res.status(201).json(newCrop);
       } catch (error) {
-        res.status(500).json({ message: "Failed to create crop" });
+        console.error("Error creating crop:", error);
+        res.status(500).json({ 
+          message: "Failed to create crop", 
+          error: error instanceof Error ? error.message : String(error) 
+        });
       }
     }
   );
