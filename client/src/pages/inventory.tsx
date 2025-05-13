@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { useLocation } from 'wouter';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { insertInventorySchema, Inventory as InventoryType } from '@shared/schema';
+import { insertInventorySchema, Inventory as InventoryType, InventoryTransactionType } from '@shared/schema';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { formatNumber } from '@/lib/i18n';
@@ -56,8 +56,8 @@ import {
   PlusCircle,
   Package,
   Edit,
-  Trash2,
   Loader2,
+  ArrowDownCircle,
   AlertTriangle,
   Truck,
   BarChart3,
