@@ -26,6 +26,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -277,9 +278,12 @@ export default function Crops() {
                 {t('crops.addCrop')}
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
+            <DialogContent className="sm:max-w-[600px]" aria-describedby="crop-form-description">
               <DialogHeader>
                 <DialogTitle>{t('crops.addCrop')}</DialogTitle>
+                <DialogDescription id="crop-form-description">
+                  {t('crops.addCropDescription') || 'Preencha os campos abaixo para adicionar uma nova plantação.'}
+                </DialogDescription>
               </DialogHeader>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
