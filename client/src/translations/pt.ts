@@ -1,5 +1,8 @@
 export const pt = {
   common: {
+    ok: 'OK',
+    low: 'Baixo',
+    needsAttention: 'Precisa de Atenção',
     appName: 'Iagris',
     dashboard: 'Dashboard',
     calendar: 'Calendário',
@@ -272,6 +275,7 @@ export const pt = {
       pesticide: 'Pesticidas',
       fuel: 'Combustíveis',
       equipment: 'Equipamentos',
+      tools: 'Ferramentas',
       other: 'Outros',
     },
     units: {

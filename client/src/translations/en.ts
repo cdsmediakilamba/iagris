@@ -1,5 +1,8 @@
 export const en = {
   common: {
+    ok: 'OK',
+    low: 'Low',
+    needsAttention: 'Needs Attention',
     appName: 'Iagris',
     dashboard: 'Dashboard',
     calendar: 'Calendar',
@@ -223,6 +226,7 @@ export const en = {
       pesticide: 'Pesticides',
       fuel: 'Fuel',
       equipment: 'Equipment',
+      tools: 'Tools',
       other: 'Other',
     },
     units: {
