@@ -92,7 +92,7 @@ export default function Inventory() {
 
   // Get inventory for selected farm
   const { data: inventory, isLoading: isLoadingInventory, error: inventoryError, refetch: refetchInventory } = useQuery<InventoryType[]>({
-    queryKey: ['/api/farms', selectedFarmId, 'inventory'],
+    queryKey: [`/api/farms/${selectedFarmId}/inventory`],
     enabled: !!selectedFarmId,
     retry: 1,
     staleTime: 10000,
@@ -111,7 +111,7 @@ export default function Inventory() {
 
   // Get critical inventory for selected farm
   const { data: criticalInventory, isLoading: isLoadingCritical, error: criticalError } = useQuery<InventoryType[]>({
-    queryKey: ['/api/farms', selectedFarmId, 'inventory/critical'],
+    queryKey: [`/api/farms/${selectedFarmId}/inventory/critical`],
     enabled: !!selectedFarmId,
     retry: 1,
     staleTime: 10000,
@@ -179,8 +179,8 @@ export default function Inventory() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/farms', selectedFarmId, 'inventory'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/farms', selectedFarmId, 'inventory/critical'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/farms/${selectedFarmId}/inventory`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/farms/${selectedFarmId}/inventory/critical`] });
       toast({
         title: t('inventory.itemAdded'),
         description: "Item adicionado com sucesso", // Texto fixo ao invés de chave de tradução
