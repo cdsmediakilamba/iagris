@@ -289,17 +289,17 @@ export default function CropsPage() {
     });
   };
   
-  const handleStatusFilterChange = (value: string | null) => {
+  const handleStatusFilterChange = (value: string) => {
     setFilters({
       ...filters,
-      status: value
+      status: value === "all" ? null : value
     });
   };
   
-  const handleSectorFilterChange = (value: string | null) => {
+  const handleSectorFilterChange = (value: string) => {
     setFilters({
       ...filters,
-      sector: value
+      sector: value === "all" ? null : value
     });
   };
   
@@ -541,7 +541,7 @@ export default function CropsPage() {
                   <SelectValue placeholder="Todos os status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   {CROP_STATUSES.map(status => (
                     <SelectItem key={status.value} value={status.value}>
                       {status.label}
@@ -561,7 +561,7 @@ export default function CropsPage() {
                   <SelectValue placeholder="Todos os setores" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   {uniqueSectors.map(sector => (
                     <SelectItem key={sector} value={sector}>
                       {sector}
@@ -645,14 +645,17 @@ export default function CropsPage() {
                           </span>
                         </TableCell>
                         <TableCell className="text-right">
-                          <SheetTrigger asChild onClick={(e) => {
-                            e.stopPropagation();
-                            handleCropClick(crop);
-                          }}>
-                            <Button variant="ghost" size="icon" title="Ver detalhes">
-                              <Info className="h-4 w-4" />
-                            </Button>
-                          </SheetTrigger>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            title="Ver detalhes"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCropClick(crop);
+                            }}
+                          >
+                            <Info className="h-4 w-4" />
+                          </Button>
                         </TableCell>
                       </TableRow>
                     );
@@ -672,84 +675,42 @@ export default function CropsPage() {
         </CardContent>
       </Card>
       
-      {/* Painel lateral para detalhes da plantação */}
-      <Sheet open={!!selectedCrop} onOpenChange={(open) => !open && setSelectedCrop(null)}>
-        <SheetContent className="w-full sm:max-w-md">
-          {selectedCrop && (
-            <>
-              <SheetHeader className="mb-5">
-                <SheetTitle>Detalhes da Plantação</SheetTitle>
-                <SheetDescription>
-                  Visualize e edite informações da plantação selecionada
-                </SheetDescription>
-              </SheetHeader>
+      {/* Detalhes da plantação (Dialog) */}
+      {selectedCrop && (
+        <Dialog open={!!selectedCrop} onOpenChange={(open) => !open && setSelectedCrop(null)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Detalhes da Plantação</DialogTitle>
+              <DialogDescription>
+                Visualize e edite informações da plantação selecionada
+              </DialogDescription>
+            </DialogHeader>
               
-              <Tabs defaultValue="details">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="details">Detalhes</TabsTrigger>
-                  <TabsTrigger value="status">Status</TabsTrigger>
-                </TabsList>
+            <Tabs defaultValue="details" className="mt-4">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="details">Detalhes</TabsTrigger>
+                <TabsTrigger value="status">Status</TabsTrigger>
+              </TabsList>
                 
-                <TabsContent value="details" className="space-y-6 py-4">
-                  <div className="grid gap-4">
+              <TabsContent value="details" className="space-y-6 py-4">
+                <div className="grid gap-4">
+                  <div>
+                    <h3 className="text-md font-semibold">{selectedCrop.name}</h3>
+                    <p className="text-sm text-muted-foreground">Plantação #{selectedCrop.id}</p>
+                  </div>
+                    
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <h3 className="text-md font-semibold">{selectedCrop.name}</h3>
-                      <p className="text-sm text-muted-foreground">Plantação #{selectedCrop.id}</p>
+                      <div className="text-sm font-medium mb-1">Setor</div>
+                      <div className="text-sm">{selectedCrop.sector}</div>
                     </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <div className="text-sm font-medium mb-1">Setor</div>
-                        <div className="text-sm">{selectedCrop.sector}</div>
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium mb-1">Área</div>
-                        <div className="text-sm">{selectedCrop.area} m²</div>
-                      </div>
-                    </div>
-                    
                     <div>
-                      <div className="text-sm font-medium mb-1">Status atual</div>
-                      <div>
-                        {(() => {
-                          const statusInfo = CROP_STATUSES.find(s => s.value === selectedCrop.status) || CROP_STATUSES[0];
-                          return (
-                            <Badge className={`${statusInfo.color} border-0`}>{statusInfo.label}</Badge>
-                          );
-                        })()}
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <div className="text-sm font-medium mb-1">Data de criação</div>
-                        <div className="text-sm">
-                          {new Date(selectedCrop.createdAt).toLocaleDateString('pt-BR')}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium mb-1">Data de plantio</div>
-                        <div className="text-sm">
-                          {selectedCrop.plantingDate ? 
-                            new Date(selectedCrop.plantingDate).toLocaleDateString('pt-BR') : 
-                            "Não especificada"}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <div className="text-sm font-medium mb-1">Data esperada de colheita</div>
-                      <div className="text-sm">
-                        {selectedCrop.expectedHarvestDate ? 
-                          new Date(selectedCrop.expectedHarvestDate).toLocaleDateString('pt-BR') : 
-                          "Não especificada"}
-                      </div>
+                      <div className="text-sm font-medium mb-1">Área</div>
+                      <div className="text-sm">{selectedCrop.area} m²</div>
                     </div>
                   </div>
-                </TabsContent>
-                
-                <TabsContent value="status" className="space-y-6 py-4">
-                  <div className="space-y-4">
+                    
+                  <div>
                     <div className="text-sm font-medium mb-1">Status atual</div>
                     <div>
                       {(() => {
@@ -759,38 +720,81 @@ export default function CropsPage() {
                         );
                       })()}
                     </div>
+                  </div>
                     
-                    <div className="text-sm font-medium mb-1">Atualizar status</div>
-                    <div className="grid grid-cols-2 gap-3">
-                      {CROP_STATUSES.filter(s => s.value !== selectedCrop.status).map(status => (
-                        <Button 
-                          key={status.value}
-                          variant="outline"
-                          className={`justify-start ${status.color.replace('bg-', 'hover:bg-')}`}
-                          disabled={updateCrop.isPending}
-                          onClick={() => handleStatusChange(status.value)}
-                        >
-                          {status.value === 'growing' && <AlertCircle className="h-4 w-4 mr-2" />}
-                          {status.value === 'harvested' && <CheckCircle2 className="h-4 w-4 mr-2" />}
-                          {status.value === 'waiting' && <Loader2 className="h-4 w-4 mr-2" />}
-                          {status.value === 'finished' && <CheckCircle2 className="h-4 w-4 mr-2" />}
-                          {status.label}
-                        </Button>
-                      ))}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <div className="text-sm font-medium mb-1">Data de criação</div>
+                      <div className="text-sm">
+                        {new Date(selectedCrop.createdAt).toLocaleDateString('pt-BR')}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium mb-1">Data de plantio</div>
+                      <div className="text-sm">
+                        {selectedCrop.plantingDate ? 
+                          new Date(selectedCrop.plantingDate).toLocaleDateString('pt-BR') : 
+                          "Não especificada"}
+                      </div>
                     </div>
                   </div>
-                </TabsContent>
-              </Tabs>
+                    
+                  <div>
+                    <div className="text-sm font-medium mb-1">Data esperada de colheita</div>
+                    <div className="text-sm">
+                      {selectedCrop.expectedHarvestDate ? 
+                        new Date(selectedCrop.expectedHarvestDate).toLocaleDateString('pt-BR') : 
+                        "Não especificada"}
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+                
+              <TabsContent value="status" className="space-y-6 py-4">
+                <div className="space-y-4">
+                  <div className="text-sm font-medium mb-1">Status atual</div>
+                  <div>
+                    {(() => {
+                      const statusInfo = CROP_STATUSES.find(s => s.value === selectedCrop.status) || CROP_STATUSES[0];
+                      return (
+                        <Badge className={`${statusInfo.color} border-0`}>{statusInfo.label}</Badge>
+                      );
+                    })()}
+                  </div>
+                    
+                  <div className="text-sm font-medium mb-1">Atualizar status</div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {CROP_STATUSES.filter(s => s.value !== selectedCrop.status).map(status => (
+                      <Button 
+                        key={status.value}
+                        variant="outline"
+                        className={`justify-start ${status.color.replace('bg-', 'hover:bg-')}`}
+                        disabled={updateCrop.isPending}
+                        onClick={() => handleStatusChange(status.value)}
+                      >
+                        {status.value === 'growing' && <AlertCircle className="h-4 w-4 mr-2" />}
+                        {status.value === 'harvested' && <CheckCircle2 className="h-4 w-4 mr-2" />}
+                        {status.value === 'waiting' && <Loader2 className="h-4 w-4 mr-2" />}
+                        {status.value === 'finished' && <CheckCircle2 className="h-4 w-4 mr-2" />}
+                        {status.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
               
-              <SheetFooter className="mt-6">
-                <SheetClose asChild>
-                  <Button variant="outline">Fechar</Button>
-                </SheetClose>
-              </SheetFooter>
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
+            <DialogFooter className="mt-6">
+              <Button 
+                variant="outline" 
+                onClick={() => setSelectedCrop(null)}
+              >
+                Fechar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </DashboardLayout>
   );
 }
