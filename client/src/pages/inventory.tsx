@@ -264,12 +264,13 @@ export default function Inventory() {
   
   // Mutação para adicionar estoque
   const restockInventoryMutation = useMutation({
-    mutationFn: async (data: { itemId: number, quantity: string, notes?: string }) => {
+    mutationFn: async (data: { itemId: number, farmId: number, quantity: string, notes?: string }) => {
       return apiRequest(`/api/inventory/${data.itemId}/entry`, {
         method: 'POST',
         data: {
           quantity: data.quantity,
           notes: data.notes,
+          farmId: data.farmId,
         },
       });
     },
@@ -295,10 +296,11 @@ export default function Inventory() {
   
   // Submeter formulário de reposição
   const handleRestockSubmit = (data: z.infer<typeof restockFormSchema>) => {
-    if (!selectedItemForRestock) return;
+    if (!selectedItemForRestock || !selectedFarmId) return;
     
     restockInventoryMutation.mutate({
       itemId: selectedItemForRestock.id,
+      farmId: selectedFarmId,
       quantity: data.quantity,
       notes: data.notes,
     });
