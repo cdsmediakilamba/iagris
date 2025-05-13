@@ -386,7 +386,7 @@ export default function AnimalsPage() {
       case 'healthy':
         return (
           <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-            {t('animals.status.healthy')}
+            {t('animals.statuses.healthy')}
           </Badge>
         );
       case 'sick':

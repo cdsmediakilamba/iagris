@@ -150,7 +150,8 @@ export const en = {
       male: 'Male',
       female: 'Female',
     },
-    status: {
+    status: 'Status',
+    statuses: {
       healthy: 'Healthy',
       sick: 'Sick',
       treatment: 'In Treatment',

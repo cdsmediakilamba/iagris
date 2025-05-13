@@ -174,7 +174,7 @@ export const pt = {
       sick: 'Doente',
       treatment: 'Em Tratamento',
       quarantine: 'Em Quarentena',
-      pregnant: 'Prenha',
+      pregnant: 'Grávida',
       lactating: 'Em Lactação',
       needsAttention: 'Precisa de Atenção',
     },
