@@ -259,7 +259,7 @@ export default function Crops() {
           {/* Add crop button */}
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="w-full sm:w-auto">
+              <Button className="w-full sm:w-auto" onClick={() => setDialogOpen(true)}>
                 <PlusCircle className="mr-2 h-4 w-4" />
                 {t('crops.addCrop')}
               </Button>
