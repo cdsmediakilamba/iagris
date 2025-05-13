@@ -137,14 +137,13 @@ export default function Inventory() {
       if (!selectedFarmId) throw new Error("No farm selected");
       console.log("Enviando requisição para:", `/api/farms/${selectedFarmId}/inventory`);
       try {
-        const response = await apiRequest(
-          'POST', 
+        return await apiRequest(
           `/api/farms/${selectedFarmId}/inventory`, 
-          data
+          { 
+            method: 'POST', 
+            data: data 
+          }
         );
-        const jsonData = await response.json();
-        console.log("Resposta da API:", jsonData);
-        return jsonData;
       } catch (error) {
         console.error("Erro na mutação:", error);
         throw error;
