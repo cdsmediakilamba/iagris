@@ -135,12 +135,20 @@ export default function Inventory() {
   const createInventoryItem = useMutation({
     mutationFn: async (data: z.infer<typeof formSchema>) => {
       if (!selectedFarmId) throw new Error("No farm selected");
-      const response = await apiRequest(
-        'POST', 
-        `/api/farms/${selectedFarmId}/inventory`, 
-        data
-      );
-      return response.json();
+      console.log("Enviando requisição para:", `/api/farms/${selectedFarmId}/inventory`);
+      try {
+        const response = await apiRequest(
+          'POST', 
+          `/api/farms/${selectedFarmId}/inventory`, 
+          data
+        );
+        const jsonData = await response.json();
+        console.log("Resposta da API:", jsonData);
+        return jsonData;
+      } catch (error) {
+        console.error("Erro na mutação:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/farms', selectedFarmId, 'inventory'] });
@@ -172,6 +180,7 @@ export default function Inventory() {
       supplier: data.supplier || null,
       location: data.location || null,
     };
+    console.log("Enviando dados do formulário:", formattedData);
     createInventoryItem.mutate(formattedData);
   };
 
