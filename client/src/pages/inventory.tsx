@@ -61,6 +61,7 @@ import {
   AlertTriangle,
   Truck,
   BarChart3,
+  Plus,
 } from 'lucide-react';
 import {
   Tabs,
@@ -242,11 +243,74 @@ export default function Inventory() {
     );
   };
 
-  // Order item handler
-  const handleOrderItem = (itemId: number) => {
-    toast({
-      title: t('inventory.orderNow'),
-      description: t('common.success'),
+  // Estado para diálogo de reposição
+  const [restockDialogOpen, setRestockDialogOpen] = useState(false);
+  const [selectedItemForRestock, setSelectedItemForRestock] = useState<InventoryType | null>(null);
+  
+  // Schema do formulário de reposição
+  const restockFormSchema = z.object({
+    quantity: z.string().min(1, { message: t('validation.required') }),
+    notes: z.string().optional(),
+  });
+  
+  // Formulário de reposição
+  const restockForm = useForm<z.infer<typeof restockFormSchema>>({
+    resolver: zodResolver(restockFormSchema),
+    defaultValues: {
+      quantity: "",
+      notes: "",
+    },
+  });
+  
+  // Mutação para adicionar estoque
+  const restockInventoryMutation = useMutation({
+    mutationFn: async (data: { itemId: number, quantity: string, notes?: string }) => {
+      return apiRequest(`/api/inventory/${data.itemId}/entry`, {
+        method: 'POST',
+        data: {
+          quantity: data.quantity,
+          notes: data.notes,
+        },
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: t('inventory.restockSuccess'),
+        description: t('inventory.restockSuccessDescription'),
+      });
+      setRestockDialogOpen(false);
+      restockForm.reset();
+      queryClient.invalidateQueries({ queryKey: [`/api/farms/${selectedFarmId}/inventory`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/farms/${selectedFarmId}/inventory/critical`] });
+    },
+    onError: (error) => {
+      console.error("Error restocking inventory item:", error);
+      toast({
+        title: t('common.error'),
+        description: t('inventory.restockError'),
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Submeter formulário de reposição
+  const handleRestockSubmit = (data: z.infer<typeof restockFormSchema>) => {
+    if (!selectedItemForRestock) return;
+    
+    restockInventoryMutation.mutate({
+      itemId: selectedItemForRestock.id,
+      quantity: data.quantity,
+      notes: data.notes,
+    });
+  };
+  
+  // Abrir diálogo de reposição para um item
+  const handleOpenRestockDialog = (item: InventoryType) => {
+    setSelectedItemForRestock(item);
+    setRestockDialogOpen(true);
+    restockForm.reset({
+      quantity: "",
+      notes: "",
     });
   };
 
@@ -492,17 +556,12 @@ export default function Inventory() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          {item.minimumLevel && item.quantity <= item.minimumLevel && (
-                            <Button variant="outline" size="sm" className="text-amber-600" onClick={() => handleOrderItem(item.id)}>
-                              <Truck className="h-4 w-4 mr-1" />
-                              {t('inventory.orderNow')}
-                            </Button>
-                          )}
+                          <Button variant="outline" size="sm" className="text-blue-600" onClick={() => handleOpenRestockDialog(item)}>
+                            <ArrowDownCircle className="h-4 w-4 mr-1" />
+                            {t('inventory.restockItem')}
+                          </Button>
                           <Button variant="ghost" size="icon">
                             <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="text-destructive">
-                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </TableCell>
@@ -525,6 +584,82 @@ export default function Inventory() {
           )}
         </CardContent>
       </Card>
+
+      {/* Diálogo de reposição de estoque */}
+      <Dialog open={restockDialogOpen} onOpenChange={setRestockDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>{t('inventory.restockItem')}</DialogTitle>
+          </DialogHeader>
+          {selectedItemForRestock && (
+            <Form {...restockForm}>
+              <form onSubmit={restockForm.handleSubmit(handleRestockSubmit)} className="space-y-4">
+                <div className="flex items-center gap-2 text-sm mb-4">
+                  <strong>{selectedItemForRestock.name}</strong>
+                  <span className="text-gray-500">
+                    ({formatNumber(selectedItemForRestock.quantity, language)} {selectedItemForRestock.unit})
+                  </span>
+                </div>
+                
+                <FormField
+                  control={restockForm.control}
+                  name="quantity"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('inventory.enterQuantity')}</FormLabel>
+                      <FormControl>
+                        <div className="flex gap-2 items-center">
+                          <Input type="number" min="1" {...field} />
+                          <span className="text-sm text-gray-500">{selectedItemForRestock.unit}</span>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={restockForm.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('inventory.notes')}</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <DialogFooter className="mt-6">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setRestockDialogOpen(false)}
+                    disabled={restockInventoryMutation.isPending}
+                  >
+                    {t('common.cancel')}
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    disabled={restockInventoryMutation.isPending}
+                  >
+                    {restockInventoryMutation.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {t('common.loading')}
+                      </>
+                    ) : (
+                      t('inventory.restock')
+                    )}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          )}
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }
