@@ -613,13 +613,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req, res) => {
       try {
         const farmId = parseInt(req.params.farmId, 10);
+        
+        console.log("Inventory item being created:", {
+          ...req.body,
+          farmId,
+        });
+        
         const newItem = await storage.createInventoryItem({
           ...req.body,
           farmId,
         });
         res.status(201).json(newItem);
       } catch (error) {
-        res.status(500).json({ message: "Failed to create inventory item" });
+        console.error("Error creating inventory item:", error);
+        res.status(500).json({ message: "Falha ao criar item de inventário" });
       }
     }
   );

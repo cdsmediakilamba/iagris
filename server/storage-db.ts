@@ -260,8 +260,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createInventoryItem(itemData: InsertInventory): Promise<Inventory> {
-    const [item] = await db.insert(inventory).values(itemData).returning();
-    return item;
+    try {
+      console.log("Creating inventory item with data:", itemData);
+      const [item] = await db.insert(inventory).values(itemData).returning();
+      console.log("Created inventory item:", item);
+      return item;
+    } catch (error) {
+      console.error("Error in createInventoryItem:", error);
+      throw error;
+    }
   }
 
   async updateInventoryItem(id: number, itemData: Partial<Inventory>): Promise<Inventory | undefined> {
