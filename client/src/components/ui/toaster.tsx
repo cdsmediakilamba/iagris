@@ -23,12 +23,17 @@ export function Toaster() {
           duration: props.duration || 5000 // 5 segundos por padrão
         };
         
+        // Converter descrição para string se for um objeto
+        const safeDescription = description ? 
+          (typeof description === 'string' ? description : JSON.stringify(description)) : 
+          '';
+        
         return (
           <Toast key={safeId} {...toastProps}>
             <div className="grid gap-1">
               {title && <ToastTitle>{title}</ToastTitle>}
-              {description && (
-                <ToastDescription>{description}</ToastDescription>
+              {safeDescription && (
+                <ToastDescription>{safeDescription}</ToastDescription>
               )}
             </div>
             {action}

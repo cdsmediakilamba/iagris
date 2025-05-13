@@ -121,11 +121,13 @@ export default function Crops() {
       };
       
       const response = await apiRequest(
-        'POST', 
         `/api/farms/${selectedFarmId}/crops`, 
-        cropData
+        {
+          method: 'POST',
+          data: cropData
+        }
       );
-      return response.json();
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/farms', selectedFarmId, 'crops'] });
