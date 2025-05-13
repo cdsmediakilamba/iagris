@@ -91,40 +91,52 @@ export default function Inventory() {
   }, [farms, selectedFarmId]);
 
   // Get inventory for selected farm
-  const { data: inventory, isLoading: isLoadingInventory } = useQuery<InventoryType[]>({
+  const { data: inventory, isLoading: isLoadingInventory, error: inventoryError, refetch: refetchInventory } = useQuery<InventoryType[]>({
     queryKey: ['/api/farms', selectedFarmId, 'inventory'],
     enabled: !!selectedFarmId,
+    retry: 1,
+    staleTime: 10000,
     onSuccess: (data) => {
       console.log(`Inventário carregado com sucesso para fazenda ${selectedFarmId}:`, data);
     },
     onError: (error) => {
       console.error(`Erro ao carregar inventário para fazenda ${selectedFarmId}:`, error);
+      toast({
+        title: "Erro ao carregar inventário",
+        description: "Não foi possível carregar os itens do inventário. Tente novamente.",
+        variant: "destructive",
+      });
     }
   });
 
   // Get critical inventory for selected farm
-  const { data: criticalInventory, isLoading: isLoadingCritical } = useQuery<InventoryType[]>({
+  const { data: criticalInventory, isLoading: isLoadingCritical, error: criticalError } = useQuery<InventoryType[]>({
     queryKey: ['/api/farms', selectedFarmId, 'inventory/critical'],
     enabled: !!selectedFarmId,
+    retry: 1,
+    staleTime: 10000,
   });
 
   // Determine which inventory to display based on tab
   const displayInventory = activeTab === 'critical' ? criticalInventory : inventory;
   
-  console.log('Display inventory antes de filtrar:', displayInventory);
-
-  // Filter inventory by search term
-  const filteredInventory = displayInventory?.filter(item => {
-    if (!item) {
-      console.log('Item é undefined ou null no filtro');
-      return false;
-    }
-    
-    const nameMatch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const categoryMatch = item.category.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    return nameMatch || categoryMatch;
-  });
+  console.log('Display inventory para tab', activeTab, ':', displayInventory);
+  
+  // Verificar se displayInventory é um array válido
+  const isInventoryArray = Array.isArray(displayInventory);
+  
+  // Filtragem de inventário com validação de segurança
+  const filteredInventory = isInventoryArray 
+    ? displayInventory.filter(item => {
+        if (!item || typeof item !== 'object') return false;
+        if (!('name' in item) || !('category' in item)) return false;
+        
+        const nameMatch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const categoryMatch = item.category.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        return nameMatch || categoryMatch;
+      })
+    : [];
   
   console.log('Inventário filtrado:', filteredInventory);
 
