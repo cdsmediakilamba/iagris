@@ -157,6 +157,12 @@ export default function CropsPage() {
     refetch: refetchCrops
   } = useQuery<Crop[]>({
     queryKey: ['/api/farms', selectedFarmId, 'crops'],
+    queryFn: async () => {
+      if (!selectedFarmId) return [];
+      const result = await apiRequest(`/api/farms/${selectedFarmId}/crops`);
+      console.log("Crops fetched:", result);
+      return result;
+    },
     enabled: !!selectedFarmId,
   });
   
@@ -313,7 +319,13 @@ export default function CropsPage() {
   
   // Função para ordenar a lista de plantações
   const getSortedAndFilteredCrops = () => {
-    if (!crops) return [];
+    // Verificação de segurança para o crops
+    if (!crops || !Array.isArray(crops) || crops.length === 0) {
+      console.log("Crops data is empty or not an array:", crops);
+      return [];
+    }
+    
+    console.log("Original crops array:", crops);
     
     // Primeiro filtrar
     let filtered = [...crops];
