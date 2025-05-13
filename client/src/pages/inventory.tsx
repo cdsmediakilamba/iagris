@@ -122,9 +122,12 @@ export default function Inventory() {
     defaultValues: {
       name: '',
       category: '',
-      quantity: undefined,
+      quantity: '',
       unit: '',
-      minimumLevel: undefined,
+      minimumLevel: '',
+      price: '',
+      supplier: '',
+      location: '',
     },
   });
 
@@ -160,11 +163,14 @@ export default function Inventory() {
 
   // Submit handler
   const onSubmit = (data: z.infer<typeof formSchema>) => {
-    // Converter todos os valores numéricos para strings para corresponder ao schema esperado pela API
+    // Garantir que todos os valores são strings válidas
     const formattedData = {
       ...data,
-      quantity: data.quantity?.toString() || "",
-      minimumLevel: data.minimumLevel?.toString() || null,
+      quantity: data.quantity || "",
+      minimumLevel: data.minimumLevel || null,
+      price: data.price || null,
+      supplier: data.supplier || null,
+      location: data.location || null,
     };
     createInventoryItem.mutate(formattedData);
   };
