@@ -383,6 +383,17 @@ export default function Inventory() {
       notes: "",
     });
   };
+  
+  // Abrir diálogo de retirada para um item
+  const handleOpenWithdrawDialog = (item: InventoryType) => {
+    setSelectedItemForWithdraw(item);
+    setWithdrawDialogOpen(true);
+    withdrawForm.reset({
+      quantity: "",
+      notes: "",
+      destination: "",
+    });
+  };
 
   return (
     <DashboardLayout>
@@ -726,6 +737,97 @@ export default function Inventory() {
                       </>
                     ) : (
                       t('inventory.restock')
+                    )}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de retirada de estoque */}
+      <Dialog open={withdrawDialogOpen} onOpenChange={setWithdrawDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>{t('inventory.withdrawItem')}</DialogTitle>
+          </DialogHeader>
+          {selectedItemForWithdraw && (
+            <Form {...withdrawForm}>
+              <form onSubmit={withdrawForm.handleSubmit(handleWithdrawSubmit)} className="space-y-4">
+                <div className="flex items-center gap-2 text-sm mb-4">
+                  <strong>{selectedItemForWithdraw.name}</strong>
+                  <span className="text-gray-500">
+                    ({formatNumber(selectedItemForWithdraw.quantity, language)} {selectedItemForWithdraw.unit})
+                  </span>
+                </div>
+                
+                <FormField
+                  control={withdrawForm.control}
+                  name="quantity"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('inventory.enterQuantity')}</FormLabel>
+                      <FormControl>
+                        <div className="flex gap-2 items-center">
+                          <Input type="number" min="1" max={selectedItemForWithdraw.quantity} {...field} />
+                          <span className="text-sm text-gray-500">{selectedItemForWithdraw.unit}</span>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={withdrawForm.control}
+                  name="destination"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('inventory.destination')}</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={withdrawForm.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('inventory.notes')}</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <DialogFooter className="mt-6">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setWithdrawDialogOpen(false)}
+                    disabled={withdrawInventoryMutation.isPending}
+                  >
+                    {t('common.cancel')}
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    disabled={withdrawInventoryMutation.isPending}
+                    variant="destructive"
+                  >
+                    {withdrawInventoryMutation.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {t('common.loading')}
+                      </>
+                    ) : (
+                      t('inventory.withdraw')
                     )}
                   </Button>
                 </DialogFooter>
