@@ -323,9 +323,9 @@ export default function Inventory() {
                             <FormLabel>{t('inventory.quantity')}</FormLabel>
                             <FormControl>
                               <Input 
-                                type="number" 
+                                type="text"
                                 {...field}
-                                onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                                onChange={(e) => field.onChange(e.target.value)}
                               />
                             </FormControl>
                             <FormMessage />
@@ -367,9 +367,9 @@ export default function Inventory() {
                             <FormLabel>{t('inventory.minimumLevel')}</FormLabel>
                             <FormControl>
                               <Input 
-                                type="number" 
+                                type="text"
                                 {...field}
-                                onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                                onChange={(e) => field.onChange(e.target.value)}
                               />
                             </FormControl>
                             <FormMessage />
