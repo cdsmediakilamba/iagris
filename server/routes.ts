@@ -640,6 +640,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     checkModuleAccess(SystemModule.INVENTORY, AccessLevel.READ_ONLY), 
     async (req, res) => {
       try {
+        console.log("API de transações de inventário acessada para farmId:", req.params.farmId);
         const farmId = parseInt(req.params.farmId, 10);
         
         // Optional query parameters for date filtering
@@ -655,6 +656,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else {
           transactions = await storage.getInventoryTransactionsByFarm(farmId);
         }
+        
+        console.log(`Encontradas ${transactions.length} transações para farmId ${farmId}:`, 
+          transactions.length > 0 ? transactions[0] : 'Nenhuma transação');
         
         res.json(transactions);
       } catch (error) {

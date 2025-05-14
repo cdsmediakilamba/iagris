@@ -135,11 +135,20 @@ export default function InventoryTransactions() {
 
   // Determine which transactions to display
   const displayTransactions = selectedItemId ? itemTransactions : transactions;
+  
+  // Log de depuração para verificar se as transações estão sendo carregadas
+  console.log("Farm ID selecionado:", selectedFarmId);
+  console.log("Item ID selecionado:", selectedItemId);
+  console.log("Transações da fazenda:", transactions);
+  console.log("Transações do item:", itemTransactions);
+  console.log("Transações para exibição:", displayTransactions);
 
   // Filter transactions by search term
   const filteredTransactions = displayTransactions?.filter(transaction => {
-    // Log de depuração para verificar o formato das transações
-    console.log("Transação encontrada:", transaction);
+    // Log de depuração para verificar o formato das transações 
+    if (transaction) {
+      console.log("Transação encontrada:", transaction);
+    }
     
     const matchesSearch = 
       (transaction.notes && transaction.notes.toLowerCase().includes(searchTerm.toLowerCase())) ||
