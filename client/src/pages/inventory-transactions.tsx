@@ -103,9 +103,15 @@ export default function InventoryTransactions() {
     to: undefined,
   });
 
+  // Get user info first
+  const { data: user, isLoading: isLoadingUser } = useQuery({
+    queryKey: ['/api/user'],
+  });
+
   // Get user's farms
   const { data: farms, isLoading: isLoadingFarms } = useQuery<any[]>({
     queryKey: ['/api/farms'],
+    enabled: !!user, // Só carrega as fazendas se o usuário estiver logado
   });
 
   // Use first farm by default
@@ -118,19 +124,19 @@ export default function InventoryTransactions() {
   // Get inventory for selected farm
   const { data: inventory, isLoading: isLoadingInventory } = useQuery<InventoryType[]>({
     queryKey: ['/api/farms', selectedFarmId, 'inventory'],
-    enabled: !!selectedFarmId,
+    enabled: !!selectedFarmId && !!user,
   });
 
   // Get transactions for selected farm
   const { data: transactions, isLoading: isLoadingTransactions } = useQuery<TransactionType[]>({
     queryKey: ['/api/farms', selectedFarmId, 'inventory/transactions'],
-    enabled: !!selectedFarmId,
+    enabled: !!selectedFarmId && !!user,
   });
 
   // Get transactions for selected item (if any)
   const { data: itemTransactions, isLoading: isLoadingItemTransactions } = useQuery<TransactionType[]>({
     queryKey: ['/api/inventory', selectedItemId, 'transactions'],
-    enabled: !!selectedItemId,
+    enabled: !!selectedItemId && !!user,
   });
 
   // Determine which transactions to display
@@ -374,6 +380,47 @@ export default function InventoryTransactions() {
   const onAdjustmentSubmit = (data: z.infer<typeof adjustmentFormSchema>) => {
     registerAdjustment.mutate(data);
   };
+
+  // Verificar autenticação
+  if (isLoadingUser) {
+    return (
+      <DashboardLayout>
+        <div className="flex h-full flex-col items-center justify-center p-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="mt-2 text-gray-500">{t('common.loading')}</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+  
+  // Verificar se o usuário está autenticado
+  if (!user) {
+    return (
+      <DashboardLayout>
+        <div className="flex h-full flex-col items-center justify-center p-4">
+          <AlertCircle className="h-10 w-10 text-yellow-500 mb-2" />
+          <h1 className="text-2xl font-bold">{t('auth.notAuthenticated')}</h1>
+          <p className="mt-2 text-gray-500">{t('auth.loginRequired')}</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Exibir mensagem quando não houver itens ou ainda estiver carregando
+  if (!isLoadingInventory && (!inventory || inventory.length === 0)) {
+    return (
+      <DashboardLayout>
+        <div className="flex h-full flex-col items-center justify-center p-4">
+          <Package className="h-10 w-10 text-gray-400 mb-2" />
+          <h1 className="text-2xl font-bold">{t('inventoryTransactions.noItems')}</h1>
+          <p className="mt-2 text-gray-500">{t('inventoryTransactions.addItemsFirst')}</p>
+          <Button className="mt-4" asChild>
+            <a href="/inventory">{t('inventoryTransactions.goToInventory')}</a>
+          </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
