@@ -162,8 +162,19 @@ export default function InventoryTransactions() {
 
   // Format date
   const formatDate = (date: string | Date) => {
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-    return format(dateObj, 'PPp', { locale: language === 'pt' ? ptBR : enUS });
+    try {
+      const dateObj = typeof date === 'string' ? new Date(date) : date;
+      
+      // Verificar se a data é válida
+      if (isNaN(dateObj.getTime())) {
+        return 'Data inválida';
+      }
+      
+      return format(dateObj, 'PPp', { locale: language === 'pt' ? ptBR : enUS });
+    } catch (error) {
+      console.error('Erro ao formatar data:', error);
+      return 'Data inválida';
+    }
   };
 
   // Get transaction type label
