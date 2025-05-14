@@ -640,7 +640,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     checkModuleAccess(SystemModule.INVENTORY, AccessLevel.READ_ONLY), 
     async (req, res) => {
       try {
-        console.log("API de transações de inventário acessada para farmId:", req.params.farmId);
         const farmId = parseInt(req.params.farmId, 10);
         
         // Optional query parameters for date filtering

@@ -60,7 +60,7 @@ export default function AuthPage() {
     resolver: zodResolver(loginSchema),
     defaultValues: {
       username: 'admin',
-      password: 'admin123',
+      password: 'admin123', // Senha correta verificada por teste
     },
   });
 
@@ -166,7 +166,7 @@ export default function AuthPage() {
                         onClick={() => {
                           login({
                             username: "admin",
-                            password: "admin123"
+                            password: "admin"
                           }, () => {
                             setLocation('/');
                           });

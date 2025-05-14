@@ -401,6 +401,9 @@ export default function InventoryTransactions() {
           <AlertCircle className="h-10 w-10 text-yellow-500 mb-2" />
           <h1 className="text-2xl font-bold">{t('auth.notAuthenticated')}</h1>
           <p className="mt-2 text-gray-500">{t('auth.loginRequired')}</p>
+          <Button className="mt-4" asChild>
+            <a href="/auth">Login</a>
+          </Button>
         </div>
       </DashboardLayout>
     );
