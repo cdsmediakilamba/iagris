@@ -129,19 +129,19 @@ export default function InventoryTransactions() {
 
   // Get inventory for selected farm
   const { data: inventory, isLoading: isLoadingInventory } = useQuery<InventoryType[]>({
-    queryKey: ['/api/farms', selectedFarmId, 'inventory'],
+    queryKey: [`/api/farms/${selectedFarmId}/inventory`],
     enabled: !!selectedFarmId && !!user,
   });
 
   // Get transactions for selected farm
   const { data: transactions, isLoading: isLoadingTransactions } = useQuery<TransactionType[]>({
-    queryKey: ['/api/farms', selectedFarmId, 'inventory/transactions'],
+    queryKey: [`/api/farms/${selectedFarmId}/inventory/transactions`],
     enabled: !!selectedFarmId && !!user
   });
 
   // Get transactions for selected item (if any)
   const { data: itemTransactions, isLoading: isLoadingItemTransactions } = useQuery<TransactionType[]>({
-    queryKey: ['/api/inventory', selectedItemId, 'transactions'],
+    queryKey: [`/api/inventory/${selectedItemId}/transactions`],
     enabled: !!selectedItemId && !!user,
   });
 
@@ -233,18 +233,25 @@ export default function InventoryTransactions() {
   };
   
   // Get user name by ID
-  const getUserName = (userId: number) => {
+  const getUserName = (userId: number | undefined) => {
+    if (!userId) return 'Sistema';
+    
     // Primeiro procura no array de usuários
     if (users && users.length > 0) {
       const foundUser = users.find(u => u.id === userId);
-      if (foundUser) return foundUser.name;
+      if (foundUser) {
+        console.log(`Encontrou usuário para ID ${userId}:`, foundUser.name);
+        return foundUser.name;
+      }
     }
     
     // Se não encontrar, verifica se é o usuário atual
     if (user && user.id === userId) {
+      console.log(`ID ${userId} corresponde ao usuário atual:`, user.name);
       return user.name;
     }
     
+    console.log(`Não encontrou usuário para ID ${userId}, usando ID como fallback`);
     // Fallback para ID caso não encontre o nome
     return `Usuário #${userId}`;
   };
