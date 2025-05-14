@@ -860,6 +860,7 @@ export default function InventoryTransactions() {
                     <TableHead>{t('inventory.quantity')}</TableHead>
                     <TableHead>{t('inventory.transactions.previousBalance')}</TableHead>
                     <TableHead>{t('inventory.transactions.newBalance')}</TableHead>
+                    <TableHead>{t('common.user')}</TableHead>
                     <TableHead>{t('inventory.transactions.notes')}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -886,7 +887,57 @@ export default function InventoryTransactions() {
                         {formatNumber(transaction.previousBalance, language)}
                       </TableCell>
                       <TableCell>
-                        {formatNumber(transaction.newBalance, language)}
+                        <div className="flex items-center gap-2">
+                          {formatNumber(transaction.newBalance, language)}
+                          <StockChange 
+                            previousBalance={transaction.previousBalance} 
+                            newBalance={transaction.newBalance} 
+                          />
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="font-medium text-blue-600">
+                                  {getUserName(transaction.userId)}
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent className="w-72">
+                                <div className="space-y-1 p-1">
+                                  <p className="text-sm font-semibold">{t('common.transactionDetails')}</p>
+                                  <div className="text-xs text-gray-500">
+                                    <p className="flex items-center gap-1">
+                                      <span className="font-medium">{t('common.user')}:</span>
+                                      {getUserName(transaction.userId)} (ID: {transaction.userId})
+                                    </p>
+                                    <p className="flex items-center gap-1">
+                                      <span className="font-medium">{t('inventory.transactions.previousBalance')}:</span>
+                                      {formatNumber(transaction.previousBalance, language)}
+                                    </p>
+                                    <p className="flex items-center gap-1">
+                                      <span className="font-medium">{t('inventory.transactions.newBalance')}:</span>
+                                      {formatNumber(transaction.newBalance, language)}
+                                    </p>
+                                    {transaction.unitPrice && (
+                                      <p className="flex items-center gap-1">
+                                        <span className="font-medium">{t('inventory.unitPrice')}:</span>
+                                        {formatNumber(transaction.unitPrice, language)}
+                                      </p>
+                                    )}
+                                    {transaction.totalPrice && (
+                                      <p className="flex items-center gap-1">
+                                        <span className="font-medium">{t('inventory.totalPrice')}:</span>
+                                        {formatNumber(transaction.totalPrice, language)}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="max-w-xs truncate">

@@ -28,6 +28,8 @@ export const pt = {
     save: 'Salvar',
     cancel: 'Cancelar',
     edit: 'Editar',
+    user: 'Usuário',
+    transactionDetails: 'Detalhes da Transação',
     delete: 'Excluir',
     add: 'Adicionar',
     search: 'Pesquisar',
