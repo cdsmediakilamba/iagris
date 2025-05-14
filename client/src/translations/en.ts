@@ -290,6 +290,8 @@ export const en = {
       notes: 'Notes',
       selectItem: 'Select Item',
       noTransactions: 'No transactions found',
+      makeFirstTransaction: 'Make your first transaction by using the buttons above',
+      for: 'Transactions for',
     },
     selectItem: 'Select Item',
     item: 'Item',

@@ -334,6 +334,8 @@ export const pt = {
       notes: 'Observações',
       selectItem: 'Selecionar Item',
       noTransactions: 'Nenhuma transação encontrada',
+      makeFirstTransaction: 'Faça sua primeira transação usando os botões acima',
+      for: 'Transações para',
     },
     selectItem: 'Selecionar Item',
     item: 'Item',

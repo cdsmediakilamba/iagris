@@ -138,6 +138,9 @@ export default function InventoryTransactions() {
 
   // Filter transactions by search term
   const filteredTransactions = displayTransactions?.filter(transaction => {
+    // Log de depuração para verificar o formato das transações
+    console.log("Transação encontrada:", transaction);
+    
     const matchesSearch = 
       (transaction.notes && transaction.notes.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (transaction.documentNumber && transaction.documentNumber.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -145,10 +148,15 @@ export default function InventoryTransactions() {
     
     // Apply date range filter if available
     if (dateRange.from && dateRange.to) {
-      const transactionDate = new Date(transaction.date);
-      return matchesSearch && 
-        transactionDate >= dateRange.from && 
-        transactionDate <= dateRange.to;
+      try {
+        const transactionDate = new Date(transaction.date);
+        return matchesSearch && 
+          transactionDate >= dateRange.from && 
+          transactionDate <= dateRange.to;
+      } catch (error) {
+        console.error("Erro ao filtrar data:", error);
+        return matchesSearch;
+      }
     }
     
     return matchesSearch;
