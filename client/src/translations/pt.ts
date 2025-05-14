@@ -340,6 +340,8 @@ export const pt = {
       noTransactions: 'Nenhuma transação encontrada',
       makeFirstTransaction: 'Faça sua primeira transação usando os botões acima',
       for: 'Transações para',
+      unitPrice: 'Preço Unitário',
+      totalPrice: 'Preço Total',
     },
     selectItem: 'Selecionar Item',
     item: 'Item',
