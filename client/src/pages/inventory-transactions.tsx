@@ -104,7 +104,7 @@ export default function InventoryTransactions() {
   });
 
   // Get user's farms
-  const { data: farms, isLoading: isLoadingFarms } = useQuery({
+  const { data: farms, isLoading: isLoadingFarms } = useQuery<any[]>({
     queryKey: ['/api/farms'],
   });
 
@@ -259,12 +259,10 @@ export default function InventoryTransactions() {
   const registerEntry = useMutation({
     mutationFn: async (data: z.infer<typeof entryFormSchema>) => {
       if (!selectedItemId) throw new Error("No item selected");
-      const response = await apiRequest(
-        'POST', 
+      return await apiRequest(
         `/api/inventory/${selectedItemId}/entry`, 
-        data
+        { method: 'POST', data }
       );
-      return response.json();
     },
     onSuccess: () => {
       invalidateQueries();
@@ -288,12 +286,10 @@ export default function InventoryTransactions() {
   const registerWithdrawal = useMutation({
     mutationFn: async (data: z.infer<typeof withdrawalFormSchema>) => {
       if (!selectedItemId) throw new Error("No item selected");
-      const response = await apiRequest(
-        'POST', 
+      return await apiRequest(
         `/api/inventory/${selectedItemId}/withdrawal`, 
-        data
+        { method: 'POST', data }
       );
-      return response.json();
     },
     onSuccess: () => {
       invalidateQueries();
@@ -317,12 +313,10 @@ export default function InventoryTransactions() {
   const registerAdjustment = useMutation({
     mutationFn: async (data: z.infer<typeof adjustmentFormSchema>) => {
       if (!selectedItemId) throw new Error("No item selected");
-      const response = await apiRequest(
-        'POST', 
+      return await apiRequest(
         `/api/inventory/${selectedItemId}/adjustment`, 
-        data
+        { method: 'POST', data }
       );
-      return response.json();
     },
     onSuccess: () => {
       invalidateQueries();
