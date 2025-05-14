@@ -112,9 +112,6 @@ export default function InventoryTransactions() {
   const { data: farms, isLoading: isLoadingFarms } = useQuery<any[]>({
     queryKey: ['/api/farms'],
     enabled: !!user, // Só carrega as fazendas se o usuário estiver logado
-    onSuccess: (data) => {
-      console.log("Fazendas carregadas:", data);
-    }
   });
   
   // Get all users - needed to display who performed each transaction
@@ -139,18 +136,7 @@ export default function InventoryTransactions() {
   // Get transactions for selected farm
   const { data: transactions, isLoading: isLoadingTransactions } = useQuery<TransactionType[]>({
     queryKey: ['/api/farms', selectedFarmId, 'inventory/transactions'],
-    enabled: !!selectedFarmId && !!user,
-    onSuccess: (data) => {
-      console.log("Transações da API para a fazenda:", selectedFarmId, data);
-      if (data && data.length > 0) {
-        console.log("Exemplo de transação recebida:", data[0]);
-      } else {
-        console.log("Nenhuma transação encontrada para a fazenda", selectedFarmId);
-      }
-    },
-    onError: (error) => {
-      console.error("Erro ao buscar transações:", error);
-    }
+    enabled: !!selectedFarmId && !!user
   });
 
   // Get transactions for selected item (if any)
@@ -159,19 +145,36 @@ export default function InventoryTransactions() {
     enabled: !!selectedItemId && !!user,
   });
 
+  // Verificar se o que estamos recebendo são realmente transações ou dados de fazendas
+  const isTransactionData = (data: any[]): boolean => {
+    return data.length > 0 && 'type' in data[0] && 'quantity' in data[0];
+  };
+  
+  // Verificar se os dados de transações são válidos
+  const validFarmTransactions = transactions && Array.isArray(transactions) && isTransactionData(transactions) 
+    ? transactions 
+    : [];
+    
+  const validItemTransactions = itemTransactions && Array.isArray(itemTransactions) && isTransactionData(itemTransactions)
+    ? itemTransactions
+    : [];
+  
   // Determine which transactions to display
-  const displayTransactions = selectedItemId ? itemTransactions : transactions;
+  const displayTransactions = selectedItemId ? validItemTransactions : validFarmTransactions;
   
   // Log de depuração para verificar se as transações estão sendo carregadas
   console.log("Farm ID selecionado:", selectedFarmId);
   console.log("Item ID selecionado:", selectedItemId);
-  console.log("Transações da fazenda:", transactions);
-  console.log("Transações do item:", itemTransactions);
+  console.log("Transações da fazenda (original):", transactions);
+  console.log("Transações válidas da fazenda:", validFarmTransactions);
+  console.log("Transações válidas do item:", validItemTransactions);
   console.log("Transações para exibição:", displayTransactions);
   
   // Verificar a estrutura dos dados recebidos
-  if (transactions && transactions.length > 0) {
-    console.log("Exemplo de transação:", transactions[0]);
+  if (displayTransactions.length > 0) {
+    console.log("Exemplo de transação:", displayTransactions[0]);
+  } else {
+    console.log("Nenhuma transação válida encontrada.");
   }
 
   // Função para validar se um objeto é uma transação
