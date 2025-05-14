@@ -154,13 +154,32 @@ export default function InventoryTransactions() {
   console.log("Transações da fazenda:", transactions);
   console.log("Transações do item:", itemTransactions);
   console.log("Transações para exibição:", displayTransactions);
+  
+  // Verificar a estrutura dos dados recebidos
+  if (transactions && transactions.length > 0) {
+    console.log("Exemplo de transação:", transactions[0]);
+  }
 
-  // Filter transactions by search term
+  // Função para validar se um objeto é uma transação
+  const isInventoryTransaction = (obj: any): obj is TransactionType => {
+    return obj && 
+      'type' in obj && 
+      'quantity' in obj && 
+      'previousBalance' in obj && 
+      'newBalance' in obj && 
+      'inventoryId' in obj;
+  };
+
+  // Filter transactions by search term and ensure they are valid transactions
   const filteredTransactions = displayTransactions?.filter(transaction => {
-    // Log de depuração para verificar o formato das transações 
-    if (transaction) {
-      console.log("Transação encontrada:", transaction);
+    // Verificar se o objeto tem a estrutura de uma transação
+    if (!isInventoryTransaction(transaction)) {
+      console.log("Objeto não é uma transação válida:", transaction);
+      return false;
     }
+    
+    // Log de depuração para verificar o formato das transações 
+    console.log("Transação válida:", transaction);
     
     const matchesSearch = 
       (transaction.notes && transaction.notes.toLowerCase().includes(searchTerm.toLowerCase())) ||
