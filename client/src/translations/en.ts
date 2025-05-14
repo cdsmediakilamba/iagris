@@ -96,6 +96,8 @@ export const en = {
     loginFailed: 'Username or password incorrect',
     registerFailed: 'Registration failed. Please try again.',
     passwordsMustMatch: 'Passwords must match',
+    notAuthenticated: 'Not authenticated',
+    loginRequired: 'Login required to access this resource',
   },
   dashboard: {
     title: 'Dashboard',

@@ -108,6 +108,8 @@ export const pt = {
     loginFailed: 'Nome de usuário ou senha incorretos',
     registerFailed: 'Falha ao registrar. Tente novamente.',
     passwordsMustMatch: 'As senhas devem ser iguais',
+    notAuthenticated: 'Não autenticado',
+    loginRequired: 'É necessário fazer login para acessar este recurso',
   },
   dashboard: {
     title: 'Dashboard',
