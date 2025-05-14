@@ -57,9 +57,10 @@ export const formatCurrency = (
 
 // Format number with locale-appropriate separators
 export const formatNumber = (
-  number: number,
+  number: number | string,
   language: Language,
   options?: Intl.NumberFormatOptions
 ): string => {
-  return new Intl.NumberFormat(language === 'pt' ? 'pt-PT' : 'en-US', options).format(number);
+  const numberValue = typeof number === 'string' ? parseFloat(number) : number;
+  return new Intl.NumberFormat(language === 'pt' ? 'pt-PT' : 'en-US', options).format(numberValue);
 };
