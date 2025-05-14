@@ -922,13 +922,13 @@ export default function InventoryTransactions() {
                                     </p>
                                     {transaction.unitPrice && (
                                       <p className="flex items-center gap-1">
-                                        <span className="font-medium">{t('inventory.unitPrice')}:</span>
+                                        <span className="font-medium">{t('inventory.transactions.unitPrice')}:</span>
                                         {formatNumber(transaction.unitPrice, language)}
                                       </p>
                                     )}
                                     {transaction.totalPrice && (
                                       <p className="flex items-center gap-1">
-                                        <span className="font-medium">{t('inventory.totalPrice')}:</span>
+                                        <span className="font-medium">{t('inventory.transactions.totalPrice')}:</span>
                                         {formatNumber(transaction.totalPrice, language)}
                                       </p>
                                     )}
