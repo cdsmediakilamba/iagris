@@ -112,6 +112,9 @@ export default function InventoryTransactions() {
   const { data: farms, isLoading: isLoadingFarms } = useQuery<any[]>({
     queryKey: ['/api/farms'],
     enabled: !!user, // Só carrega as fazendas se o usuário estiver logado
+    onSuccess: (data) => {
+      console.log("Fazendas carregadas:", data);
+    }
   });
   
   // Get all users - needed to display who performed each transaction
