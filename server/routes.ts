@@ -659,6 +659,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Encontradas ${transactions.length} transações para farmId ${farmId}:`, 
           transactions.length > 0 ? transactions[0] : 'Nenhuma transação');
         
+        // Verificação detalhada dos dados
+        if (transactions.length > 0) {
+          console.log("Tipo de dado retornado:", transactions[0].constructor.name);
+          console.log("Propriedades da primeira transação:", Object.keys(transactions[0]));
+        }
+        
         res.json(transactions);
       } catch (error) {
         console.error("Error fetching inventory transactions:", error);

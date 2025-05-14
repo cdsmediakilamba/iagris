@@ -137,6 +137,17 @@ export default function InventoryTransactions() {
   const { data: transactions, isLoading: isLoadingTransactions } = useQuery<TransactionType[]>({
     queryKey: ['/api/farms', selectedFarmId, 'inventory/transactions'],
     enabled: !!selectedFarmId && !!user,
+    onSuccess: (data) => {
+      console.log("Transações da API para a fazenda:", selectedFarmId, data);
+      if (data && data.length > 0) {
+        console.log("Exemplo de transação recebida:", data[0]);
+      } else {
+        console.log("Nenhuma transação encontrada para a fazenda", selectedFarmId);
+      }
+    },
+    onError: (error) => {
+      console.error("Erro ao buscar transações:", error);
+    }
   });
 
   // Get transactions for selected item (if any)
@@ -171,15 +182,22 @@ export default function InventoryTransactions() {
   };
 
   // Filter transactions by search term and ensure they are valid transactions
-  const filteredTransactions = displayTransactions?.filter(transaction => {
+  const validTransactions = displayTransactions?.filter(transaction => {
     // Verificar se o objeto tem a estrutura de uma transação
-    if (!isInventoryTransaction(transaction)) {
+    const isValid = isInventoryTransaction(transaction);
+    if (!isValid) {
       console.log("Objeto não é uma transação válida:", transaction);
-      return false;
     }
-    
+    return isValid;
+  }) || [];
+  
+  // Log do número de transações válidas
+  console.log(`Encontradas ${validTransactions.length} transações válidas de ${displayTransactions?.length || 0} totais`);
+  
+  // Filter transactions by search term
+  const filteredTransactions = validTransactions.filter(transaction => {
     // Log de depuração para verificar o formato das transações 
-    console.log("Transação válida:", transaction);
+    console.log("Filtrando transação válida:", transaction);
     
     const matchesSearch = 
       (transaction.notes && transaction.notes.toLowerCase().includes(searchTerm.toLowerCase())) ||
