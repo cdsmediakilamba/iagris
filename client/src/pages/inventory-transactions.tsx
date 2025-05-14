@@ -5,7 +5,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Inventory as InventoryType, InventoryTransaction as TransactionType, InventoryTransactionType } from '@shared/schema';
+import { Inventory as InventoryType, InventoryTransaction as TransactionType, InventoryTransactionType, User as UserType, UserRole } from '@shared/schema';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -104,7 +104,7 @@ export default function InventoryTransactions() {
   });
 
   // Get user info first
-  const { data: user, isLoading: isLoadingUser } = useQuery({
+  const { data: user, isLoading: isLoadingUser } = useQuery<UserType>({
     queryKey: ['/api/user'],
   });
 
@@ -112,6 +112,12 @@ export default function InventoryTransactions() {
   const { data: farms, isLoading: isLoadingFarms } = useQuery<any[]>({
     queryKey: ['/api/farms'],
     enabled: !!user, // Só carrega as fazendas se o usuário estiver logado
+  });
+  
+  // Get all users - needed to display who performed each transaction
+  const { data: users, isLoading: isLoadingUsers } = useQuery<UserType[]>({
+    queryKey: ['/api/users'],
+    enabled: !!user && !!user.role && (user.role === UserRole.SUPER_ADMIN || user.role === UserRole.FARM_ADMIN),
   });
 
   // Use first farm by default
@@ -181,6 +187,67 @@ export default function InventoryTransactions() {
   const getItemName = (itemId: number) => {
     const item = inventory?.find(i => i.id === itemId);
     return item ? item.name : `Item #${itemId}`;
+  };
+  
+  // Get user name by ID
+  const getUserName = (userId: number) => {
+    // Primeiro procura no array de usuários
+    if (users && users.length > 0) {
+      const foundUser = users.find(u => u.id === userId);
+      if (foundUser) return foundUser.name;
+    }
+    
+    // Se não encontrar, verifica se é o usuário atual
+    if (user && user.id === userId) {
+      return user.name;
+    }
+    
+    // Fallback para ID caso não encontre o nome
+    return `Usuário #${userId}`;
+  };
+
+  // Calcula a mudança percentual entre o saldo anterior e o novo saldo
+  const calculatePercentageChange = (previousBalance: string, newBalance: string) => {
+    const prev = parseFloat(previousBalance);
+    const current = parseFloat(newBalance);
+    
+    if (prev === 0) {
+      return current > 0 ? 100 : 0; // Se o anterior era zero, e agora tem algo, é 100% de aumento
+    }
+    
+    const change = ((current - prev) / Math.abs(prev)) * 100;
+    return change;
+  };
+
+  // Formata a porcentagem de variação para exibição
+  const formatPercentage = (percentage: number) => {
+    if (isNaN(percentage)) return '';
+    
+    const formattedValue = Math.abs(percentage).toFixed(1);
+    const sign = percentage >= 0 ? '+' : '-';
+    return `${sign}${formattedValue}%`;
+  };
+  
+  // Componente para exibir as variações de estoque
+  const StockChange = ({ previousBalance, newBalance }: { previousBalance: string, newBalance: string }) => {
+    const change = calculatePercentageChange(previousBalance, newBalance);
+    const formattedChange = formatPercentage(change);
+    
+    const isPositive = change > 0;
+    const isNegative = change < 0;
+    const isNeutral = change === 0;
+    
+    const badgeClass = isPositive 
+      ? 'bg-green-50 text-green-700 border-green-200' 
+      : isNegative 
+        ? 'bg-red-50 text-red-700 border-red-200' 
+        : 'bg-gray-50 text-gray-700 border-gray-200';
+    
+    return (
+      <Badge variant="outline" className={`${badgeClass} ml-2`}>
+        {formattedChange}
+      </Badge>
+    );
   };
 
   // Format date
