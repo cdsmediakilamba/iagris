@@ -94,8 +94,8 @@ type Transaction = {
   createdAt: Date;
 };
 
-// Mock data for charts - in a real app, this would come from API
-const generateMockFinancialData = (months: number) => {
+// Generate financial data from real transactions
+const generateFinancialData = (transactions: Transaction[], months: number) => {
   const data = [];
   const currentDate = new Date();
   const currentMonth = currentDate.getMonth();
@@ -104,11 +104,24 @@ const generateMockFinancialData = (months: number) => {
   for (let i = 0; i < months; i++) {
     const month = (currentMonth - i + 12) % 12;
     const year = currentMonth - i < 0 ? currentYear - 1 : currentYear;
-    const monthName = new Date(year, month, 1).toLocaleString('default', { month: 'short' });
+    const monthStart = new Date(year, month, 1);
+    const monthEnd = new Date(year, month + 1, 0);
+    const monthName = monthStart.toLocaleString('default', { month: 'short' });
     
-    // These are placeholders - in a real app, these would come from API
-    const income = Math.floor(Math.random() * 500000) + 500000;
-    const expenses = Math.floor(Math.random() * 300000) + 200000;
+    // Filter transactions for this month
+    const monthTransactions = transactions.filter(t => {
+      const transactionDate = new Date(t.date);
+      return transactionDate >= monthStart && transactionDate <= monthEnd;
+    });
+    
+    // Calculate monthly income and expenses
+    const income = monthTransactions
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + t.amount, 0);
+      
+    const expenses = monthTransactions
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + t.amount, 0);
     
     data.unshift({
       month: monthName,
@@ -129,8 +142,10 @@ export default function Financial() {
   const [selectedFarmId, setSelectedFarmId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState('all');
 
-  // Financial data for charts
-  const financialData = generateMockFinancialData(6);
+  // Financial data for charts based on real transactions
+  const financialData = React.useMemo(() => {
+    return generateFinancialData(transactions, 6);
+  }, [transactions]);
 
   // Get user's farms
   const { data: farms, isLoading: isLoadingFarms } = useQuery({
@@ -144,61 +159,80 @@ export default function Financial() {
     }
   }, [farms, selectedFarmId]);
 
-  // Normally we would query transactions from the API
-  // This is a placeholder until the API endpoint is implemented
-  const isLoadingTransactions = false;
-  const transactions: Transaction[] = [
-    {
-      id: 1,
-      description: "Sale of cattle",
-      amount: 250000,
-      date: new Date(2023, 5, 15),
-      type: "income",
-      category: "sales",
-      farmId: 1,
-      createdAt: new Date(2023, 5, 15)
-    },
-    {
-      id: 2,
-      description: "Purchase of feed",
-      amount: 75000,
-      date: new Date(2023, 5, 10),
-      type: "expense",
-      category: "feed",
-      farmId: 1,
-      createdAt: new Date(2023, 5, 10)
-    },
-    {
-      id: 3,
-      description: "Sale of crops",
-      amount: 180000,
-      date: new Date(2023, 5, 5),
-      type: "income",
-      category: "sales",
-      farmId: 1,
-      createdAt: new Date(2023, 5, 5)
-    },
-    {
-      id: 4,
-      description: "Salaries",
-      amount: 120000,
-      date: new Date(2023, 5, 1),
-      type: "expense",
-      category: "salaries",
-      farmId: 1,
-      createdAt: new Date(2023, 5, 1)
-    },
-    {
-      id: 5,
-      description: "Purchase of fertilizer",
-      amount: 45000,
-      date: new Date(2023, 4, 25),
-      type: "expense",
-      category: "fertilizers",
-      farmId: 1,
-      createdAt: new Date(2023, 4, 25)
-    },
-  ];
+  // Get costs for selected farm
+  const { data: costs, isLoading: isLoadingCosts } = useQuery({
+    queryKey: [`/api/farms/${selectedFarmId}/costs`],
+    enabled: !!selectedFarmId,
+  });
+
+  // Get inventory transactions for selected farm
+  const { data: inventoryTransactions, isLoading: isLoadingInventoryTransactions } = useQuery({
+    queryKey: [`/api/farms/${selectedFarmId}/inventory/transactions`],
+    enabled: !!selectedFarmId,
+  });
+
+  // Combine costs and inventory transactions into financial transactions
+  const transactions: Transaction[] = React.useMemo(() => {
+    const result: Transaction[] = [];
+    
+    // Add costs as expenses
+    if (costs && Array.isArray(costs)) {
+      costs.forEach(cost => {
+        result.push({
+          id: cost.id,
+          description: cost.description,
+          amount: parseFloat(cost.amount), // Convert from string to number
+          date: new Date(cost.date),
+          type: "expense",
+          category: cost.category,
+          farmId: cost.farmId,
+          createdAt: new Date(cost.createdAt || cost.date)
+        });
+      });
+    }
+    
+    // Add inventory transactions
+    if (inventoryTransactions && Array.isArray(inventoryTransactions)) {
+      inventoryTransactions.forEach(transaction => {
+        // Skip transactions without price information
+        if (!transaction.unitPrice || !transaction.totalPrice) return;
+        
+        // Input transactions (purchases) are expenses
+        if (transaction.type === "in") {
+          result.push({
+            id: transaction.id,
+            description: `Compra de ${transaction.quantity} unidades de ${transaction.inventoryName || 'inventário'}`,
+            amount: parseFloat(transaction.totalPrice),
+            date: new Date(transaction.date),
+            type: "expense",
+            category: "purchases",
+            reference: transaction.documentNumber,
+            farmId: transaction.farmId,
+            createdAt: new Date(transaction.createdAt || transaction.date)
+          });
+        } 
+        // Output transactions (sales) are income
+        else if (transaction.type === "out" && transaction.category === "sale") {
+          result.push({
+            id: transaction.id,
+            description: `Venda de ${transaction.quantity} unidades de ${transaction.inventoryName || 'inventário'}`,
+            amount: parseFloat(transaction.totalPrice),
+            date: new Date(transaction.date),
+            type: "income",
+            category: "sales",
+            reference: transaction.documentNumber,
+            farmId: transaction.farmId,
+            createdAt: new Date(transaction.createdAt || transaction.date)
+          });
+        }
+      });
+    }
+    
+    // Sort by date, newest first
+    return result.sort((a, b) => b.date.getTime() - a.date.getTime());
+  }, [costs, inventoryTransactions]);
+  
+  const isLoadingTransactions = isLoadingCosts || isLoadingInventoryTransactions;
 
   // Filter transactions by search term and tab
   const filteredTransactions = transactions.filter(transaction => 
