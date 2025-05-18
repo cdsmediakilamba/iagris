@@ -1133,7 +1133,7 @@ export default function Admin() {
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" className="flex items-center" onClick={fetchSystemLogs}>
                     <Clock className="h-4 w-4 mr-2" />
-                    {t('common.refresh')}
+                    {t('Reiniciar')}
                   </Button>
                   <Button variant="outline" size="sm" className="flex items-center">
                     <Download className="h-4 w-4 mr-2" />
@@ -1385,7 +1385,7 @@ export default function Admin() {
                       <div className="flex flex-col">
                         <label className="text-sm font-medium mb-1">{t('admin.systemName')}</label>
                         <Input defaultValue="IAGris" readOnly />
-                        <p className="text-xs text-gray-500 mt-1">{t('admin.systemNameReadOnly')}</p>
+                        <p className="text-xs text-gray-500 mt-1">{t('Somente leitura')}</p>
                       </div>
                       
                       <div className="flex flex-col">
@@ -1420,8 +1420,8 @@ export default function Admin() {
                             <SelectValue placeholder={t('common.language')} />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="pt">{t('common.portuguese')}</SelectItem>
-                            <SelectItem value="en">{t('common.english')}</SelectItem>
+                            <SelectItem value="pt">{t('Portuguese')}</SelectItem>
+                            <SelectItem value="en">{t('Inglês')}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
