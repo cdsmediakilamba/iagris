@@ -149,16 +149,37 @@ export default function NewAnimalsPage() {
     
     return animals.filter(animal => {
       // Aplicar filtros
-      if (filters.species && filters.species !== 'all' && animal.speciesId.toString() !== filters.species) {
-        return false;
+      if (filters.species && filters.species !== 'all') {
+        // Make sure we're comparing numbers to numbers or strings to strings
+        const animalSpeciesId = animal.speciesId.toString();
+        const filterSpeciesId = filters.species.toString();
+        
+        if (animalSpeciesId !== filterSpeciesId) {
+          return false;
+        }
       }
       
       if (filters.status && filters.status !== 'all' && animal.status !== filters.status) {
         return false;
       }
       
-      if (filters.gender && filters.gender !== 'all' && animal.gender !== filters.gender) {
-        return false;
+      if (filters.gender && filters.gender !== 'all') {
+        // Check if gender matches, handling possible format differences
+        const animalGender = animal.gender.toLowerCase();
+        const filterGender = filters.gender.toLowerCase();
+        
+        // Map Portuguese gender terms to match the filter values
+        const genderMap: Record<string, string> = {
+          'macho': 'male',
+          'fêmea': 'female',
+          'femea': 'female'
+        };
+        
+        const normalizedAnimalGender = genderMap[animalGender] || animalGender;
+        
+        if (normalizedAnimalGender !== filterGender) {
+          return false;
+        }
       }
       
       // Aplicar termo de busca se houver
