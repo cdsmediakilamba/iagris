@@ -46,23 +46,63 @@ import {
   Search,
 } from 'lucide-react';
 
-// Sample data for charts
-const productionData = [
-  { name: 'Jan', animals: 4000, crops: 2400 },
-  { name: 'Feb', animals: 3000, crops: 1398 },
-  { name: 'Mar', animals: 2000, crops: 9800 },
-  { name: 'Apr', animals: 2780, crops: 3908 },
-  { name: 'May', animals: 1890, crops: 4800 },
-  { name: 'Jun', animals: 2390, crops: 3800 },
-];
+// Generate production data from real data
+const generateProductionData = (animals: any[], crops: any[]) => {
+  const months = 6;
+  const result = [];
+  const currentDate = new Date();
+  const currentMonth = currentDate.getMonth();
+  
+  for (let i = 0; i < months; i++) {
+    const month = (currentMonth - i + 12) % 12;
+    const monthName = new Date(2022, month, 1).toLocaleString('default', { month: 'short' });
+    
+    // Calcular os valores reais baseados nos dados do sistema
+    const monthAnimals = animals?.filter(animal => {
+      const animalDate = new Date(animal.createdAt);
+      return animalDate.getMonth() === month;
+    }).length || 0;
+    
+    const monthCrops = crops?.filter(crop => {
+      const cropDate = new Date(crop.createdAt);
+      return cropDate.getMonth() === month;
+    }).length || 0;
+    
+    result.unshift({
+      name: monthName,
+      animals: monthAnimals * 100, // Multiplicando por um valor para representar peso/produção
+      crops: monthCrops * 150     // Multiplicando por um valor para representar a produção em kg
+    });
+  }
+  
+  return result;
+};
 
-const inventoryData = [
-  { name: 'Feed', value: 400 },
-  { name: 'Seeds', value: 300 },
-  { name: 'Equipment', value: 300 },
-  { name: 'Fertilizer', value: 200 },
-  { name: 'Medicine', value: 100 },
-];
+// Generate inventory data from real data
+const generateInventoryData = (inventory: any[]) => {
+  if (!inventory || !Array.isArray(inventory) || inventory.length === 0) {
+    // Retornar dados padrão se não tivermos dados reais
+    return [
+      { name: 'Sem dados', value: 100 }
+    ];
+  }
+  
+  // Agrupar por categoria
+  const categories: Record<string, number> = {};
+  inventory.forEach((item: any) => {
+    const category = item.category || 'Outros';
+    if (!categories[category]) {
+      categories[category] = 0;
+    }
+    categories[category] += parseFloat(item.quantity || 0);
+  });
+  
+  // Converter para o formato esperado pelo gráfico
+  return Object.keys(categories).map(category => ({
+    name: category,
+    value: categories[category]
+  }));
+};
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
@@ -80,9 +120,27 @@ export default function Reports() {
     return format(date, 'PPP', { locale: dateLocale });
   };
 
-  // Load farms from API
-  const { data: farms, isLoading: isLoadingFarms } = useQuery({
+  // Load data from API
+  const { data: farms = [], isLoading: isLoadingFarms } = useQuery<any[]>({
     queryKey: ['/api/farms'],
+  });
+  
+  // Load animals data
+  const { data: animals = [], isLoading: isLoadingAnimals } = useQuery<any[]>({
+    queryKey: ['/api/farms', farmId, 'animals'],
+    enabled: !!farmId && farmId !== 'all',
+  });
+  
+  // Load crops data
+  const { data: crops = [], isLoading: isLoadingCrops } = useQuery<any[]>({
+    queryKey: ['/api/farms', farmId, 'crops'],
+    enabled: !!farmId && farmId !== 'all',
+  });
+  
+  // Load inventory data
+  const { data: inventory = [], isLoading: isLoadingInventory } = useQuery<any[]>({
+    queryKey: ['/api/farms', farmId, 'inventory'],
+    enabled: !!farmId && farmId !== 'all',
   });
 
   // Generate report download handler
@@ -221,7 +279,7 @@ export default function Reports() {
                 {reportType === 'production' && (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
-                      data={productionData}
+                      data={generateProductionData(animals, crops)}
                       margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" />
@@ -239,16 +297,16 @@ export default function Reports() {
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={inventoryData}
+                        data={generateInventoryData(inventory)}
                         cx="50%"
                         cy="50%"
                         labelLine={true}
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        label={({ name, percent }: {name: string, percent: number}) => `${name}: ${(percent * 100).toFixed(0)}%`}
                         outerRadius={100}
                         fill="#8884d8"
                         dataKey="value"
                       >
-                        {inventoryData.map((entry, index) => (
+                        {generateInventoryData(inventory).map((entry: any, index: number) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
