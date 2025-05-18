@@ -356,8 +356,8 @@ export default function Financial() {
     },
     onSuccess: () => {
       // Invalidar as consultas para atualizar a interface
+      // Invalidar todas as consultas relacionadas aos dados financeiros para atualizar a interface
       queryClient.invalidateQueries({ queryKey: [`/api/farms/${selectedFarmId}/costs`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/farms/${selectedFarmId}/incomes`] });
       
       toast({
         title: t('financial.transactionAdded'),
