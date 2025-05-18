@@ -103,6 +103,10 @@ export default function Admin() {
   const [farmDialogOpen, setFarmDialogOpen] = useState(false);
   const [farmSearchTerm, setFarmSearchTerm] = useState('');
   const [selectedFarm, setSelectedFarm] = useState<number | null>(null);
+  
+  // Estado para o diálogo de edição de funções
+  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
 
   // Ensure only super admins can access this page
   if (user?.role !== UserRole.SUPER_ADMIN) {
@@ -797,7 +801,14 @@ export default function Admin() {
                         {t(`admin.roleDescriptions.${role}`)}
                       </p>
                     </div>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => {
+                        setSelectedRole(role);
+                        setRoleDialogOpen(true);
+                      }}
+                    >
                       {t('common.edit')}
                     </Button>
                   </div>
@@ -805,6 +816,135 @@ export default function Admin() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Diálogo para editar funções */}
+          <Dialog open={roleDialogOpen} onOpenChange={setRoleDialogOpen}>
+            <DialogContent className="sm:max-w-[600px]">
+              <DialogHeader>
+                <DialogTitle>
+                  {selectedRole && `${t('admin.editRole').replace('{role}', t(`employees.roles.${selectedRole}`))}`}
+                </DialogTitle>
+              </DialogHeader>
+              
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium">{t('admin.permissions')}</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="flex items-center space-x-2">
+                      <input 
+                        type="checkbox" 
+                        id="permUsers" 
+                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" 
+                        defaultChecked={selectedRole === UserRole.SUPER_ADMIN || selectedRole === UserRole.FARM_ADMIN}
+                      />
+                      <label htmlFor="permUsers" className="text-sm font-medium text-gray-700">
+                        {t('admin.permUsers')}
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input 
+                        type="checkbox" 
+                        id="permFarms" 
+                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" 
+                        defaultChecked={selectedRole === UserRole.SUPER_ADMIN || selectedRole === UserRole.FARM_ADMIN}
+                      />
+                      <label htmlFor="permFarms" className="text-sm font-medium text-gray-700">
+                        {t('admin.permFarms')}
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input 
+                        type="checkbox" 
+                        id="permAnimals" 
+                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" 
+                        defaultChecked={
+                          selectedRole === UserRole.SUPER_ADMIN || 
+                          selectedRole === UserRole.FARM_ADMIN || 
+                          selectedRole === UserRole.VETERINARIAN
+                        }
+                      />
+                      <label htmlFor="permAnimals" className="text-sm font-medium text-gray-700">
+                        {t('admin.permAnimals')}
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input 
+                        type="checkbox" 
+                        id="permCrops" 
+                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" 
+                        defaultChecked={
+                          selectedRole === UserRole.SUPER_ADMIN || 
+                          selectedRole === UserRole.FARM_ADMIN || 
+                          selectedRole === UserRole.AGRONOMIST
+                        }
+                      />
+                      <label htmlFor="permCrops" className="text-sm font-medium text-gray-700">
+                        {t('admin.permCrops')}
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input 
+                        type="checkbox" 
+                        id="permFinancial" 
+                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" 
+                        defaultChecked={
+                          selectedRole === UserRole.SUPER_ADMIN || 
+                          selectedRole === UserRole.FARM_ADMIN || 
+                          selectedRole === UserRole.MANAGER
+                        }
+                      />
+                      <label htmlFor="permFinancial" className="text-sm font-medium text-gray-700">
+                        {t('admin.permFinancial')}
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input 
+                        type="checkbox" 
+                        id="permReports" 
+                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" 
+                        defaultChecked={selectedRole !== UserRole.EMPLOYEE}
+                      />
+                      <label htmlFor="permReports" className="text-sm font-medium text-gray-700">
+                        {t('admin.permReports')}
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="pt-4 border-t border-gray-200">
+                  <h3 className="text-sm font-medium mb-2">{t('admin.accessLevel')}</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <Select defaultValue={selectedRole === UserRole.SUPER_ADMIN ? "all" : "assigned"}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder={t('admin.selectAccess')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="assigned">{t('admin.accessAssigned')}</SelectItem>
+                          <SelectItem value="all">{t('admin.accessAll')}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button variant="outline">{t('common.cancel')}</Button>
+                </DialogClose>
+                <Button type="button" onClick={() => {
+                  toast({
+                    title: t('admin.roleUpdated'),
+                    description: t('admin.roleUpdatedDescription'),
+                  });
+                  setRoleDialogOpen(false);
+                }}>
+                  {t('common.save')}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </TabsContent>
 
         {/* System Logs Tab */}
