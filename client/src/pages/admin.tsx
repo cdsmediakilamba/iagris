@@ -1232,19 +1232,44 @@ export default function Admin() {
                         <label htmlFor="backup-crops">{t('admin.backupCrops')}</label>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <input type="checkbox" id="backup-inventory" className="rounded border-gray-300" defaultChecked />
+                        <input 
+                          type="checkbox" 
+                          id="backup-inventory" 
+                          className="rounded border-gray-300" 
+                          checked={backupOptions.inventory}
+                          onChange={(e) => setBackupOptions(prev => ({ ...prev, inventory: e.target.checked }))}
+                        />
                         <label htmlFor="backup-inventory">{t('admin.backupInventory')}</label>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <input type="checkbox" id="backup-tasks" className="rounded border-gray-300" defaultChecked />
+                        <input 
+                          type="checkbox" 
+                          id="backup-tasks" 
+                          className="rounded border-gray-300" 
+                          checked={backupOptions.tasks}
+                          onChange={(e) => setBackupOptions(prev => ({ ...prev, tasks: e.target.checked }))}
+                        />
                         <label htmlFor="backup-tasks">{t('admin.backupTasks')}</label>
                       </div>
                     </div>
                   </div>
                   
-                  <Button className="w-full">
-                    <Save className="mr-2 h-4 w-4" />
-                    {t('admin.createBackup')}
+                  <Button 
+                    className="w-full" 
+                    onClick={createBackup}
+                    disabled={isCreatingBackup}
+                  >
+                    {isCreatingBackup ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {t('common.loading')}
+                      </>
+                    ) : (
+                      <>
+                        <Save className="mr-2 h-4 w-4" />
+                        {t('admin.createBackup')}
+                      </>
+                    )}
                   </Button>
                 </div>
               </CardContent>
@@ -1264,14 +1289,25 @@ export default function Admin() {
                     <div className="mt-2">
                       <label className="block">
                         <span className="sr-only">{t('admin.chooseFile')}</span>
-                        <input type="file" className="block w-full text-sm text-gray-500
-                          file:mr-4 file:py-2 file:px-4
-                          file:rounded-full file:border-0
-                          file:text-sm file:font-semibold
-                          file:bg-primary file:text-white
-                          hover:file:bg-primary-dark
-                          file:cursor-pointer" />
+                        <input 
+                          type="file" 
+                          className="block w-full text-sm text-gray-500
+                            file:mr-4 file:py-2 file:px-4
+                            file:rounded-full file:border-0
+                            file:text-sm file:font-semibold
+                            file:bg-primary file:text-white
+                            hover:file:bg-primary-dark
+                            file:cursor-pointer"
+                          accept=".json,.sql"
+                          onChange={(e) => setRestoreFile(e.target.files?.[0] || null)}
+                        />
                       </label>
+                      {restoreFile && (
+                        <p className="text-sm text-green-600 mt-2">
+                          <CheckCircle className="inline-block h-4 w-4 mr-1" />
+                          {t('admin.fileSelected')}: {restoreFile.name} ({(restoreFile.size / 1024).toFixed(1)} KB)
+                        </p>
+                      )}
                     </div>
                   </div>
                   
@@ -1279,19 +1315,47 @@ export default function Admin() {
                     <h3 className="font-medium mb-2">{t('admin.restoreOptions')}</h3>
                     <div className="space-y-2">
                       <div className="flex items-center space-x-2">
-                        <input type="radio" id="restore-merge" name="restore-option" className="rounded border-gray-300" defaultChecked />
+                        <input 
+                          type="radio" 
+                          id="restore-merge" 
+                          name="restore-option" 
+                          className="rounded border-gray-300" 
+                          checked={restoreMode === 'merge'}
+                          onChange={() => setRestoreMode('merge')}
+                        />
                         <label htmlFor="restore-merge">{t('admin.restoreMerge')}</label>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <input type="radio" id="restore-overwrite" name="restore-option" className="rounded border-gray-300" />
+                        <input 
+                          type="radio" 
+                          id="restore-overwrite" 
+                          name="restore-option" 
+                          className="rounded border-gray-300" 
+                          checked={restoreMode === 'overwrite'}
+                          onChange={() => setRestoreMode('overwrite')}
+                        />
                         <label htmlFor="restore-overwrite">{t('admin.restoreOverwrite')}</label>
                       </div>
                     </div>
                   </div>
                   
-                  <Button variant="outline" className="w-full">
-                    <Upload className="mr-2 h-4 w-4" />
-                    {t('admin.restoreBackup')}
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={restoreBackup}
+                    disabled={isRestoringBackup || !restoreFile}
+                  >
+                    {isRestoringBackup ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {t('common.processing')}
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="mr-2 h-4 w-4" />
+                        {t('admin.restoreBackup')}
+                      </>
+                    )}
                   </Button>
                 </div>
               </CardContent>
