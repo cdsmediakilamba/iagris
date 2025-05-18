@@ -142,31 +142,26 @@ export default function Financial() {
   const [selectedFarmId, setSelectedFarmId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState('all');
 
-  // Financial data for charts based on real transactions
-  const financialData = React.useMemo(() => {
-    return generateFinancialData(transactions, 6);
-  }, [transactions]);
-
   // Get user's farms
-  const { data: farms, isLoading: isLoadingFarms } = useQuery({
+  const { data: farms = [], isLoading: isLoadingFarms } = useQuery<any[]>({
     queryKey: ['/api/farms'],
   });
 
   // Use first farm by default
   React.useEffect(() => {
-    if (farms && farms.length > 0 && !selectedFarmId) {
+    if (farms.length > 0 && !selectedFarmId) {
       setSelectedFarmId(farms[0].id);
     }
   }, [farms, selectedFarmId]);
 
   // Get costs for selected farm
-  const { data: costs, isLoading: isLoadingCosts } = useQuery({
+  const { data: costs = [], isLoading: isLoadingCosts } = useQuery<any[]>({
     queryKey: [`/api/farms/${selectedFarmId}/costs`],
     enabled: !!selectedFarmId,
   });
 
   // Get inventory transactions for selected farm
-  const { data: inventoryTransactions, isLoading: isLoadingInventoryTransactions } = useQuery({
+  const { data: inventoryTransactions = [], isLoading: isLoadingInventoryTransactions } = useQuery<any[]>({
     queryKey: [`/api/farms/${selectedFarmId}/inventory/transactions`],
     enabled: !!selectedFarmId,
   });
@@ -252,6 +247,11 @@ export default function Financial() {
     
   const profit = totalIncome - totalExpenses;
   const profitMargin = totalIncome > 0 ? (profit / totalIncome) * 100 : 0;
+  
+  // Generate financial data for charts based on real transactions
+  const financialData = React.useMemo(() => {
+    return generateFinancialData(transactions, 6);
+  }, [transactions]);
 
   // Transaction form schema
   const formSchema = transactionSchema.omit({ 
@@ -330,7 +330,7 @@ export default function Financial() {
               />
             </div>
             
-            {farms && farms.length > 0 && (
+            {farms.length > 0 && (
               <Select
                 value={selectedFarmId?.toString()}
                 onValueChange={(value) => setSelectedFarmId(parseInt(value))}
@@ -339,7 +339,7 @@ export default function Financial() {
                   <SelectValue placeholder={t('dashboard.farm')} />
                 </SelectTrigger>
                 <SelectContent>
-                  {farms.map((farm) => (
+                  {farms.map((farm: any) => (
                     <SelectItem key={farm.id} value={farm.id.toString()}>
                       {farm.name}
                     </SelectItem>
