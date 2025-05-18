@@ -170,16 +170,25 @@ export default function Financial() {
   const transactions: Transaction[] = React.useMemo(() => {
     const result: Transaction[] = [];
     
-    // Add costs as expenses
+    // Add costs - differentiating between expenses and incomes
     if (costs && Array.isArray(costs)) {
       costs.forEach(cost => {
+        let type: "expense" | "income" = "expense";
+        let category = cost.category;
+        
+        // Verificar se é uma receita (prefixo income_)
+        if (cost.category && cost.category.startsWith('income_')) {
+          type = "income";
+          category = cost.category.replace('income_', '');
+        }
+        
         result.push({
           id: cost.id,
           description: cost.description,
           amount: parseFloat(cost.amount), // Convert from string to number
           date: new Date(cost.date),
-          type: "expense",
-          category: cost.category,
+          type: type, // Já é do tipo correto "income" | "expense"
+          category: category,
           farmId: cost.farmId,
           createdAt: new Date(cost.createdAt || cost.date)
         });
@@ -318,20 +327,37 @@ export default function Financial() {
     mutationFn: async (data: z.infer<typeof formSchema>) => {
       if (!selectedFarmId) throw new Error("No farm selected");
       
-      // In a real app, this would call the API
-      // const response = await apiRequest('POST', `/api/farms/${selectedFarmId}/transactions`, data);
-      // return response.json();
+      // Criar um custo no backend
+      const costData = {
+        description: data.description,
+        amount: data.amount.toString(),
+        date: data.date.toISOString(),
+        category: data.category,
+        paymentMethod: "transaction",
+        documentNumber: data.reference || null,
+        supplier: null,
+        notes: null,
+        farmId: selectedFarmId
+      };
       
-      // For now, just return a mock success after a delay
-      return new Promise(resolve => {
-        setTimeout(() => {
-          resolve({ success: true });
-        }, 500);
+      // Chamar a API para criar o custo/receita (ambos usam o mesmo endpoint de costs)
+      // Para diferenciar entre despesa e receita, vamos usar o nome da categoria
+      if (data.type === 'income') {
+        // Se for receita, adicionamos "income_" ao início da categoria
+        costData.category = `income_${data.category}`;
+      }
+      
+      const endpoint = `/api/farms/${selectedFarmId}/costs`;
+      // Usar a função apiRequest corretamente
+      return apiRequest(endpoint, { 
+        method: 'POST', 
+        data: costData 
       });
     },
     onSuccess: () => {
-      // In a real app, invalidate the queries
-      // queryClient.invalidateQueries({ queryKey: ['/api/farms', selectedFarmId, 'transactions'] });
+      // Invalidar as consultas para atualizar a interface
+      queryClient.invalidateQueries({ queryKey: [`/api/farms/${selectedFarmId}/costs`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/farms/${selectedFarmId}/incomes`] });
       
       toast({
         title: t('financial.transactionAdded'),
