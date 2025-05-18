@@ -335,7 +335,7 @@ export default function Reports() {
                   <li>{t('reports.findings.3')}</li>
                 </ul>
                 
-                <h3>{t('reports.recommendations')}</h3>
+                <h3>{t('reports.recommendationsTitle')}</h3>
                 <ul>
                   <li>{t('reports.recommendations.1')}</li>
                   <li>{t('reports.recommendations.2')}</li>

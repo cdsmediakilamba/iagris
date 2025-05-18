@@ -189,36 +189,78 @@ export default function Financial() {
     // Add inventory transactions
     if (inventoryTransactions && Array.isArray(inventoryTransactions)) {
       inventoryTransactions.forEach(transaction => {
-        // Skip transactions without price information
-        if (!transaction.unitPrice || !transaction.totalPrice) return;
-        
-        // Input transactions (purchases) are expenses
-        if (transaction.type === "in") {
-          result.push({
-            id: transaction.id,
-            description: `Compra de ${transaction.quantity} unidades de ${transaction.inventoryName || 'inventário'}`,
-            amount: parseFloat(transaction.totalPrice),
-            date: new Date(transaction.date),
-            type: "expense",
-            category: "purchases",
-            reference: transaction.documentNumber,
-            farmId: transaction.farmId,
-            createdAt: new Date(transaction.createdAt || transaction.date)
-          });
-        } 
-        // Output transactions (sales) are income
-        else if (transaction.type === "out" && transaction.category === "sale") {
-          result.push({
-            id: transaction.id,
-            description: `Venda de ${transaction.quantity} unidades de ${transaction.inventoryName || 'inventário'}`,
-            amount: parseFloat(transaction.totalPrice),
-            date: new Date(transaction.date),
-            type: "income",
-            category: "sales",
-            reference: transaction.documentNumber,
-            farmId: transaction.farmId,
-            createdAt: new Date(transaction.createdAt || transaction.date)
-          });
+        try {
+          // Obter o nome do inventário
+          const inventoryName = transaction.inventoryName || 
+                               (transaction.inventory ? transaction.inventory.name : 'inventário');
+          
+          // Calcular o valor da transação - pode ser definido explicitamente ou estimado
+          let transactionAmount = 0;
+          let hasExplicitPrice = false;
+          
+          if (transaction.totalPrice) {
+            transactionAmount = parseFloat(transaction.totalPrice);
+            hasExplicitPrice = true;
+          } else if (transaction.unitPrice && transaction.quantity) {
+            transactionAmount = parseFloat(transaction.unitPrice) * parseFloat(transaction.quantity);
+            hasExplicitPrice = true;
+          }
+          
+          // Input transactions (purchases) are expenses
+          if (transaction.type === "in") {
+            // Apenas adicionar se tiver informação de preço
+            if (hasExplicitPrice && transactionAmount > 0) {
+              result.push({
+                id: transaction.id,
+                description: `Compra de ${transaction.quantity} unidades de ${inventoryName}`,
+                amount: transactionAmount,
+                date: new Date(transaction.date),
+                type: "expense",
+                category: "purchases",
+                reference: transaction.documentNumber,
+                farmId: transaction.farmId,
+                createdAt: new Date(transaction.createdAt || transaction.date)
+              });
+            }
+          } 
+          // Output transactions (sales) are income
+          else if (transaction.type === "out") {
+            // Todas as saídas marcadas como "sale" são receitas
+            if (transaction.category === "sale") {
+              if (hasExplicitPrice && transactionAmount > 0) {
+                result.push({
+                  id: transaction.id,
+                  description: `Venda de ${transaction.quantity} unidades de ${inventoryName}`,
+                  amount: transactionAmount,
+                  date: new Date(transaction.date),
+                  type: "income",
+                  category: "sales",
+                  reference: transaction.documentNumber,
+                  farmId: transaction.farmId,
+                  createdAt: new Date(transaction.createdAt || transaction.date)
+                });
+              }
+            }
+            // Outras saídas podem ser despesas dependendo da categoria
+            else if (["transfer", "loss", "damage", "expired"].includes(transaction.category)) {
+              // Estas categorias representam perdas/despesas se tivermos informação de preço
+              if (hasExplicitPrice && transactionAmount > 0) {
+                result.push({
+                  id: transaction.id,
+                  description: `Baixa de ${transaction.quantity} unidades de ${inventoryName} (${transaction.category})`,
+                  amount: transactionAmount,
+                  date: new Date(transaction.date),
+                  type: "expense",
+                  category: transaction.category,
+                  reference: transaction.documentNumber,
+                  farmId: transaction.farmId,
+                  createdAt: new Date(transaction.createdAt || transaction.date)
+                });
+              }
+            }
+          }
+        } catch (error) {
+          console.error("Erro ao processar transação para dados financeiros:", error);
         }
       });
     }

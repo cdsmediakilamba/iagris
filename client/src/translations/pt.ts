@@ -559,6 +559,88 @@ export const pt = {
     noNotifications: 'Nenhuma notificação',
     viewAll: 'Ver todas as notificações',
   },
+  reports: {
+    title: 'Relatórios',
+    description: 'Visualize informações e estatísticas sobre as atividades da fazenda',
+    filters: 'Filtros',
+    filtersDescription: 'Selecione os filtros para gerar o relatório',
+    reportType: 'Tipo de Relatório',
+    selectReportType: 'Selecione o tipo de relatório',
+    types: {
+      production: 'Produção',
+      inventory: 'Inventário',
+      financial: 'Financeiro',
+      tasks: 'Tarefas'
+    },
+    timeRange: 'Período',
+    selectTimeRange: 'Selecione o período',
+    timeRanges: {
+      week: 'Semana',
+      month: 'Mês',
+      quarter: 'Trimestre',
+      year: 'Ano'
+    },
+    farm: 'Fazenda',
+    selectFarm: 'Selecione a fazenda',
+    allFarms: 'Todas as Fazendas',
+    downloadReport: 'Baixar Relatório',
+    downloadStarted: 'O download do relatório foi iniciado',
+    visualizations: 'Visualizações',
+    summary: 'Resumo',
+    rawData: 'Dados Brutos',
+    titles: {
+      productionOverTime: 'Produção ao Longo do Tempo',
+      inventoryDistribution: 'Distribuição do Inventário',
+      financialPerformance: 'Desempenho Financeiro',
+      taskCompletion: 'Conclusão de Tarefas'
+    },
+    periods: {
+      lastWeek: 'Última Semana',
+      lastMonth: 'Último Mês',
+      lastQuarter: 'Último Trimestre',
+      lastYear: 'Último Ano'
+    },
+    labels: {
+      livestock: 'Pecuária',
+      crops: 'Cultivos',
+      quantity: 'Quantidade'
+    },
+    kpi: {
+      totalProduction: 'Produção Total',
+      efficiency: 'Eficiência',
+      forecastedGrowth: 'Crescimento Previsto'
+    },
+    fromPreviousPeriod: 'em relação ao período anterior',
+    nextQuarter: 'próximo trimestre',
+    summaryText: 'Este relatório fornece uma visão geral das atividades da fazenda no período selecionado.',
+    keyFindings: 'Principais Descobertas',
+    findings: {
+      1: 'A produção aumentou 12,5% em relação ao período anterior.',
+      2: 'A eficiência dos processos melhorou significativamente.',
+      3: 'O inventário está bem distribuído entre as categorias.'
+    },
+    recommendationsTitle: 'Recomendações',
+    recommendations: {
+      1: 'Continuar investindo nos setores de maior rendimento.',
+      2: 'Otimizar a gestão de inventário para reduzir custos.',
+      3: 'Implementar novas tecnologias para aumentar a eficiência.'
+    },
+    columns: {
+      date: 'Data',
+      category: 'Categoria',
+      value: 'Valor',
+      status: 'Status'
+    },
+    categories: {
+      animals: 'Animais',
+      crops: 'Cultivos'
+    },
+    statuses: {
+      pending: 'Pendente',
+      completed: 'Concluído'
+    },
+    comingSoon: 'Em breve'
+  },
   calendar: {
     title: 'Calendário',
     description: 'Visualize e gerencie as atividades e tarefas da fazenda',
