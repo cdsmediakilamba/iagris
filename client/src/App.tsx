@@ -7,13 +7,9 @@ import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/auth-page";
 import { ProtectedRoute } from "@/lib/protected-route";
 import Dashboard from "@/pages/dashboard";
-import Animals from "@/pages/animals";
-import AnimalsNew from "@/pages/animals-new";
-import AnimalDetails from "@/pages/animal-details";
 import CropsBasic from "@/pages/crops-basic";
 import Inventory from "@/pages/inventory";
 import InventoryTransactions from "@/pages/inventory-transactions";
-import Tasks from "@/pages/tasks";
 import Goals from "@/pages/goals";
 import Financial from "@/pages/financial";
 import Employees from "@/pages/employees";
@@ -36,13 +32,9 @@ function Router() {
     <Switch>
       <ProtectedRoute path="/" component={Dashboard} />
       <ProtectedRoute path="/calendar" component={Calendar} />
-      <ProtectedRoute path="/animals" component={Animals} />
-      <ProtectedRoute path="/animals-new" component={AnimalsNew} />
-      <ProtectedRoute path="/animals-new/:id" component={AnimalDetails} />
       <ProtectedRoute path="/crops" component={CropsBasic} />
       <ProtectedRoute path="/inventory" component={Inventory} />
       <ProtectedRoute path="/inventory-transactions" component={InventoryTransactions} />
-      <ProtectedRoute path="/tasks" component={Tasks} />
       <ProtectedRoute path="/farms/:farmId/goals" component={Goals} />
       <ProtectedRoute path="/financial" component={Financial} />
       <ProtectedRoute path="/costs/create/:farmId" component={CreateCost} />
