@@ -90,6 +90,7 @@ import {
   MapPin,
   Globe,
   Info,
+  CheckCircle,
 } from 'lucide-react';
 import { useLocation } from 'wouter';
 
@@ -1324,6 +1325,7 @@ export default function Admin() {
                           onChange={() => setRestoreMode('merge')}
                         />
                         <label htmlFor="restore-merge">{t('admin.restoreMerge')}</label>
+                        <Info className="h-4 w-4 ml-1 text-gray-500" />
                       </div>
                       <div className="flex items-center space-x-2">
                         <input 
@@ -1335,6 +1337,7 @@ export default function Admin() {
                           onChange={() => setRestoreMode('overwrite')}
                         />
                         <label htmlFor="restore-overwrite">{t('admin.restoreOverwrite')}</label>
+                        <Info className="h-4 w-4 ml-1 text-gray-500" />
                       </div>
                     </div>
                   </div>
