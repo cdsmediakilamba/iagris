@@ -54,6 +54,18 @@ export default function Sidebar({ isOpen }: SidebarProps) {
       active: location.includes('/goals'),
     },
     {
+      title: t('common.animals'),
+      icon: <PawPrint className="mr-4 h-5 w-5" />,
+      path: '/animals',
+      active: location === '/animals',
+    },
+    {
+      title: t('common.animals') + " (Nova)",
+      icon: <PawPrint className="mr-4 h-5 w-5" />,
+      path: '/animals-new',
+      active: location === '/animals-new',
+    },
+    {
       title: t('common.crops'),
       icon: <Leaf className="mr-4 h-5 w-5" />,
       path: '/crops',

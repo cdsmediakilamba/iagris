@@ -21,6 +21,12 @@ export default function MobileNav() {
       active: location === '/',
     },
     {
+      title: t('common.animals'),
+      icon: <PawPrint className="h-5 w-5" />,
+      path: '/animals',
+      active: location === '/animals',
+    },
+    {
       title: t('common.crops'),
       icon: <Leaf className="h-5 w-5" />,
       path: '/crops',
