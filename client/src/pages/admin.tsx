@@ -1336,7 +1336,7 @@ export default function Admin() {
                           checked={restoreMode === 'overwrite'}
                           onChange={() => setRestoreMode('overwrite')}
                         />
-                        <label htmlFor="restore-overwrite">{t('admin.restoreOverwrite')}</label>
+                        <label htmlFor="restore-overwrite">{t('admin.backupOverwriteMode')}</label>
                         <Info className="h-4 w-4 ml-1 text-gray-500" />
                       </div>
                     </div>
@@ -1384,23 +1384,44 @@ export default function Admin() {
                     <div className="space-y-2">
                       <div className="flex flex-col">
                         <label className="text-sm font-medium mb-1">{t('admin.systemName')}</label>
-                        <Input defaultValue="FarmManager Pro" />
+                        <Input defaultValue="IAGris" readOnly />
+                        <p className="text-xs text-gray-500 mt-1">{t('admin.systemNameReadOnly')}</p>
                       </div>
                       
                       <div className="flex flex-col">
                         <label className="text-sm font-medium mb-1">{t('admin.companyName')}</label>
-                        <Input defaultValue="Fazenda Bela Vista" />
+                        <Input 
+                          defaultValue="Fazenda Modelo Angola" 
+                          placeholder={t('admin.enterCompanyName')}
+                        />
                       </div>
                       
                       <div className="flex flex-col">
                         <label className="text-sm font-medium mb-1">{t('admin.defaultLanguage')}</label>
-                        <Select defaultValue="pt">
+                        <Select 
+                          defaultValue={language}
+                          onValueChange={(value) => {
+                            // Atualizar o idioma no contexto e salvar preferência
+                            if (value !== language) {
+                              if (confirm(t('admin.changeLanguageConfirm'))) {
+                                localStorage.setItem('language', value);
+                                toast({
+                                  title: t('admin.languageChanged'),
+                                  description: t('admin.languageChangedDescription'),
+                                });
+                                
+                                // Em uma implementação real, recarregaríamos a página
+                                // window.location.reload();
+                              }
+                            }
+                          }}
+                        >
                           <SelectTrigger>
-                            <SelectValue placeholder={t('settings.language')} />
+                            <SelectValue placeholder={t('common.language')} />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="pt">{t('settings.languageOptions.pt')}</SelectItem>
-                            <SelectItem value="en">{t('settings.languageOptions.en')}</SelectItem>
+                            <SelectItem value="pt">{t('common.portuguese')}</SelectItem>
+                            <SelectItem value="en">{t('common.english')}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -1484,9 +1505,25 @@ export default function Admin() {
                   </div>
                 </div>
                 
-                <Button className="mt-6">
+                <Button 
+                  className="mt-6"
+                  onClick={() => {
+                    // Simular salvamento das configurações
+                    toast({
+                      title: t('common.success'),
+                      description: t('admin.settingsSaved'),
+                    });
+                    
+                    // Adicionar um log para o histórico
+                    const now = new Date();
+                    const today = now.toISOString().split('T')[0];
+                    const timeStr = now.toTimeString().split(' ')[0];
+                    const settingsLog = `[${today} ${timeStr}] [INFO] Configurações do sistema atualizadas por ${user?.username}`;
+                    setSystemLogs(prev => [settingsLog, ...prev]);
+                  }}
+                >
                   <Save className="mr-2 h-4 w-4" />
-                  {t('settings.saveChanges')}
+                  {t('common.saveChanges')}
                 </Button>
               </div>
             </CardContent>
