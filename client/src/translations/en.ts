@@ -505,7 +505,6 @@ export const en = {
     backupCreatedDescription: 'Your backup was created and is ready for download',
     backupError: 'Error creating backup',
     backupErrorDescription: 'An error occurred while creating the backup. Please try again later.',
-    backupRestore: 'Restore Backup',
     backupRestoreDescription: 'Restore a previous backup of the system',
     backupSelectFile: 'Select backup file',
     backupChooseFile: 'Choose file',

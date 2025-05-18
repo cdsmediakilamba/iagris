@@ -1182,9 +1182,9 @@ export default function Admin() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>{t('admin.createBackup')}</CardTitle>
+                <CardTitle>{t('admin.backupCreate')}</CardTitle>
                 <CardDescription>
-                  {t('admin.createBackupDescription')}
+                  {t('admin.backupCreateDescription')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -1278,18 +1278,18 @@ export default function Admin() {
             
             <Card>
               <CardHeader>
-                <CardTitle>{t('admin.restoreBackup')}</CardTitle>
+                <CardTitle>{t('admin.backupRestore')}</CardTitle>
                 <CardDescription>
-                  {t('admin.restoreBackupDescription')}
+                  {t('admin.backupRestoreDescription')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="rounded-lg border p-4">
-                    <h3 className="font-medium mb-2">{t('admin.selectBackupFile')}</h3>
+                    <h3 className="font-medium mb-2">{t('admin.backupSelectFile')}</h3>
                     <div className="mt-2">
                       <label className="block">
-                        <span className="sr-only">{t('admin.chooseFile')}</span>
+                        <span className="sr-only">{t('admin.backupChooseFile')}</span>
                         <input 
                           type="file" 
                           className="block w-full text-sm text-gray-500
@@ -1306,14 +1306,14 @@ export default function Admin() {
                       {restoreFile && (
                         <p className="text-sm text-green-600 mt-2">
                           <CheckCircle className="inline-block h-4 w-4 mr-1" />
-                          {t('admin.fileSelected')}: {restoreFile.name} ({(restoreFile.size / 1024).toFixed(1)} KB)
+                          {t('admin.backupFileSelected')}: {restoreFile.name} ({(restoreFile.size / 1024).toFixed(1)} KB)
                         </p>
                       )}
                     </div>
                   </div>
                   
                   <div className="rounded-lg border p-4">
-                    <h3 className="font-medium mb-2">{t('admin.restoreOptions')}</h3>
+                    <h3 className="font-medium mb-2">{t('admin.backupRestoreOptions')}</h3>
                     <div className="space-y-2">
                       <div className="flex items-center space-x-2">
                         <input 
@@ -1324,7 +1324,7 @@ export default function Admin() {
                           checked={restoreMode === 'merge'}
                           onChange={() => setRestoreMode('merge')}
                         />
-                        <label htmlFor="restore-merge">{t('admin.restoreMerge')}</label>
+                        <label htmlFor="restore-merge">{t('admin.backupMergeMode')}</label>
                         <Info className="h-4 w-4 ml-1 text-gray-500" />
                       </div>
                       <div className="flex items-center space-x-2">
