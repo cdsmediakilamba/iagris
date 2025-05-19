@@ -50,6 +50,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes
   setupAuth(app);
   
+  // Weather API endpoint
+  app.get("/api/weather/key", (req, res) => {
+    // Return the OpenWeather API key from environment variables
+    res.json({ key: process.env.OPENWEATHER_API_KEY });
+  });
+  
   // Define middleware for role and module access checking
   const { checkRole, checkModuleAccess } = app.locals;
   

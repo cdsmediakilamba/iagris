@@ -105,9 +105,20 @@ export default function WeatherCard({
       }
       
       try {
+        // Get the API key from the server
+        const apiKeyResponse = await fetch('/api/weather/key');
+        const apiKeyData = await apiKeyResponse.json();
+        const weatherApiKey = apiKeyData.key;
+        
+        if (!weatherApiKey) {
+          console.error('No API key available');
+          setIsLoading(false);
+          return;
+        }
+        
         // Fetch current weather
         const currentWeatherResponse = await axios.get(
-          `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(location)}&units=metric&appid=${apiKey}`
+          `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(location)}&units=metric&appid=${weatherApiKey}`
         );
         
         // Extract current weather data
@@ -117,7 +128,7 @@ export default function WeatherCard({
         
         // Fetch 5-day forecast
         const forecastResponse = await axios.get(
-          `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(location)}&units=metric&appid=${apiKey}`
+          `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(location)}&units=metric&appid=${weatherApiKey}`
         );
         
         // Process forecast data (we need daily forecast, not 3-hour intervals)
@@ -162,7 +173,7 @@ export default function WeatherCard({
     
     setIsLoading(true);
     fetchWeatherData();
-  }, [location, apiKey]);
+  }, [location]);
 
   if (isLoading) {
     return (
