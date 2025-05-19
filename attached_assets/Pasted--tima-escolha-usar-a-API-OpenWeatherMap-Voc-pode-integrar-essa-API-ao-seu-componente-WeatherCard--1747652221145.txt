@@ -1,0 +1,84 @@
+Ótima escolha usar a API OpenWeatherMap! Você pode integrar essa API ao seu componente WeatherCard. Aqui estão os passos para utilizar a chave API que você forneceu (af1a0f9f1f6ef7d2adce861e96489c4b):
+
+Certifique-se de ter o Axios instalado no seu projeto. Se ainda não o fez, você pode instalar com o seguinte comando:
+
+npm install axios
+Substitua a implementação do componente WeatherCard para buscar dados da API. Aqui está um exemplo modificado do seu componente:
+
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useLanguage } from '@/context/LanguageContext';
+import { CloudRain, CloudSun, Sun } from 'lucide-react';
+interface WeatherDay {
+  day: string;
+  icon: 'sunny' | 'cloudy' | 'rainy';
+  temperature: number;
+}
+interface WeatherCardProps {
+  location: string;
+  lastUpdated: string;
+}
+export default function WeatherCard({ location }: WeatherCardProps) {
+  const { t } = useLanguage();
+  const [weatherData, setWeatherData] = useState<any>(null);
+  const [forecast, setForecast] = useState<WeatherDay[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  useEffect(() => {
+    const fetchWeatherData = async () => {
+      try {
+        const response = await axios.get(`https://api.openweathermap.org/data/2.5/weather?q=${location}&units=metric&appid=af1a0f9f1f6ef7d2adce861e96489c4b`);
+        setWeatherData({
+          temperature: response.data.main.temp,
+          condition: response.data.weather[0].main.toLowerCase(),
+        });
+        
+        // Aqui você pode adicionar uma lógica para buscar a previsão dos próximos dias
+        setForecast([]); // Substitua isso pela lógica de previsão
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error fetching weather data:", error);
+        setIsLoading(false);
+      }
+    };
+    fetchWeatherData();
+  }, [location]);
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('dashboard.weather')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="animate-pulse flex flex-col items-center mb-4">
+            {/* Skeleton loading state */}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{t('dashboard.weather')}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-col items-center mb-4">
+          <div className="text-3xl font-medium">{weatherData.temperature}°C</div>
+          <div>{t(`dashboard.${weatherData.condition}`)}</div>
+          <div>{location}</div>
+        </div>
+        {/* Renderização da previsão */}
+        <div className="text-xs text-gray-500 text-center mt-2">
+          {t('dashboard.lastUpdated')}: {new Date().toLocaleString()}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+O que este código faz:
+Busca dados do clima para a localização passada usando a API OpenWeatherMap.
+Armazena dados no estado do componente e exibe a temperatura e a condição climática.
+Renderiza um estado de carregamento caso os dados ainda estejam sendo buscados.
+Nota:
+Não se esqueça de lidar com a lógica para buscar a previsão de clima para os próximos dias, substituindo a parte onde setForecast([]) está colocado.
