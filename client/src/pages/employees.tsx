@@ -204,11 +204,19 @@ export default function Employees() {
     mutationFn: async (data: z.infer<typeof formSchema>) => {
       if (!selectedFarmId) throw new Error("No farm selected");
       
-      // Call the API to create a new user
-      return apiRequest('POST', '/api/users', {
-        ...data,
+      // Use the API to register a new user
+      const userData = {
+        username: data.email.split('@')[0],
+        password: 'defaultpassword', // In a real app, we would use a proper password generation/management
+        name: data.name,
+        email: data.email,
+        role: 'employee',
+        language: 'pt',
         farmId: selectedFarmId
-      });
+      };
+      
+      // Register the new user
+      return apiRequest('POST', '/api/register', userData);
     },
     onSuccess: () => {
       // Invalidate the users query to refresh the list
