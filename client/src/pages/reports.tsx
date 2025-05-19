@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { ptBR, enUS } from 'date-fns/locale';
+import { useAuth } from '@/hooks/use-auth';
+import { UserRole } from '@shared/schema';
 import {
   Card,
   CardContent,
@@ -108,6 +110,7 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
 export default function Reports() {
   const { t, language } = useLanguage();
+  const { user } = useAuth();
   const [reportType, setReportType] = useState('production');
   const [timeRange, setTimeRange] = useState('month');
   const [farmId, setFarmId] = useState<string | null>(null);
@@ -119,6 +122,16 @@ export default function Reports() {
   const formatDate = (date: Date) => {
     return format(date, 'PPP', { locale: dateLocale });
   };
+
+  // Define se o usuário é admin geral (super_admin)
+  const isSuperAdmin = user?.role === UserRole.SUPER_ADMIN;
+  
+  // Se o usuário não for super_admin e tiver farmId definido, use-o como padrão
+  useEffect(() => {
+    if (!isSuperAdmin && user?.farmId && !farmId) {
+      setFarmId(user.farmId.toString());
+    }
+  }, [user, isSuperAdmin]);
 
   // Load data from API
   const { data: farms = [], isLoading: isLoadingFarms } = useQuery<any[]>({
@@ -141,6 +154,13 @@ export default function Reports() {
   const { data: inventory = [], isLoading: isLoadingInventory } = useQuery<any[]>({
     queryKey: ['/api/farms', farmId, 'inventory'],
     enabled: !!farmId && farmId !== 'all',
+  });
+  
+  // Carregar relatórios específicos (se implementados no backend)
+  const { data: reports = [], isLoading: isLoadingReports } = useQuery<any[]>({
+    queryKey: ['/api/reports', farmId],
+    // Apenas carregar se um farmId estiver selecionado ou se for super admin com "todos" selecionado
+    enabled: !!farmId || (isSuperAdmin && farmId === 'all'),
   });
 
   // Generate report download handler
@@ -209,31 +229,45 @@ export default function Reports() {
               </Select>
             </div>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('reports.farm')}
-              </label>
-              <Select
-                value={farmId || ''}
-                onValueChange={(value) => setFarmId(value || null)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={t('reports.selectFarm')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('reports.allFarms')}</SelectItem>
-                  {farms?.map((farm: any) => (
-                    <SelectItem key={farm.id} value={farm.id.toString()}>
-                      {farm.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Exibir seletor de fazenda apenas para administradores */}
+            {isSuperAdmin ? (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('reports.farm')}
+                </label>
+                <Select
+                  value={farmId || ''}
+                  onValueChange={(value) => setFarmId(value || null)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('reports.selectFarm')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('reports.allFarms')}</SelectItem>
+                    {farms?.map((farm: any) => (
+                      <SelectItem key={farm.id} value={farm.id.toString()}>
+                        {farm.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              // Para não-administradores, exibir o nome da fazenda atual
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('reports.currentFarm')}
+                </label>
+                <div className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background">
+                  {farms.find((farm: any) => farm.id.toString() === farmId)?.name || t('reports.loading')}
+                </div>
+              </div>
+            )}
             
             <Button 
               className="self-end"
               onClick={handleDownloadReport}
+              disabled={!farmId}
             >
               <Download className="mr-2 h-4 w-4" />
               {t('reports.downloadReport')}
@@ -276,56 +310,72 @@ export default function Reports() {
             </CardHeader>
             <CardContent>
               <div className="h-80">
-                {reportType === 'production' && (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={generateProductionData(animals, crops)}
-                      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Bar dataKey="animals" fill="#8884d8" name={t('reports.labels.livestock')} />
-                      <Bar dataKey="crops" fill="#82ca9d" name={t('reports.labels.crops')} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                )}
-                
-                {reportType === 'inventory' && (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={generateInventoryData(inventory)}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={true}
-                        label={({ name, percent }: {name: string, percent: number}) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={100}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {generateInventoryData(inventory).map((entry: any, index: number) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value) => [`${value}`, t('reports.labels.quantity')]} />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                )}
-                
-                {reportType === 'financial' && (
+                {!farmId ? (
+                  // Mostrar mensagem se nenhuma fazenda estiver selecionada (apenas para admins)
                   <div className="flex items-center justify-center h-full">
-                    <p className="text-gray-500">{t('reports.comingSoon')}</p>
+                    <p className="text-gray-500">{t('reports.selectFarmToView')}</p>
                   </div>
-                )}
-                
-                {reportType === 'tasks' && (
+                ) : (isLoadingAnimals || isLoadingCrops || isLoadingInventory) ? (
+                  // Mostrar indicador de carregamento enquanto os dados estão sendo buscados
                   <div className="flex items-center justify-center h-full">
-                    <p className="text-gray-500">{t('reports.comingSoon')}</p>
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <p className="ml-4 text-gray-500">{t('common.loading')}</p>
                   </div>
+                ) : (
+                  // Mostrar o gráfico apropriado baseado no tipo de relatório
+                  <>
+                    {reportType === 'production' && (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={generateProductionData(animals, crops)}
+                          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="name" />
+                          <YAxis />
+                          <Tooltip />
+                          <Legend />
+                          <Bar dataKey="animals" fill="#8884d8" name={t('reports.labels.livestock')} />
+                          <Bar dataKey="crops" fill="#82ca9d" name={t('reports.labels.crops')} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    )}
+                    
+                    {reportType === 'inventory' && (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={generateInventoryData(inventory)}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={true}
+                            label={({ name, percent }: {name: string, percent: number}) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                            outerRadius={100}
+                            fill="#8884d8"
+                            dataKey="value"
+                          >
+                            {generateInventoryData(inventory).map((entry: any, index: number) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip formatter={(value) => [`${value}`, t('reports.labels.quantity')]} />
+                          <Legend />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    )}
+                    
+                    {reportType === 'financial' && (
+                      <div className="flex items-center justify-center h-full">
+                        <p className="text-gray-500">{t('reports.comingSoon')}</p>
+                      </div>
+                    )}
+                    
+                    {reportType === 'tasks' && (
+                      <div className="flex items-center justify-center h-full">
+                        <p className="text-gray-500">{t('reports.comingSoon')}</p>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </CardContent>
