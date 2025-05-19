@@ -16,9 +16,28 @@ interface WeatherCardProps {
 }
 
 export default function WeatherCard({ 
-  location,
-  apiKey = 'af1a0f9f1f6ef7d2adce861e96489c4b' // OpenWeatherMap API key
+  location
 }: WeatherCardProps) {
+  // For accessing env vars in frontend client
+  // This will be injected during server-side rendering from the environment
+  const [apiKey, setApiKey] = useState<string>("");
+  
+  // Get the API key once the component mounts
+  useEffect(() => {
+    const fetchApiKey = async () => {
+      try {
+        const response = await fetch('/api/weather/key');
+        const data = await response.json();
+        if (data && data.key) {
+          setApiKey(data.key);
+        }
+      } catch (error) {
+        console.error('Error fetching API key:', error);
+      }
+    };
+    
+    fetchApiKey();
+  }, []);
   const { t } = useLanguage();
   const [temperature, setTemperature] = useState<number>(0);
   const [condition, setCondition] = useState<string>('clear');
@@ -182,7 +201,7 @@ export default function WeatherCard({
           {getWeatherIcon(condition)}
           <div className="text-3xl font-medium">{temperature}°C</div>
           <div className="text-gray-500 text-sm">
-            {t(`dashboard.${condition}`, condition)}
+            {t(`dashboard.${condition}`) || condition}
           </div>
           <div className="text-gray-500 text-sm">
             {location}
@@ -192,7 +211,7 @@ export default function WeatherCard({
           {forecast.map((day, index) => (
             <div key={index} className="p-2">
               <div className="font-medium">
-                {t(`dashboard.weekDays.${day.day}`, day.day)}
+                {t(`dashboard.weekDays.${day.day}`) || day.day}
               </div>
               {getWeatherIcon(day.icon, 'small')}
               <div>{day.temperature}°C</div>
