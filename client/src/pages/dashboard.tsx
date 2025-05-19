@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/hooks/use-auth';
@@ -10,18 +10,33 @@ import HarvestTracker from '@/components/dashboard/HarvestTracker';
 import { formatDate } from '@/lib/i18n';
 import { Leaf, DollarSign, CalendarDays, MapPin } from 'lucide-react';
 import { Crop, Inventory, Farm } from '@shared/schema';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 
 export default function Dashboard() {
   const { t, language } = useLanguage();
   const { user } = useAuth();
+  const [selectedFarmId, setSelectedFarmId] = useState<number | null>(null);
 
   // Farm data query
   const { data: farms, isLoading: isLoadingFarms } = useQuery<Farm[]>({
     queryKey: ['/api/farms'],
   });
 
-  // Use first farm for now (in real app, would have farm selector)
-  const currentFarm = farms && farms.length > 0 ? farms[0] : null;
+  // Set selected farm when farms are loaded
+  useEffect(() => {
+    if (farms && farms.length > 0 && !selectedFarmId) {
+      setSelectedFarmId(farms[0].id);
+    }
+  }, [farms, selectedFarmId]);
+
+  // Get current farm
+  const currentFarm = farms?.find(farm => farm.id === selectedFarmId) || null;
   const farmId = currentFarm?.id;
 
   // Crops query
@@ -58,9 +73,33 @@ export default function Dashboard() {
     <DashboardLayout>
       {/* Dashboard Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-medium text-gray-900 mb-2">
-          {t('dashboard.title')}
-        </h1>
+        <div className="flex flex-wrap justify-between items-center mb-2">
+          <h1 className="text-2xl font-medium text-gray-900">
+            {t('dashboard.title')}
+          </h1>
+          
+          {/* Farm Selector */}
+          {farms && farms.length > 0 && (
+            <div className="w-60">
+              <Select 
+                value={selectedFarmId?.toString()} 
+                onValueChange={(value) => setSelectedFarmId(Number(value))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={t('dashboard.selectFarm')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {farms.map((farm) => (
+                    <SelectItem key={farm.id} value={farm.id.toString()}>
+                      {farm.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
+        
         <div className="flex flex-wrap items-center text-sm text-gray-500 gap-2">
           <span className="flex items-center">
             <CalendarDays className="h-4 w-4 mr-1" />
@@ -76,7 +115,6 @@ export default function Dashboard() {
               {currentFarm?.location ? `, ${currentFarm.location}` : ''}
             </span>
           </span>
-
         </div>
       </div>
       

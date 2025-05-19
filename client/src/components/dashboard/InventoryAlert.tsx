@@ -16,10 +16,14 @@ export default function InventoryAlert({ items, isLoading = false, onOrder }: In
   const { t, language } = useLanguage();
 
   const getCriticalIcon = (quantity: number, minimumLevel: number | null | undefined) => {
-    if (!minimumLevel) return null;
+    // Convert to numbers to avoid NaN issues
+    const qtyNum = Number(quantity) || 0;
+    const minLevel = Number(minimumLevel) || 0;
+    
+    if (!minLevel) return null;
     
     // If quantity is less than 50% of minimum level, show high priority alert
-    if (quantity <= minimumLevel * 0.5) {
+    if (qtyNum <= minLevel * 0.5) {
       return <AlertCircle className="h-5 w-5 text-red-500" />;
     }
     
@@ -70,8 +74,13 @@ export default function InventoryAlert({ items, isLoading = false, onOrder }: In
                     {item.name}
                   </div>
                   <div className="text-xs text-gray-500">
-                    {t('inventory.stockLevel')}: {formatNumber(item.quantity, language)} {item.unit}
+                    {t('inventory.stockLevel')}: {formatNumber(item.quantity || 0, language)} {item.unit}
                   </div>
+                  {item.minimumLevel && (
+                    <div className="text-xs text-gray-500">
+                      {t('inventory.minimumLevel')}: {formatNumber(item.minimumLevel || 0, language)} {item.unit}
+                    </div>
+                  )}
                 </div>
               </div>
               <Button 

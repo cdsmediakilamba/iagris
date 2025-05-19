@@ -19,6 +19,23 @@ export default function HarvestTracker({ crops, progressPercentage, isLoading = 
     if (!date) return '-';
     return formatRelativeTime(new Date(date), new Date(), language);
   };
+  
+  // Sort crops by expected harvest date (soonest first)
+  const upcomingHarvests = React.useMemo(() => {
+    const today = new Date();
+    return crops
+      .filter(crop => 
+        crop.expectedHarvestDate && 
+        new Date(crop.expectedHarvestDate) >= today && 
+        crop.status !== 'harvested'
+      )
+      .sort((a, b) => {
+        const dateA = a.expectedHarvestDate ? new Date(a.expectedHarvestDate).getTime() : Number.MAX_VALUE;
+        const dateB = b.expectedHarvestDate ? new Date(b.expectedHarvestDate).getTime() : Number.MAX_VALUE;
+        return dateA - dateB;
+      })
+      .slice(0, 3); // Get the top 3 upcoming harvests
+  }, [crops]);
 
   if (isLoading) {
     return (
@@ -67,8 +84,8 @@ export default function HarvestTracker({ crops, progressPercentage, isLoading = 
         </div>
         
         <div className="space-y-4">
-          {crops.length > 0 ? (
-            crops.slice(0, 3).map((crop) => (
+          {upcomingHarvests.length > 0 ? (
+            upcomingHarvests.map((crop) => (
               <div key={crop.id} className="flex">
                 <div className="flex-shrink-0 h-12 w-12 rounded-md bg-primary bg-opacity-10 flex items-center justify-center mr-3">
                   <Leaf className="h-5 w-5 text-primary" />
