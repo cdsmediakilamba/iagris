@@ -96,86 +96,26 @@ const employeeSchema = z.object({
   farmId: z.number()
 });
 
-type Employee = {
+// A user in our system can be considered an employee
+interface Employee {
   id: number;
+  username: string;
   name: string;
-  position: string;
   email: string;
-  phone: string;
+  role: string;
+  language: string;
+  farmId: number | null;
+  createdAt: string;
+  
+  // Additional employee properties that might come from the user API
+  position?: string;
+  phone?: string;
   address?: string;
-  hireDate: Date;
-  status: "active" | "onLeave" | "inactive";
-  role: UserRole;
-  farmId: number;
-  createdAt: Date;
-};
+  hireDate?: string;
+  status?: "active" | "onLeave" | "inactive";
+}
 
-// Sample employees data - in a real app this would come from the API
-const mockEmployees: Employee[] = [
-  {
-    id: 1,
-    name: "Carlos Silva",
-    position: "Farm Manager",
-    email: "carlos.silva@farmmanager.com",
-    phone: "+244 923 456 789",
-    address: "Fazenda Bela Vista, Huambo, Angola",
-    hireDate: new Date(2021, 3, 15),
-    status: "active",
-    role: UserRole.MANAGER,
-    farmId: 1,
-    createdAt: new Date(2021, 3, 15)
-  },
-  {
-    id: 2,
-    name: "Maria Santos",
-    position: "Veterinarian",
-    email: "maria.santos@farmmanager.com",
-    phone: "+244 912 345 678",
-    address: "Huambo, Angola",
-    hireDate: new Date(2021, 6, 10),
-    status: "active",
-    role: UserRole.VETERINARIAN,
-    farmId: 1,
-    createdAt: new Date(2021, 6, 10)
-  },
-  {
-    id: 3,
-    name: "João Pereira",
-    position: "Field Worker",
-    email: "joao.pereira@farmmanager.com",
-    phone: "+244 934 567 890",
-    hireDate: new Date(2022, 1, 5),
-    status: "active",
-    role: UserRole.EMPLOYEE,
-    farmId: 1,
-    createdAt: new Date(2022, 1, 5)
-  },
-  {
-    id: 4,
-    name: "Ana Rodrigues",
-    position: "Agronomist",
-    email: "ana.rodrigues@farmmanager.com",
-    phone: "+244 955 678 901",
-    address: "Lubango, Angola",
-    hireDate: new Date(2022, 3, 20),
-    status: "onLeave",
-    role: UserRole.AGRONOMIST,
-    farmId: 1,
-    createdAt: new Date(2022, 3, 20)
-  },
-  {
-    id: 5,
-    name: "Paulo Costa",
-    position: "Inventory Manager",
-    email: "paulo.costa@farmmanager.com",
-    phone: "+244 923 789 012",
-    hireDate: new Date(2022, 5, 15),
-    status: "inactive",
-    role: UserRole.EMPLOYEE,
-    farmId: 1,
-    createdAt: new Date(2022, 5, 15)
-  }
-];
+// We'll use users from the API instead of mock data
 
 export default function Employees() {
   const { t, language } = useLanguage();
@@ -190,13 +130,13 @@ export default function Employees() {
   const canManageEmployees = user?.role === 'farm_admin' || user?.role === 'manager' || user?.role === 'super_admin';
 
   // Get user's farms
-  const { data: farms, isLoading: isLoadingFarms } = useQuery({
+  const { data: farms = [], isLoading: isLoadingFarms } = useQuery<any[]>({
     queryKey: ['/api/farms'],
   });
 
   // Use first farm by default
   React.useEffect(() => {
-    if (farms && farms.length > 0 && !selectedFarmId) {
+    if (farms.length > 0 && !selectedFarmId) {
       setSelectedFarmId(farms[0].id);
     }
   }, [farms, selectedFarmId]);
@@ -258,28 +198,21 @@ export default function Employees() {
     },
   });
 
-  // Create employee mutation (would connect to API in real app)
+  // Create employee mutation to connect to API
   const createEmployee = useMutation({
     mutationFn: async (data: z.infer<typeof formSchema>) => {
       if (!selectedFarmId) throw new Error("No farm selected");
       
-      // In a real app, this would call the API
-      // const response = await apiRequest('POST', `/api/farms/${selectedFarmId}/employees`, {
-      //   ...data,
-      //   farmId: selectedFarmId
-      // });
-      // return response.json();
-      
-      // For now, just return a mock success after a delay
-      return new Promise(resolve => {
-        setTimeout(() => {
-          resolve({ success: true });
-        }, 500);
+      // Call the API to create a new user
+      const response = await apiRequest('POST', '/api/users', {
+        ...data,
+        farmId: selectedFarmId
       });
+      return response;
     },
     onSuccess: () => {
-      // In a real app, invalidate the queries
-      // queryClient.invalidateQueries({ queryKey: ['/api/farms', selectedFarmId, 'employees'] });
+      // Invalidate the users query to refresh the list
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
       
       toast({
         title: t('employees.employeeAdded'),
@@ -302,31 +235,49 @@ export default function Employees() {
     createEmployee.mutate(data);
   };
 
-  // Status badge renderer
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active':
+  // Status badge renderer for roles
+  const getRoleBadge = (role: string) => {
+    switch (role) {
+      case 'super_admin':
+        return (
+          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+            {t('employees.roles.super_admin')}
+          </Badge>
+        );
+      case 'farm_admin':
+        return (
+          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+            {t('employees.roles.farm_admin')}
+          </Badge>
+        );
+      case 'manager':
         return (
           <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-            {t('employees.statuses.active')}
+            {t('employees.roles.manager')}
           </Badge>
         );
-      case 'onLeave':
+      case 'employee':
         return (
-          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
-            {t('employees.statuses.onLeave')}
+          <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
+            {t('employees.roles.employee')}
           </Badge>
         );
-      case 'inactive':
+      case 'veterinarian':
         return (
-          <Badge variant="outline" className="bg-gray-50 text-gray-500 border-gray-200">
-            {t('employees.statuses.inactive')}
+          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+            {t('employees.roles.veterinarian')}
+          </Badge>
+        );
+      case 'agronomist':
+        return (
+          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+            {t('employees.roles.agronomist')}
           </Badge>
         );
       default:
         return (
           <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
-            {status}
+            {role}
           </Badge>
         );
     }
