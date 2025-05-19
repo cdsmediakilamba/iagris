@@ -155,20 +155,20 @@ export default function Employees() {
     let filteredList = employees;
     
     // If not super admin and farm is selected, filter by farm
-    if (user?.role !== UserRole.SUPER_ADMIN && selectedFarmId) {
+    if (user?.role !== 'super_admin' && selectedFarmId) {
       filteredList = filteredList.filter(employee => employee.farmId === selectedFarmId);
     }
     
     // Filter by status if not showing all
     if (activeTab !== 'all') {
-      filteredList = filteredList.filter(employee => employee.status === activeTab);
+      filteredList = filteredList.filter(employee => employee.role === activeTab);
     }
     
     // Apply search filter
     if (searchTerm) {
       filteredList = filteredList.filter(employee => 
         employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (employee.position && employee.position.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        employee.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
         employee.email.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
@@ -544,10 +544,10 @@ export default function Employees() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>{t('employees.name')}</TableHead>
-                    <TableHead>{t('employees.position')}</TableHead>
+                    <TableHead>{t('employees.username')}</TableHead>
                     <TableHead>{t('employees.contact')}</TableHead>
-                    <TableHead>{t('employees.hireDate')}</TableHead>
-                    <TableHead>{t('employees.status')}</TableHead>
+                    <TableHead>{t('employees.createdAt')}</TableHead>
+                    <TableHead>{t('employees.language')}</TableHead>
                     <TableHead>{t('employees.role')}</TableHead>
                     <TableHead>{t('common.actions')}</TableHead>
                   </TableRow>
@@ -586,16 +586,16 @@ export default function Employees() {
                       <TableCell>
                         <div className="flex items-center">
                           <Calendar className="h-4 w-4 mr-2 text-gray-500" />
-                          {formatDate(employee.hireDate, 'P', language)}
+                          {formatDate(new Date(employee.createdAt), language)}
                         </div>
                       </TableCell>
                       <TableCell>
-                        {getStatusBadge(employee.status)}
+                        <Badge variant="outline" className="capitalize">
+                          {employee.language === 'pt' ? 'Português' : 'English'}
+                        </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                          {t(`employees.roles.${employee.role}`)}
-                        </Badge>
+                        {getRoleBadge(employee.role)}
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>
