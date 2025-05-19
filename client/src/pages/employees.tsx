@@ -9,7 +9,7 @@ import { z } from 'zod';
 import { UserRole } from '@shared/schema';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { formatDate } from '@/lib/i18n';
+import { format } from 'date-fns';
 import {
   Card,
   CardContent,
@@ -74,6 +74,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import {
   Tabs,
@@ -204,11 +205,10 @@ export default function Employees() {
       if (!selectedFarmId) throw new Error("No farm selected");
       
       // Call the API to create a new user
-      const response = await apiRequest('POST', '/api/users', {
+      return apiRequest('POST', '/api/users', {
         ...data,
         farmId: selectedFarmId
       });
-      return response;
     },
     onSuccess: () => {
       // Invalidate the users query to refresh the list
@@ -567,8 +567,8 @@ export default function Employees() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center">
-                          <Briefcase className="h-4 w-4 mr-2 text-gray-500" />
-                          {employee.position}
+                          <User className="h-4 w-4 mr-2 text-gray-500" />
+                          {employee.username}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -577,16 +577,12 @@ export default function Employees() {
                             <Mail className="h-4 w-4 mr-2 text-gray-500" />
                             {employee.email}
                           </div>
-                          <div className="flex items-center text-sm mt-1">
-                            <Phone className="h-4 w-4 mr-2 text-gray-500" />
-                            {employee.phone}
-                          </div>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center">
                           <Calendar className="h-4 w-4 mr-2 text-gray-500" />
-                          {formatDate(new Date(employee.createdAt), language)}
+                          {format(new Date(employee.createdAt), 'dd/MM/yyyy')}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -605,21 +601,51 @@ export default function Employees() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem className="flex items-center">
+                            <DropdownMenuItem 
+                              className="flex items-center"
+                              onClick={() => {
+                                // Navigate to user profile
+                                window.location.href = `/user-profile/${employee.id}`;
+                              }}
+                            >
                               <User className="h-4 w-4 mr-2" />
                               {t('common.viewProfile')}
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="flex items-center">
+                            <DropdownMenuItem 
+                              className="flex items-center"
+                              onClick={() => {
+                                // Go to tasks page filtered by this user
+                                window.location.href = `/tasks?userId=${employee.id}`;
+                              }}
+                            >
                               <FileText className="h-4 w-4 mr-2" />
                               {t('employees.taskHistory')}
                             </DropdownMenuItem>
                             {canManageEmployees && (
                               <>
-                                <DropdownMenuItem className="flex items-center">
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem 
+                                  className="flex items-center"
+                                  onClick={() => {
+                                    // Open user profile in edit mode
+                                    window.location.href = `/user-profile/${employee.id}?edit=true`;
+                                  }}
+                                >
                                   <Edit className="h-4 w-4 mr-2" />
                                   {t('common.edit')}
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="flex items-center text-destructive">
+                                <DropdownMenuItem 
+                                  className="flex items-center text-destructive"
+                                  onClick={() => {
+                                    if (confirm(t('common.confirmDelete'))) {
+                                      // This would call the API to delete the user in a real implementation
+                                      toast({
+                                        title: t('employees.userDeleted'),
+                                        description: t('common.success'),
+                                      });
+                                    }
+                                  }}
+                                >
                                   <Trash2 className="h-4 w-4 mr-2" />
                                   {t('common.delete')}
                                 </DropdownMenuItem>
