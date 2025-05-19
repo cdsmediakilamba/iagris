@@ -187,7 +187,7 @@ export default function Employees() {
   const [activeTab, setActiveTab] = useState('all');
 
   // Check if user has permission to manage employees
-  const canManageEmployees = user?.role === UserRole.ADMIN || user?.role === UserRole.MANAGER;
+  const canManageEmployees = user?.role === 'farm_admin' || user?.role === 'manager' || user?.role === 'super_admin';
 
   // Get user's farms
   const { data: farms, isLoading: isLoadingFarms } = useQuery({
@@ -201,21 +201,23 @@ export default function Employees() {
     }
   }, [farms, selectedFarmId]);
 
-  // In a real app, we would fetch employees from the API
-  // const { data: employees, isLoading: isLoadingEmployees } = useQuery<Employee[]>({
-  //   queryKey: ['/api/farms', selectedFarmId, 'employees'],
-  //   enabled: !!selectedFarmId,
-  // });
-  
-  // For now, we use mock data
-  const isLoadingEmployees = false;
-  const employees = mockEmployees;
+  // Get employees from the API
+  const { data: employees, isLoading: isLoadingEmployees } = useQuery<Employee[]>({
+    queryKey: ['/api/users'],
+    // If user is not a SUPER_ADMIN, we only want employees for the selected farm
+    enabled: true,
+  });
 
-  // Filter employees based on tab and search term
+  // Filter employees based on tab, search term, and selected farm
   const getFilteredEmployees = () => {
     if (!employees) return [];
     
     let filteredList = employees;
+    
+    // If not super admin and farm is selected, filter by farm
+    if (user?.role !== UserRole.SUPER_ADMIN && selectedFarmId) {
+      filteredList = filteredList.filter(employee => employee.farmId === selectedFarmId);
+    }
     
     // Filter by status if not showing all
     if (activeTab !== 'all') {
@@ -226,7 +228,7 @@ export default function Employees() {
     if (searchTerm) {
       filteredList = filteredList.filter(employee => 
         employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        employee.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (employee.position && employee.position.toLowerCase().includes(searchTerm.toLowerCase())) ||
         employee.email.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
