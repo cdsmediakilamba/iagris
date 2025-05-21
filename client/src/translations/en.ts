@@ -175,6 +175,7 @@ export const en = {
     status: {
       needsAttention: 'Needs Attention'
     },
+    statusText: 'Status',
     speciesTypes: {
       'Bovino': 'Cattle',
       'Caprino': 'Goat',
