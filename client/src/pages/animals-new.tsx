@@ -960,7 +960,7 @@ export default function NewAnimalsPage() {
                   <SelectValue placeholder={t('animals.species')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="all">{t('common.all')}</SelectItem>
                   {speciesList.map((species) => (
                     <SelectItem key={species.id} value={species.id.toString()}>
                       {species.name}
@@ -978,7 +978,7 @@ export default function NewAnimalsPage() {
                   <SelectValue placeholder={t('animals.healthStatus')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="all">{t('common.all')}</SelectItem>
                   <SelectItem value="healthy">{t('animals.statuses.healthy')}</SelectItem>
                   <SelectItem value="sick">{t('animals.statuses.sick')}</SelectItem>
                   <SelectItem value="treatment">{t('animals.statuses.treatment')}</SelectItem>
@@ -997,7 +997,7 @@ export default function NewAnimalsPage() {
                   <SelectValue placeholder={t('animals.gender')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="all">{t('common.all')}</SelectItem>
                   <SelectItem value="male">{t('animals.genders.male')}</SelectItem>
                   <SelectItem value="female">{t('animals.genders.female')}</SelectItem>
                 </SelectContent>
