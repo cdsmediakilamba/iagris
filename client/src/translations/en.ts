@@ -144,6 +144,7 @@ export const en = {
     lastUpdated: 'Last updated', 
     status: 'Status',
     selectFarm: 'Select Farm',
+    selectCity: 'Select a city',
     clear: 'Clear',
     weekDays: {
       mon: 'Mon',

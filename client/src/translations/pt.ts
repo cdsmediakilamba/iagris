@@ -160,6 +160,7 @@ export const pt = {
     pendingTasks: 'Tarefas Pendentes',
     animalHealth: 'Estado Sanitário dos Animais',
     weather: 'Clima',
+    selectCity: 'Selecione uma cidade',
     criticalInventory: 'Inventário Crítico',
     upcomingHarvests: 'Próximas Colheitas',
     progress: 'Progresso',
