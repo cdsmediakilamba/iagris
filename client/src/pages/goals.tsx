@@ -420,9 +420,9 @@ export default function GoalsPage() {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Nome da Meta</FormLabel>
+                          <FormLabel>{t('goals.goalName')}</FormLabel>
                           <FormControl>
-                            <Input placeholder="Ex: Aumentar produção de milho" {...field} />
+                            <Input placeholder={t('goals.goalNamePlaceholder')} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -434,10 +434,10 @@ export default function GoalsPage() {
                       name="description"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Descrição</FormLabel>
+                          <FormLabel>{t('goals.goalDescription')}</FormLabel>
                           <FormControl>
                             <Textarea 
-                              placeholder="Descreva o objetivo em detalhes" 
+                              placeholder={t('goals.descriptionPlaceholder')} 
                               className="resize-none"
                               {...field} 
                             />
@@ -457,19 +457,19 @@ export default function GoalsPage() {
                         
                         return (
                           <FormItem>
-                            <FormLabel>Responsável</FormLabel>
+                            <FormLabel>{t('goals.responsiblePerson')}</FormLabel>
                             <Select
                               value={field.value}
                               onValueChange={field.onChange}
                             >
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Selecione um responsável" />
+                                  <SelectValue placeholder={t('goals.selectResponsible')} />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
                                 {employeeUsers.length === 0 ? (
-                                  <SelectItem value="0" disabled>Nenhum funcionário disponível</SelectItem>
+                                  <SelectItem value="0" disabled>{t('goals.noEmployeesAvailable')}</SelectItem>
                                 ) : (
                                   employeeUsers.map((user: any) => (
                                     <SelectItem 
@@ -494,7 +494,7 @@ export default function GoalsPage() {
                         name="startDate"
                         render={({ field }) => (
                           <FormItem className="flex flex-col">
-                            <FormLabel>Data de Início</FormLabel>
+                            <FormLabel>{t('goals.startDate')}</FormLabel>
                             <Popover>
                               <PopoverTrigger asChild>
                                 <FormControl>
@@ -508,7 +508,7 @@ export default function GoalsPage() {
                                     {field.value ? (
                                       format(field.value, "dd/MM/yyyy")
                                     ) : (
-                                      <span>Selecione a data</span>
+                                      <span>{t('goals.selectDate')}</span>
                                     )}
                                     <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                                   </Button>
@@ -533,7 +533,7 @@ export default function GoalsPage() {
                         name="endDate"
                         render={({ field }) => (
                           <FormItem className="flex flex-col">
-                            <FormLabel>Data de Término</FormLabel>
+                            <FormLabel>{t('goals.endDate')}</FormLabel>
                             <Popover>
                               <PopoverTrigger asChild>
                                 <FormControl>
@@ -547,7 +547,7 @@ export default function GoalsPage() {
                                     {field.value ? (
                                       format(field.value, "dd/MM/yyyy")
                                     ) : (
-                                      <span>Selecione a data</span>
+                                      <span>{t('goals.selectDate')}</span>
                                     )}
                                     <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                                   </Button>
@@ -574,7 +574,7 @@ export default function GoalsPage() {
                         name="targetValue"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Valor Alvo</FormLabel>
+                            <FormLabel>{t('goals.targetValue')}</FormLabel>
                             <FormControl>
                               <Input type="text" {...field} />
                             </FormControl>
@@ -588,7 +588,7 @@ export default function GoalsPage() {
                         name="unit"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Unidade</FormLabel>
+                            <FormLabel>{t('goals.unit')}</FormLabel>
                             <Select 
                               onValueChange={field.onChange} 
                               defaultValue={field.value}
@@ -596,16 +596,16 @@ export default function GoalsPage() {
                             >
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Selecione uma unidade" />
+                                  <SelectValue placeholder={t('goals.selectUnit')} />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="hectares">Hectares</SelectItem>
-                                <SelectItem value="meters">Metros</SelectItem>
-                                <SelectItem value="units">Unidades</SelectItem>
-                                <SelectItem value="kilograms">Quilogramas</SelectItem>
-                                <SelectItem value="liters">Litros</SelectItem>
-                                <SelectItem value="percentage">Porcentagem</SelectItem>
+                                <SelectItem value="hectares">{t('goals.units.hectares')}</SelectItem>
+                                <SelectItem value="meters">{t('goals.units.meters')}</SelectItem>
+                                <SelectItem value="units">{t('goals.units.units')}</SelectItem>
+                                <SelectItem value="kilograms">{t('goals.units.kilograms')}</SelectItem>
+                                <SelectItem value="liters">{t('goals.units.liters')}</SelectItem>
+                                <SelectItem value="percentage">{t('goals.units.percentage')}</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -620,7 +620,7 @@ export default function GoalsPage() {
                         name="status"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Status</FormLabel>
+                            <FormLabel>{t('goals.status')}</FormLabel>
                             <Select 
                               onValueChange={field.onChange} 
                               defaultValue={field.value}
@@ -628,15 +628,15 @@ export default function GoalsPage() {
                             >
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Selecione o status" />
+                                  <SelectValue placeholder={t('goals.selectUnit')} />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="pending">Pendente</SelectItem>
-                                <SelectItem value="in_progress">Em Progresso</SelectItem>
-                                <SelectItem value="partial">Parcial</SelectItem>
-                                <SelectItem value="completed">Concluída</SelectItem>
-                                <SelectItem value="cancelled">Cancelada</SelectItem>
+                                <SelectItem value="pending">{t('goals.pending')}</SelectItem>
+                                <SelectItem value="in_progress">{t('goals.inProgress')}</SelectItem>
+                                <SelectItem value="partial">{t('goals.partial')}</SelectItem>
+                                <SelectItem value="completed">{t('goals.completed')}</SelectItem>
+                                <SelectItem value="cancelled">{t('goals.cancelled')}</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -650,10 +650,10 @@ export default function GoalsPage() {
                       name="notes"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Notas (opcional)</FormLabel>
+                          <FormLabel>{t('goals.notes')}</FormLabel>
                           <FormControl>
                             <Textarea 
-                              placeholder="Notas adicionais sobre a meta" 
+                              placeholder={t('goals.notesPlaceholder')}
                               className="resize-none"
                               {...field} 
                             />
@@ -665,7 +665,7 @@ export default function GoalsPage() {
                     
                     <SheetFooter className="pt-4">
                       <SheetClose asChild>
-                        <Button variant="outline" type="button">Cancelar</Button>
+                        <Button variant="outline" type="button">{t('goals.cancel')}</Button>
                       </SheetClose>
                       <Button 
                         type="submit" 
@@ -674,7 +674,7 @@ export default function GoalsPage() {
                         {(createGoal.isPending || updateGoal.isPending) && (
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         )}
-                        {editingGoal ? "Atualizar Meta" : "Criar Meta"}
+                        {editingGoal ? t('goals.update') : t('goals.create')}
                       </Button>
                     </SheetFooter>
                   </form>
@@ -692,21 +692,26 @@ export default function GoalsPage() {
         onValueChange={setSelectedTab}
       >
         <TabsList className="mb-4">
-          <TabsTrigger value="all">Todas</TabsTrigger>
-          <TabsTrigger value="pending">Pendentes</TabsTrigger>
-          <TabsTrigger value="in_progress">Em Progresso</TabsTrigger>
-          <TabsTrigger value="partial">Parciais</TabsTrigger>
-          <TabsTrigger value="completed">Concluídas</TabsTrigger>
+          <TabsTrigger value="all">{t('goals.all')}</TabsTrigger>
+          <TabsTrigger value="pending">{t('goals.pending')}</TabsTrigger>
+          <TabsTrigger value="in_progress">{t('goals.inProgress')}</TabsTrigger>
+          <TabsTrigger value="partial">{t('goals.partial')}</TabsTrigger>
+          <TabsTrigger value="completed">{t('goals.completed')}</TabsTrigger>
         </TabsList>
         
         <TabsContent value={selectedTab}>
           <Card>
             <CardHeader>
               <CardTitle>
-                {selectedTab === "all" ? "Todas as Metas" : `Metas ${getStatusLabel(selectedTab)}`}
+                {selectedTab === "all" ? t('goals.allGoals') : 
+                  selectedTab === "pending" ? t('goals.pendingGoals') :
+                  selectedTab === "in_progress" ? t('goals.inProgressGoals') :
+                  selectedTab === "partial" ? t('goals.partialGoals') :
+                  t('goals.completedGoals')
+                }
               </CardTitle>
               <CardDescription>
-                Gerencie as metas e objetivos da fazenda
+                {t('goals.manageGoals')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -716,19 +721,19 @@ export default function GoalsPage() {
                 </div>
               ) : goals?.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  Nenhuma meta encontrada nesta categoria
+                  {t('goals.noGoalsFound')}
                 </div>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Responsável</TableHead>
-                      <TableHead>Prazo</TableHead>
-                      <TableHead>Meta</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Progresso</TableHead>
-                      <TableHead>Ações</TableHead>
+                      <TableHead>{t('goals.name')}</TableHead>
+                      <TableHead>{t('goals.responsiblePerson')}</TableHead>
+                      <TableHead>{t('goals.deadline')}</TableHead>
+                      <TableHead>{t('goals.goal')}</TableHead>
+                      <TableHead>{t('goals.status')}</TableHead>
+                      <TableHead>{t('goals.progress')}</TableHead>
+                      <TableHead>{t('goals.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -738,7 +743,7 @@ export default function GoalsPage() {
                           {goal.name}
                           {isOverdue(goal) && (
                             <Badge variant="destructive" className="ml-2 text-xs">
-                              Atrasada
+                              {t('goals.overdue')}
                             </Badge>
                           )}
                         </TableCell>
@@ -773,14 +778,14 @@ export default function GoalsPage() {
                                 size="sm"
                                 onClick={() => setEditingGoal(goal)}
                               >
-                                Editar
+                                {t('goals.edit')}
                               </Button>
                             </SheetTrigger>
                             <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
                               <SheetHeader>
-                                <SheetTitle>Editar Meta</SheetTitle>
+                                <SheetTitle>{t('goals.editGoal')}</SheetTitle>
                                 <SheetDescription>
-                                  Atualize as informações da meta.
+                                  {t('goals.updateDescription')}
                                 </SheetDescription>
                               </SheetHeader>
                               {editingGoal?.id === goal.id && (
