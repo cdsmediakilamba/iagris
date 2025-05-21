@@ -48,7 +48,7 @@ export default function Sidebar({ isOpen }: SidebarProps) {
       active: location === '/calendar',
     },
     {
-      title: 'Metas',
+      title: t('common.goals'),
       icon: <Target className="mr-4 h-5 w-5" />,
       path: `/farms/${user?.farmId || 12}/goals`,
       active: location.includes('/goals'),
@@ -60,7 +60,7 @@ export default function Sidebar({ isOpen }: SidebarProps) {
       active: location === '/animals',
     },
     {
-      title: t('common.animals') + " (Nova)",
+      title: t('common.animals') + (t('common.new') ? ` (${t('common.new')})` : " (Nova)"),
       icon: <PawPrint className="mr-4 h-5 w-5" />,
       path: '/animals-new',
       active: location === '/animals-new',

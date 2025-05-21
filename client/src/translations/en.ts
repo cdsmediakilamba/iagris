@@ -69,6 +69,7 @@ export const en = {
     pickDate: 'Pick a date',
     all: 'All',
     clear: 'Clear',
+    animals: 'Animals',
     select: 'Select',
     type: 'Type',
     quantity: 'Quantity',
