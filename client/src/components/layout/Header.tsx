@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/hooks/use-auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -18,6 +18,10 @@ import {
   LogOut,
   User,
   Settings,
+  AlertTriangle,
+  AlertCircle,
+  Info,
+  Check
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
@@ -27,11 +31,25 @@ interface HeaderProps {
   toggleSidebar: () => void;
 }
 
+interface Notification {
+  id: number;
+  title: string;
+  message: string;
+  time: string;
+  type: 'warning' | 'error' | 'info' | 'success';
+  forUser?: number | null; // ID do usuário específico ou null para todos
+  forRole?: string | null; // Função específica ou null para todos
+  isRead: boolean;
+  farmId?: number | null; // ID da fazenda específica ou null para todos
+}
+
 export default function Header({ toggleSidebar }: HeaderProps) {
   const { language, setLanguage, t } = useLanguage();
   const { user, logout } = useAuth();
   const [, setLocation] = useLocation();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const handleLogout = () => {
     logout(() => {
@@ -43,33 +61,112 @@ export default function Header({ toggleSidebar }: HeaderProps) {
     setLanguage(checked ? 'en' : 'pt');
   };
 
-  // Mock notifications for UI display
-  const notifications = [
-    {
-      id: 1,
-      title: t('dashboard.pendingTasks'),
-      message: t('animals.status.needsAttention'),
-      icon: 'warning',
-      time: '10:45',
-      type: 'warning',
-    },
-    {
-      id: 2,
-      title: t('crops.pestControl'),
-      message: t('dashboard.sector') + ' 3',
-      icon: 'pest_control',
-      time: '09:30',
-      type: 'error',
-    },
-    {
-      id: 3,
-      title: t('inventory.stockLevel'),
-      message: t('inventory.categories.feed'),
-      icon: 'inventory',
-      time: '16:20',
-      type: 'info',
-    },
-  ];
+  // Função para filtrar notificações com base no usuário atual
+  const filterNotificationsForUser = (allNotifications: Notification[]) => {
+    if (!user) return [];
+
+    return allNotifications.filter(notification => {
+      // Se a notificação é para um usuário específico, verificar se é o usuário atual
+      if (notification.forUser && notification.forUser !== user.id) {
+        return false;
+      }
+      
+      // Se a notificação é para uma função específica, verificar se o usuário tem essa função
+      if (notification.forRole && notification.forRole !== user.role) {
+        return false;
+      }
+      
+      // Se a notificação é para uma fazenda específica, verificar se o usuário tem acesso a essa fazenda
+      if (notification.farmId && user.farmId !== notification.farmId) {
+        // No caso de super_admin ou outros casos especiais, pode não precisar dessa verificação
+        if (user.role !== 'super_admin') {
+          return false;
+        }
+      }
+      
+      return true;
+    });
+  };
+
+  // Carregar notificações do sistema
+  useEffect(() => {
+    // Em uma implementação real, isso viria de uma API
+    const mockNotifications: Notification[] = [
+      {
+        id: 1,
+        title: t('notifications.taskUpdate'),
+        message: t('notifications.needsAttention'),
+        time: '10:45',
+        type: 'warning',
+        forUser: null, // Para todos os usuários
+        forRole: null, // Para todas as funções
+        isRead: false,
+        farmId: 6
+      },
+      {
+        id: 2,
+        title: t('notifications.animalHealth'),
+        message: t('dashboard.sector') + ' 3',
+        time: '09:30',
+        type: 'error',
+        forUser: null,
+        forRole: 'farm_admin', // Apenas para administradores de fazenda
+        isRead: false,
+        farmId: 6
+      },
+      {
+        id: 3,
+        title: t('notifications.inventoryAlert'),
+        message: t('inventory.categories.feed'),
+        time: '16:20',
+        type: 'info',
+        forUser: 10, // ID do usuário específico
+        forRole: null,
+        isRead: false,
+        farmId: null // Para todas as fazendas
+      },
+      {
+        id: 4,
+        title: t('notifications.systemAlert'),
+        message: t('notifications.generalNotification'),
+        time: '14:05',
+        type: 'success',
+        forUser: null,
+        forRole: 'super_admin', // Apenas para super administradores
+        isRead: false,
+        farmId: null
+      }
+    ];
+    
+    // Filtrar notificações para o usuário atual
+    const userNotifications = filterNotificationsForUser(mockNotifications);
+    setNotifications(userNotifications);
+    
+    // Atualizar contador de não lidas
+    setUnreadCount(userNotifications.filter(n => !n.isRead).length);
+  }, [t, user]);
+
+  // Marcar uma notificação como lida
+  const markAsRead = (id: number) => {
+    setNotifications(prev => 
+      prev.map(notification => 
+        notification.id === id 
+          ? { ...notification, isRead: true } 
+          : notification
+      )
+    );
+    
+    // Atualizar contador
+    setUnreadCount(prev => Math.max(0, prev - 1));
+  };
+
+  // Marcar todas as notificações como lidas
+  const markAllAsRead = () => {
+    setNotifications(prev => 
+      prev.map(notification => ({ ...notification, isRead: true }))
+    );
+    setUnreadCount(0);
+  };
 
   return (
     <header className="bg-white shadow-md z-10">
@@ -110,51 +207,87 @@ export default function Header({ toggleSidebar }: HeaderProps) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative p-1 rounded-full text-gray-600 hover:bg-gray-100">
                 <Bell className="h-5 w-5" />
-                <Badge className="absolute top-0 right-0 h-4 w-4 p-0 flex items-center justify-center bg-destructive text-white text-xs">
-                  {notifications.length}
-                </Badge>
+                {unreadCount > 0 && (
+                  <Badge className="absolute top-0 right-0 h-4 w-4 p-0 flex items-center justify-center bg-destructive text-white text-xs">
+                    {unreadCount}
+                  </Badge>
+                )}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-72">
-              <DropdownMenuLabel className="border-b border-gray-200 py-3">
-                {t('notifications.title')}
-              </DropdownMenuLabel>
-              <div className="max-h-72 overflow-y-auto">
-                {notifications.map((notification) => (
-                  <DropdownMenuItem
-                    key={notification.id}
-                    className="p-3 border-b border-gray-200 cursor-pointer hover:bg-gray-50"
+            <DropdownMenuContent className="w-80">
+              <DropdownMenuLabel className="border-b border-gray-200 py-3 flex justify-between items-center">
+                <span>{t('notifications.title')}</span>
+                {unreadCount > 0 && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-xs text-primary"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      markAllAsRead();
+                    }}
                   >
-                    <div className="flex items-start">
-                      <div className={`mr-2 ${
-                        notification.type === 'warning' ? 'text-amber-500' : 
-                        notification.type === 'error' ? 'text-red-500' : 
-                        'text-blue-500'
-                      }`}>
-                        {notification.type === 'warning' && <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>}
-                        {notification.type === 'error' && <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                        </svg>}
-                        {notification.type === 'info' && <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>}
+                    {t('notifications.markAllAsRead')}
+                  </Button>
+                )}
+              </DropdownMenuLabel>
+              
+              <div className="max-h-80 overflow-y-auto">
+                {notifications.length === 0 ? (
+                  <div className="p-4 text-center text-gray-500">
+                    {t('notifications.noNotifications')}
+                  </div>
+                ) : (
+                  notifications.map((notification) => (
+                    <DropdownMenuItem
+                      key={notification.id}
+                      className={`p-3 border-b border-gray-200 cursor-pointer hover:bg-gray-50 ${notification.isRead ? 'opacity-70' : 'bg-blue-50'}`}
+                      onClick={() => markAsRead(notification.id)}
+                    >
+                      <div className="flex items-start w-full">
+                        <div className={`mr-3 flex-shrink-0 ${
+                          notification.type === 'warning' ? 'text-amber-500' : 
+                          notification.type === 'error' ? 'text-red-500' : 
+                          notification.type === 'success' ? 'text-green-500' :
+                          'text-blue-500'
+                        }`}>
+                          {notification.type === 'warning' && <AlertTriangle className="h-5 w-5" />}
+                          {notification.type === 'error' && <AlertCircle className="h-5 w-5" />}
+                          {notification.type === 'success' && <Check className="h-5 w-5" />}
+                          {notification.type === 'info' && <Info className="h-5 w-5" />}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex justify-between">
+                            <p className="text-sm font-medium">
+                              {notification.title}
+                            </p>
+                            {!notification.isRead && (
+                              <span className="inline-block w-2 h-2 bg-blue-600 rounded-full ml-2"></span>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-700 mt-1">
+                            {notification.message}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {t('common.today')}, {notification.time}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-medium">
-                          {notification.message}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {t('common.today')}, {notification.time}
-                        </p>
-                      </div>
-                    </div>
-                  </DropdownMenuItem>
-                ))}
+                    </DropdownMenuItem>
+                  ))
+                )}
               </div>
+              
               <div className="p-2 bg-gray-50">
-                <Button variant="ghost" className="w-full py-2 text-sm text-center text-primary">
+                <Button 
+                  variant="ghost" 
+                  className="w-full py-2 text-sm text-center text-primary"
+                  onClick={() => {
+                    setNotificationsOpen(false);
+                    setLocation('/notifications');
+                  }}
+                >
                   {t('notifications.viewAll')}
                 </Button>
               </div>

@@ -820,6 +820,16 @@ export const pt = {
     clearAll: 'Limpar todas',
     noNotifications: 'Nenhuma notificação',
     viewAll: 'Ver todas as notificações',
+    newTask: 'Nova tarefa atribuída',
+    taskUpdate: 'Atualização de tarefa',
+    inventoryAlert: 'Alerta de estoque',
+    animalHealth: 'Alerta de saúde animal',
+    systemAlert: 'Alerta do sistema',
+    personalNotification: 'Notificação pessoal',
+    generalNotification: 'Notificação geral',
+    needsAttention: 'Requer atenção',
+    criticalLevel: 'Nível crítico',
+    markAsRead: 'Marcar como lida'
   },
   reports: {
     title: 'Relatórios',
