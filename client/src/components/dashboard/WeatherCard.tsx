@@ -41,7 +41,7 @@ const angolanCities = [
   { value: "Menongue", label: "Menongue" },
   { value: "Dundo", label: "Dundo" },
   { value: "Sumbe", label: "Sumbe" },
-  { value: "N'dalatando", label: "N'dalatando" },
+  { value: "Ndalatando", label: "N'dalatando" },
   { value: "Ondjiva", label: "Ondjiva" },
   { value: "Cuito Cuanavale", label: "Cuito Cuanavale" },
   { value: "Caxito", label: "Caxito" },
@@ -49,28 +49,10 @@ const angolanCities = [
 ];
 
 export default function WeatherCard(): React.ReactElement {
-  const [selectedCity, setSelectedCity] = useState<string>("Luanda");
-  // For accessing env vars in frontend client
-  // This will be injected during server-side rendering from the environment
-  const [apiKey, setApiKey] = useState<string>("");
-  
-  // Get the API key once the component mounts
-  useEffect(() => {
-    const fetchApiKey = async () => {
-      try {
-        const response = await fetch('/api/weather/key');
-        const data = await response.json();
-        if (data && data.key) {
-          setApiKey(data.key);
-        }
-      } catch (error) {
-        console.error('Error fetching API key:', error);
-      }
-    };
-    
-    fetchApiKey();
-  }, []);
   const { t } = useLanguage();
+  
+  // Estados do componente
+  const [selectedCity, setSelectedCity] = useState<string>("Luanda");
   const [temperature, setTemperature] = useState<number>(0);
   const [condition, setCondition] = useState<string>('clear');
   const [forecast, setForecast] = useState<WeatherDay[]>([]);
@@ -78,13 +60,8 @@ export default function WeatherCard(): React.ReactElement {
   const [lastUpdated, setLastUpdated] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [showExtendedForecast, setShowExtendedForecast] = useState<boolean>(false);
-  
-  // Handle city selection change
-  const handleCityChange = (value: string) => {
-    setSelectedCity(value);
-    setIsLoading(true);
-  };
 
+  // Função para obter o ícone do clima com base na condição
   const getWeatherIcon = (condition: string, size = 'large') => {
     const largeClass = "h-12 w-12";
     const smallClass = "h-5 w-5";
@@ -117,7 +94,7 @@ export default function WeatherCard(): React.ReactElement {
     }
   };
   
-  // Map OpenWeatherMap weather conditions to our component conditions
+  // Mapear condições climáticas da API para nossos ícones
   const mapWeatherCondition = (apiCondition: string): string => {
     const condition = apiCondition.toLowerCase();
     if (condition.includes('clear')) return 'clear';
@@ -130,13 +107,19 @@ export default function WeatherCard(): React.ReactElement {
     return 'clear';
   };
   
-  // Convert weekday number to name
+  // Converter número do dia da semana para nome
   const getDayName = (dayNum: number): string => {
     const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
     return days[dayNum];
   };
   
-  // Fetch weather data from OpenWeatherMap API
+  // Função para lidar com a mudança de cidade selecionada
+  const handleCityChange = (value: string) => {
+    setSelectedCity(value);
+    setIsLoading(true);
+  };
+  
+  // Buscar dados climáticos da OpenWeatherMap API
   useEffect(() => {
     const fetchWeatherData = async () => {
       if (!selectedCity) {
@@ -145,7 +128,7 @@ export default function WeatherCard(): React.ReactElement {
       }
       
       try {
-        // Get the API key from the server
+        // Obter a chave da API do servidor
         const apiKeyResponse = await fetch('/api/weather/key');
         const apiKeyData = await apiKeyResponse.json();
         const weatherApiKey = apiKeyData.key;
@@ -156,60 +139,60 @@ export default function WeatherCard(): React.ReactElement {
           return;
         }
         
-        // Fetch current weather with country code for Angola (AO)
+        // Buscar clima atual com código do país para Angola (AO)
         const cityQuery = `${selectedCity},AO`;
         const currentWeatherResponse = await axios.get(
           `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(cityQuery)}&units=metric&appid=${weatherApiKey}`
         );
         
-        // Extract current weather data
+        // Extrair dados climáticos atuais
         const currentData = currentWeatherResponse.data;
         setTemperature(Math.round(currentData.main.temp));
         setCondition(mapWeatherCondition(currentData.weather[0].main));
         
-        // Fetch 5-day forecast
+        // Buscar previsão de 5 dias
         const forecastResponse = await axios.get(
           `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(cityQuery)}&units=metric&appid=${weatherApiKey}`
         );
         
-        // Process forecast data (we need daily forecast, not 3-hour intervals)
+        // Processar dados de previsão (precisamos de previsão diária, não intervalos de 3 horas)
         const forecastList = forecastResponse.data.list;
         
-        // Basic forecast for display (next 4 days)
+        // Previsão básica para exibição (próximos 4 dias)
         const dailyForecasts: WeatherDay[] = [];
         
-        // Extended forecast (all available days with more details)
+        // Previsão estendida (todos os dias disponíveis com mais detalhes)
         const extendedForecasts: WeatherDay[] = [];
         
-        // Track processed dates for basic forecast
+        // Rastrear datas processadas para previsão básica
         const processedDates = new Set<string>();
         
-        // Map to collect all forecasts for each day - helps average temperatures
+        // Mapa para coletar todas as previsões para cada dia - ajuda a calcular médias de temperatura
         const dailyForecastMap = new Map<string, any[]>();
         
-        // Group forecast items by day
+        // Agrupar itens de previsão por dia
         for (const item of forecastList) {
           const date = new Date(item.dt * 1000);
           const dateStr = date.toDateString();
           
-          // Skip today
+          // Pular hoje
           if (date.getDate() === new Date().getDate()) {
             continue;
           }
           
-          // Add to the daily forecasts map
+          // Adicionar ao mapa de previsões diárias
           if (!dailyForecastMap.has(dateStr)) {
             dailyForecastMap.set(dateStr, []);
           }
           dailyForecastMap.get(dateStr)?.push(item);
         }
         
-        // Process daily forecasts
+        // Processar previsões diárias
         dailyForecastMap.forEach((items, dateStr) => {
           if (items.length === 0) return;
           
-          // Get the midday forecast as representative for the day
-          // Or the first one if midday not available
+          // Obter a previsão do meio-dia como representativa do dia
+          // Ou a primeira se o meio-dia não estiver disponível
           const middayIndex = items.findIndex(item => {
             const hour = new Date(item.dt * 1000).getHours();
             return hour >= 11 && hour <= 13;
@@ -218,21 +201,21 @@ export default function WeatherCard(): React.ReactElement {
           const representative = middayIndex >= 0 ? items[middayIndex] : items[0];
           const date = new Date(representative.dt * 1000);
           
-          // Calculate average temperature and min/max
+          // Calcular temperatura média e mín/máx
           const temperatures = items.map(item => item.main.temp);
           const avgTemp = temperatures.reduce((sum, temp) => sum + temp, 0) / temperatures.length;
           const minTemp = Math.min(...temperatures);
           const maxTemp = Math.max(...temperatures);
           
-          // Calculate average humidity
+          // Calcular umidade média
           const humidities = items.map(item => item.main.humidity);
           const avgHumidity = humidities.reduce((sum, humidity) => sum + humidity, 0) / humidities.length;
           
-          // Calculate average wind speed
+          // Calcular velocidade média do vento
           const windSpeeds = items.map(item => item.wind.speed);
           const avgWindSpeed = windSpeeds.reduce((sum, speed) => sum + speed, 0) / windSpeeds.length;
           
-          // Create detailed day forecast
+          // Criar previsão detalhada do dia
           const dayForecast: WeatherDay = {
             day: getDayName(date.getDay()),
             icon: mapWeatherCondition(representative.weather[0].main),
@@ -240,15 +223,15 @@ export default function WeatherCard(): React.ReactElement {
             minTemp: Math.round(minTemp),
             maxTemp: Math.round(maxTemp),
             humidity: Math.round(avgHumidity),
-            windSpeed: Math.round(avgWindSpeed * 10) / 10, // One decimal place
+            windSpeed: Math.round(avgWindSpeed * 10) / 10, // Uma casa decimal
             description: representative.weather[0].description,
             date: date
           };
           
-          // Add to extended forecast
+          // Adicionar à previsão estendida
           extendedForecasts.push(dayForecast);
           
-          // Add to basic forecast if we don't have enough days yet
+          // Adicionar à previsão básica se ainda não tivermos dias suficientes
           if (!processedDates.has(dateStr) && dailyForecasts.length < 4) {
             dailyForecasts.push({
               day: getDayName(date.getDay()),
@@ -259,7 +242,7 @@ export default function WeatherCard(): React.ReactElement {
           }
         });
         
-        // Sort by date
+        // Ordenar por data
         extendedForecasts.sort((a, b) => {
           if (!a.date || !b.date) return 0;
           return a.date.getTime() - b.date.getTime();
@@ -277,13 +260,28 @@ export default function WeatherCard(): React.ReactElement {
     
     setIsLoading(true);
     fetchWeatherData();
-  }, [location]);
+  }, [selectedCity]);
 
+  // Renderizar estado de carregamento
   if (isLoading) {
     return (
       <Card>
         <CardHeader>
           <CardTitle>{t('dashboard.weather')}</CardTitle>
+          <div className="mt-2">
+            <Select value={selectedCity} onValueChange={handleCityChange}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={t('dashboard.selectCity') || "Selecione uma cidade"} />
+              </SelectTrigger>
+              <SelectContent>
+                {angolanCities.map((city) => (
+                  <SelectItem key={city.value} value={city.value}>
+                    {city.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="animate-pulse flex flex-col items-center mb-4">
@@ -306,6 +304,7 @@ export default function WeatherCard(): React.ReactElement {
     );
   }
 
+  // Renderizar componente principal
   return (
     <Card>
       <CardHeader>
