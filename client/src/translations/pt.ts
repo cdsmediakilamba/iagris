@@ -1,4 +1,5 @@
 export const pt = {
+
   goals: {
     title: 'Gestão de Metas',
     farm: 'Fazenda',

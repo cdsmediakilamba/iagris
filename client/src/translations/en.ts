@@ -1,4 +1,20 @@
 export const en = {
+  notifications: {
+    title: 'Notifications',
+    viewAll: 'View all',
+    noNotifications: 'No notifications',
+    markAsRead: 'Mark as read',
+    markAllAsRead: 'Mark all as read',
+    newTask: 'New task assigned',
+    taskUpdate: 'Task update',
+    inventoryAlert: 'Inventory alert',
+    animalHealth: 'Animal health alert',
+    systemAlert: 'System alert',
+    personalNotification: 'Personal notification',
+    generalNotification: 'General notification',
+    needsAttention: 'Needs attention',
+    criticalLevel: 'Critical level',
+  },
   goals: {
     title: 'Goals Management',
     farm: 'Farm',
