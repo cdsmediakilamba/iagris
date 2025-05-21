@@ -1061,7 +1061,11 @@ export default function NewAnimalsPage() {
                             {animal.registrationCode}
                           </TableCell>
                           <TableCell>{animal.name || '-'}</TableCell>
-                          <TableCell>{species ? species.name : '-'}</TableCell>
+                          <TableCell>
+                            {species ? 
+                              t(`animals.speciesTypes.${species.name}`) || species.name 
+                              : '-'}
+                          </TableCell>
                           <TableCell>{animal.breed}</TableCell>
                           <TableCell>
                             {animal.gender === 'male' 
