@@ -279,14 +279,9 @@ export const pt = {
     species: 'Espécie',
     breed: 'Raça',
     gender: 'Gênero',
-    status: {
-      needsAttention: 'Precisa de Atenção',
-      healthy: 'Saudável',
-      sick: 'Doente',
-      treatment: 'Em Tratamento',
-      quarantine: 'Em Quarentena',
-      pregnant: 'Prenha',
-      lactating: 'Em Lactação'
+    genders: {
+      male: 'Macho',
+      female: 'Fêmea',
     },
     speciesTypes: {
       'Bovino': 'Bovino',
@@ -312,13 +307,6 @@ export const pt = {
     lastVaccine: 'Última Vacinação',
     lastVaccineDate: 'Data da Última Vacinação',
     healthStatus: 'Estado de Saúde',
-    male: 'Macho',
-    female: 'Fêmea',
-    genders: {
-      male: 'Macho',
-      female: 'Fêmea',
-    },
-    status: 'Status',
     statuses: {
       healthy: 'Saudável',
       sick: 'Doente',
