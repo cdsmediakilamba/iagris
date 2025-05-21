@@ -47,6 +47,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
+import { useLanguage } from "@/context/LanguageContext";
 // Usar o Loader2 diretamente, pois o Spinner pode não estar disponível
 import { Loader2 } from "lucide-react";
 import { CalendarIcon, Plus, RefreshCw, Check, ArrowLeft } from "lucide-react";
@@ -371,13 +372,15 @@ export default function GoalsPage() {
 
   if (!farmId) return null;
 
+  const { t } = useLanguage();
+
   return (
     <div className="container mx-auto py-6">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Metas e Objetivos</h1>
+          <h1 className="text-3xl font-bold">{t('goals.title')}</h1>
           <p className="text-muted-foreground">
-            {farmData ? `Fazenda: ${farmData.name}` : 'Carregando...'}
+            {farmData ? `${t('goals.farm')}: ${farmData.name}` : t('goals.loading')}
           </p>
         </div>
         <div className="flex gap-2">
@@ -386,27 +389,27 @@ export default function GoalsPage() {
             onClick={() => setLocation("/dashboard")}
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Voltar ao Dashboard
+            {t('goals.backToDashboard')}
           </Button>
           <Button 
             variant="outline" 
             onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/farms', farmId, 'goals'] })}
           >
             <RefreshCw className="mr-2 h-4 w-4" />
-            Atualizar
+            {t('goals.refresh')}
           </Button>
           <Sheet open={openCreateGoal} onOpenChange={setOpenCreateGoal}>
             <SheetTrigger asChild>
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
-                Nova Meta
+                {t('goals.newGoal')}
               </Button>
             </SheetTrigger>
             <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
               <SheetHeader>
-                <SheetTitle>Nova Meta</SheetTitle>
+                <SheetTitle>{t('goals.createGoal')}</SheetTitle>
                 <SheetDescription>
-                  Crie uma nova meta ou objetivo para a fazenda.
+                  {t('goals.createDescription')}
                 </SheetDescription>
               </SheetHeader>
               <div className="py-4">
