@@ -106,6 +106,7 @@ export const pt = {
     settings: 'Configurações',
     logout: 'Sair',
     profile: 'Meu Perfil',
+    goals: 'Metas',
     today: 'Hoje',
     tomorrow: 'Amanhã',
     viewAll: 'Ver todos',

@@ -391,13 +391,6 @@ export default function GoalsPage() {
             <ArrowLeft className="mr-2 h-4 w-4" />
             {t('goals.backToDashboard')}
           </Button>
-          <Button 
-            variant="outline" 
-            onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/farms', farmId, 'goals'] })}
-          >
-            <RefreshCw className="mr-2 h-4 w-4" />
-            {t('goals.refresh')}
-          </Button>
           <Sheet open={openCreateGoal} onOpenChange={setOpenCreateGoal}>
             <SheetTrigger asChild>
               <Button>

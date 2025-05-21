@@ -76,6 +76,7 @@ export const en = {
     settings: 'Settings',
     logout: 'Logout',
     profile: 'My Profile',
+    goals: 'Goals',
     today: 'Today',
     tomorrow: 'Tomorrow',
     viewAll: 'View all',
@@ -120,7 +121,6 @@ export const en = {
     newTask: 'New Task',
     management: 'Management',
     system: 'System',
-    goals: 'Goals',
     costs: 'Costs',
     more: 'More',
     unknown: 'Unknown',
@@ -265,7 +265,6 @@ export const en = {
       male: 'Male',
       female: 'Female',
     },
-    status: 'Status',
     statuses: {
       healthy: 'Healthy',
       sick: 'Sick',
