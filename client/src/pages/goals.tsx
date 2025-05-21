@@ -211,14 +211,14 @@ export default function GoalsPage() {
       queryClient.invalidateQueries({ queryKey: ['/api/farms', farmId, 'goals'] });
       setOpenCreateGoal(false);
       toast({
-        title: "Meta criada",
-        description: "A meta foi criada com sucesso.",
+        title: t('goals.create') + " " + t('common.success'),
+        description: t('goals.createDescription') + ".",
       });
     },
     onError: (error) => {
       toast({
-        title: "Erro ao criar meta",
-        description: "Ocorreu um erro ao criar a meta. Tente novamente.",
+        title: t('common.error') + ": " + t('goals.create'),
+        description: t('common.tryAgain'),
         variant: "destructive"
       });
     }
@@ -239,14 +239,14 @@ export default function GoalsPage() {
       queryClient.invalidateQueries({ queryKey: ['/api/farms', farmId, 'goals'] });
       setEditingGoal(null);
       toast({
-        title: "Meta atualizada",
-        description: "A meta foi atualizada com sucesso.",
+        title: t('goals.update') + " " + t('common.success'),
+        description: t('goals.updateDescription') + ".",
       });
     },
     onError: (error) => {
       toast({
-        title: "Erro ao atualizar meta",
-        description: "Ocorreu um erro ao atualizar a meta. Tente novamente.",
+        title: t('common.error') + ": " + t('goals.update'),
+        description: t('common.tryAgain'),
         variant: "destructive"
       });
     }
