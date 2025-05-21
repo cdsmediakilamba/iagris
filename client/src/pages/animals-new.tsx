@@ -1070,7 +1070,7 @@ export default function NewAnimalsPage() {
                           </TableCell>
                           <TableCell>
                             {animal.birthDate 
-                              ? formatDate(new Date(animal.birthDate), language) 
+                              ? formatDate(new Date(animal.birthDate), 'dd/MM/yyyy', language) 
                               : '-'}
                           </TableCell>
                           <TableCell>
