@@ -4,6 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/context/LanguageContext';
 import { CloudRain, CloudSun, Sun, Cloud, CloudLightning, CloudSnow, CloudDrizzle, Wind, ChevronDown, ChevronUp, Droplets, Thermometer } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface WeatherDay {
   day: string;
@@ -17,14 +24,32 @@ interface WeatherDay {
   date?: Date;
 }
 
-interface WeatherCardProps {
-  location: string;
-  apiKey?: string;
-}
+// Lista de cidades de Angola
+const angolanCities = [
+  { value: "Luanda", label: "Luanda" },
+  { value: "Benguela", label: "Benguela" },
+  { value: "Huambo", label: "Huambo" },
+  { value: "Lubango", label: "Lubango" },
+  { value: "Malanje", label: "Malanje" },
+  { value: "Lobito", label: "Lobito" },
+  { value: "Namibe", label: "Namibe" },
+  { value: "Cabinda", label: "Cabinda" },
+  { value: "Soyo", label: "Soyo" },
+  { value: "Uíge", label: "Uíge" },
+  { value: "Kuito", label: "Kuito" },
+  { value: "Saurimo", label: "Saurimo" },
+  { value: "Menongue", label: "Menongue" },
+  { value: "Dundo", label: "Dundo" },
+  { value: "Sumbe", label: "Sumbe" },
+  { value: "N'dalatando", label: "N'dalatando" },
+  { value: "Ondjiva", label: "Ondjiva" },
+  { value: "Cuito Cuanavale", label: "Cuito Cuanavale" },
+  { value: "Caxito", label: "Caxito" },
+  { value: "Mbanza Congo", label: "Mbanza Congo" }
+];
 
-export default function WeatherCard({ 
-  location
-}: WeatherCardProps) {
+export default function WeatherCard(): React.ReactElement {
+  const [selectedCity, setSelectedCity] = useState<string>("Luanda");
   // For accessing env vars in frontend client
   // This will be injected during server-side rendering from the environment
   const [apiKey, setApiKey] = useState<string>("");
@@ -53,6 +78,12 @@ export default function WeatherCard({
   const [lastUpdated, setLastUpdated] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [showExtendedForecast, setShowExtendedForecast] = useState<boolean>(false);
+  
+  // Handle city selection change
+  const handleCityChange = (value: string) => {
+    setSelectedCity(value);
+    setIsLoading(true);
+  };
 
   const getWeatherIcon = (condition: string, size = 'large') => {
     const largeClass = "h-12 w-12";
@@ -108,7 +139,7 @@ export default function WeatherCard({
   // Fetch weather data from OpenWeatherMap API
   useEffect(() => {
     const fetchWeatherData = async () => {
-      if (!location) {
+      if (!selectedCity) {
         setIsLoading(false);
         return;
       }
@@ -125,9 +156,10 @@ export default function WeatherCard({
           return;
         }
         
-        // Fetch current weather
+        // Fetch current weather with country code for Angola (AO)
+        const cityQuery = `${selectedCity},AO`;
         const currentWeatherResponse = await axios.get(
-          `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(location)}&units=metric&appid=${weatherApiKey}`
+          `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(cityQuery)}&units=metric&appid=${weatherApiKey}`
         );
         
         // Extract current weather data
@@ -137,7 +169,7 @@ export default function WeatherCard({
         
         // Fetch 5-day forecast
         const forecastResponse = await axios.get(
-          `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(location)}&units=metric&appid=${weatherApiKey}`
+          `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(cityQuery)}&units=metric&appid=${weatherApiKey}`
         );
         
         // Process forecast data (we need daily forecast, not 3-hour intervals)
@@ -278,6 +310,20 @@ export default function WeatherCard({
     <Card>
       <CardHeader>
         <CardTitle>{t('dashboard.weather')}</CardTitle>
+        <div className="mt-2">
+          <Select value={selectedCity} onValueChange={handleCityChange}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder={t('dashboard.selectCity') || "Selecione uma cidade"} />
+            </SelectTrigger>
+            <SelectContent>
+              {angolanCities.map((city) => (
+                <SelectItem key={city.value} value={city.value}>
+                  {city.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="flex flex-col items-center mb-4">
@@ -287,7 +333,7 @@ export default function WeatherCard({
             {t(`dashboard.${condition}`) || condition}
           </div>
           <div className="text-gray-500 text-sm">
-            {location}
+            {selectedCity}, Angola
           </div>
         </div>
 
