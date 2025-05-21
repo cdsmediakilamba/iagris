@@ -42,6 +42,9 @@ export const en = {
     success: 'Success',
     warning: 'Warning',
     info: 'Information',
+    showMore: 'Show detailed forecast',
+    showLess: 'Show less',
+    tryAgain: 'Please try again',
     username: 'Username',
     password: 'Password',
     email: 'Email',
@@ -138,8 +141,10 @@ export const en = {
     sunny: 'Sunny',
     cloudy: 'Cloudy',
     rainy: 'Rainy',
-    lastUpdated: 'Last updated',
+    lastUpdated: 'Last updated', 
     status: 'Status',
+    selectFarm: 'Select Farm',
+    clear: 'Clear',
     weekDays: {
       mon: 'Mon',
       tue: 'Tue',
@@ -167,6 +172,9 @@ export const en = {
     species: 'Species',
     breed: 'Breed',
     gender: 'Gender',
+    status: {
+      needsAttention: 'Needs Attention'
+    },
     speciesTypes: {
       'Bovino': 'Cattle',
       'Caprino': 'Goat',
