@@ -56,8 +56,8 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-// Export as a named function to avoid Fast Refresh errors
-export function useLanguage(): LanguageContextType {
+// Use a const assignment for useLanguage to avoid Fast Refresh errors
+export const useLanguage = (): LanguageContextType => {
   const context = useContext(LanguageContext);
   if (!context) {
     throw new Error('useLanguage must be used within a LanguageProvider');
