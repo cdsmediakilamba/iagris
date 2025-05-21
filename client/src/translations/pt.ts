@@ -279,6 +279,15 @@ export const pt = {
     species: 'Espécie',
     breed: 'Raça',
     gender: 'Gênero',
+    status: {
+      needsAttention: 'Precisa de Atenção',
+      healthy: 'Saudável',
+      sick: 'Doente',
+      treatment: 'Em Tratamento',
+      quarantine: 'Em Quarentena',
+      pregnant: 'Prenha',
+      lactating: 'Em Lactação'
+    },
     speciesTypes: {
       'Bovino': 'Bovino',
       'Caprino': 'Caprino',

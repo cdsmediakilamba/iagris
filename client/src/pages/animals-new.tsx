@@ -859,13 +859,13 @@ export default function NewAnimalsPage() {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="healthy">{t('animals.status.healthy')}</SelectItem>
-                                <SelectItem value="sick">{t('animals.status.sick')}</SelectItem>
-                                <SelectItem value="treatment">{t('animals.status.treatment')}</SelectItem>
-                                <SelectItem value="quarantine">{t('animals.status.quarantine')}</SelectItem>
-                                <SelectItem value="pregnant">{t('animals.status.pregnant')}</SelectItem>
-                                <SelectItem value="lactating">{t('animals.status.lactating')}</SelectItem>
-                                <SelectItem value="needsAttention">{t('animals.status.needsAttention')}</SelectItem>
+                                <SelectItem value="healthy">{t('animals.statuses.healthy')}</SelectItem>
+                                <SelectItem value="sick">{t('animals.statuses.sick')}</SelectItem>
+                                <SelectItem value="treatment">{t('animals.statuses.treatment')}</SelectItem>
+                                <SelectItem value="quarantine">{t('animals.statuses.quarantine')}</SelectItem>
+                                <SelectItem value="pregnant">{t('animals.statuses.pregnant')}</SelectItem>
+                                <SelectItem value="lactating">{t('animals.statuses.lactating')}</SelectItem>
+                                <SelectItem value="needsAttention">{t('animals.statuses.needsAttention')}</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -979,12 +979,12 @@ export default function NewAnimalsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="healthy">{t('animals.status.healthy')}</SelectItem>
-                  <SelectItem value="sick">{t('animals.status.sick')}</SelectItem>
-                  <SelectItem value="treatment">{t('animals.status.treatment')}</SelectItem>
-                  <SelectItem value="quarantine">{t('animals.status.quarantine')}</SelectItem>
-                  <SelectItem value="pregnant">{t('animals.status.pregnant')}</SelectItem>
-                  <SelectItem value="lactating">{t('animals.status.lactating')}</SelectItem>
+                  <SelectItem value="healthy">{t('animals.statuses.healthy')}</SelectItem>
+                  <SelectItem value="sick">{t('animals.statuses.sick')}</SelectItem>
+                  <SelectItem value="treatment">{t('animals.statuses.treatment')}</SelectItem>
+                  <SelectItem value="quarantine">{t('animals.statuses.quarantine')}</SelectItem>
+                  <SelectItem value="pregnant">{t('animals.statuses.pregnant')}</SelectItem>
+                  <SelectItem value="lactating">{t('animals.statuses.lactating')}</SelectItem>
                 </SelectContent>
               </Select>
               
