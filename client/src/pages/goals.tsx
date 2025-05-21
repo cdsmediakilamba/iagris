@@ -105,13 +105,13 @@ const statusColors = {
   cancelled: "bg-red-500"
 };
 
-// Unit display mapping
+// Unit display mapping - será atualizado com traduções dinâmicas na renderização
 const unitDisplay = {
   hectares: "hectares",
-  meters: "metros",
-  units: "unidades",
+  meters: "meters",
+  units: "units",
   kilograms: "kg",
-  liters: "litros",
+  liters: "liters",
   percentage: "%"
 };
 
@@ -358,21 +358,21 @@ export default function GoalsPage() {
     return now > endDate;
   };
 
-  // Get status label in Portuguese
+  // Get status label with translations
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'pending': return 'Pendente';
-      case 'in_progress': return 'Em Progresso';
-      case 'partial': return 'Parcial';
-      case 'completed': return 'Concluída';
-      case 'cancelled': return 'Cancelada';
+      case 'pending': return t('goals.pending');
+      case 'in_progress': return t('goals.inProgress');
+      case 'partial': return t('goals.partial');
+      case 'completed': return t('goals.completed');
+      case 'cancelled': return t('goals.cancelled');
       default: return status;
     }
   };
 
-  if (!farmId) return null;
-
   const { t } = useLanguage();
+
+  if (!farmId) return null;
 
   return (
     <div className="container mx-auto py-6">
