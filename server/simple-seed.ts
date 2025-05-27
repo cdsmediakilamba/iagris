@@ -1,6 +1,7 @@
 import { db } from "./db";
 import { 
   users, farms, userFarms, userPermissions, animals, crops, inventory, tasks,
+  animalVaccinations, inventoryTransactions, goals, costs, species,
   UserRole, SystemModule, AccessLevel
 } from "@shared/schema";
 import { hashPassword } from "./auth";
@@ -8,6 +9,12 @@ import { hashPassword } from "./auth";
 // Função para limpar o banco de dados
 async function cleanDatabase() {
   console.log("Limpando o banco de dados...");
+  
+  // Delete tables in order to respect foreign key constraints
+  await db.delete(animalVaccinations);
+  await db.delete(inventoryTransactions);
+  await db.delete(goals);
+  await db.delete(costs);
   await db.delete(tasks);
   await db.delete(inventory);
   await db.delete(crops);
@@ -16,12 +23,25 @@ async function cleanDatabase() {
   await db.delete(userFarms);
   await db.delete(farms);
   await db.delete(users);
+  await db.delete(species);
+  
   console.log("Banco de dados limpo com sucesso.");
 }
 
 // Função para criar dados essenciais
 async function createBasicData() {
   console.log("Criando dados básicos...");
+  
+  // Criar espécies primeiro
+  const [bovinoSpecies] = await db.insert(species).values({
+    name: "Bovino",
+    abbreviation: "BOI"
+  }).returning();
+  
+  const [suinoSpecies] = await db.insert(species).values({
+    name: "Suíno", 
+    abbreviation: "SUI"
+  }).returning();
   
   // Criar admin
   const adminPassword = await hashPassword("admin123");
@@ -68,24 +88,26 @@ async function createBasicData() {
   
   // Criar alguns animais
   await db.insert(animals).values({
-    identificationCode: "A1001",
-    species: "Vaca",
+    registrationCode: "BOI-20250527-0001",
+    name: "Vaca Leiteira 01",
+    speciesId: bovinoSpecies.id,
     breed: "Leiteira",
     gender: "fêmea",
     birthDate: new Date(2023, 1, 15),
-    weight: 450,
+    weight: "450.00",
     farmId: farmModel.id,
     status: "healthy",
     lastVaccineDate: new Date(2024, 2, 10)
   });
   
   await db.insert(animals).values({
-    identificationCode: "A1002",
-    species: "Boi",
+    registrationCode: "BOI-20250527-0002", 
+    name: "Boi Angus 01",
+    speciesId: bovinoSpecies.id,
     breed: "Angus",
     gender: "macho",
     birthDate: new Date(2022, 5, 20),
-    weight: 520,
+    weight: "520.00",
     farmId: farmModel.id,
     status: "healthy",
     lastVaccineDate: new Date(2024, 3, 5)
