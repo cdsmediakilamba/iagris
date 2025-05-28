@@ -58,6 +58,7 @@ export default function Sidebar({ isOpen }: SidebarProps) {
       icon: <PawPrint className="mr-4 h-5 w-5" />,
       path: '/animals',
       active: location === '/animals',
+      show: false, // Ocultar a página animals do menu
     },
     {
       title: t('common.animals') + (t('common.new') ? ` (${t('common.new')})` : " (Nova)"),
