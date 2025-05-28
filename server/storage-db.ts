@@ -203,9 +203,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateAnimal(id: number, animalData: Partial<Animal>): Promise<Animal | undefined> {
+    // Processa as datas que podem vir como strings
+    let processedData = { ...animalData };
+    
+    if (processedData.birthDate && typeof processedData.birthDate === 'string') {
+      processedData.birthDate = new Date(processedData.birthDate);
+    }
+    
+    if (processedData.lastVaccineDate && typeof processedData.lastVaccineDate === 'string') {
+      processedData.lastVaccineDate = new Date(processedData.lastVaccineDate);
+    }
+    
+    console.log("Processed update data:", processedData);
+    
     const [updatedAnimal] = await db
       .update(animals)
-      .set(animalData)
+      .set(processedData)
       .where(eq(animals.id, id))
       .returning();
     return updatedAnimal || undefined;
