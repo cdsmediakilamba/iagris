@@ -1042,6 +1042,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/users", checkRole([UserRole.SUPER_ADMIN, UserRole.FARM_ADMIN]), async (req, res) => {
     try {
+      console.log("Creating user with data:", req.body);
+      
       const existingUser = await storage.getUserByUsername(req.body.username);
       if (existingUser) {
         return res.status(400).json({ message: "Username already exists" });
@@ -1057,22 +1059,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         password: await hashPassword(req.body.password),
       });
       
-      // If the user creating is a farm admin, automatically assign the new user to their farm
-      if (req.user.role === UserRole.FARM_ADMIN && req.body.farmId) {
-        // First check if the farm admin has access to this farm
-        const userFarms = await storage.getUserFarms(req.user.id);
-        const hasFarmAccess = userFarms.some(uf => uf.farmId === req.body.farmId);
-        
-        if (!hasFarmAccess) {
-          return res.status(403).json({ message: "You don't have access to assign users to this farm" });
-        }
-        
+      console.log("User created successfully:", newUser.id);
+      
+      // If farmId is provided, assign the new user to the farm
+      if (req.body.farmId) {
         // Assign the new user to the farm
         await storage.assignUserToFarm({
           userId: newUser.id,
           farmId: req.body.farmId,
           role: req.body.farmRole || 'member'
         });
+        console.log("User assigned to farm:", req.body.farmId);
       }
       
       // Don't send password in response
@@ -1080,7 +1077,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(201).json(userWithoutPassword);
     } catch (error) {
-      res.status(500).json({ message: "Failed to create user" });
+      console.error("Error creating user:", error);
+      res.status(500).json({ message: "Failed to create user", error: error.message });
     }
   });
 
