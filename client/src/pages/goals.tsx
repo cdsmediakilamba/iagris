@@ -160,23 +160,21 @@ export default function GoalsPage() {
     enabled: !!farmId
   });
 
-  // Query users for the farm
+  // Query all users for assignment
   const { data: farmUsers } = useQuery<User[]>({
-    queryKey: ['/api/farms', farmId, 'users'],
+    queryKey: ['/api/users'],
     queryFn: async () => {
-      console.log("Fetching users for farm:", farmId);
-      // Usamos a função apiRequest para termos melhor controle e visualização da resposta
-      const users = await apiRequest<User[]>(`/api/farms/${farmId}/users`);
-      console.log("API Response from farm users endpoint:", users);
+      console.log("Fetching all users for assignment");
+      const users = await apiRequest<User[]>(`/api/users`);
+      console.log("API Response from users endpoint:", users);
       return users;
-    },
-    enabled: !!farmId
+    }
   });
   
-  // Log farm users data when it changes to debug
+  // Log users data when it changes to debug
   useEffect(() => {
     if (farmUsers) {
-      console.log("Received farm users data in state:", farmUsers);
+      console.log("Received users data in state:", farmUsers);
     }
   }, [farmUsers]);
 

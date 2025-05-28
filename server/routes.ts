@@ -139,6 +139,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // All Users route (for task/goal assignment)
+  app.get("/api/users", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
+      console.log("Fetching all users for selection");
+      
+      // Only super admins and farm admins can see all users
+      if (req.user && req.user.role !== UserRole.SUPER_ADMIN && req.user.role !== UserRole.FARM_ADMIN) {
+        return res.status(403).json({ message: "Not authorized to view users" });
+      }
+      
+      const allUsers = await storage.getUsersByRole(UserRole.EMPLOYEE);
+      const adminUsers = await storage.getUsersByRole(UserRole.FARM_ADMIN);
+      const superAdmins = await storage.getUsersByRole(UserRole.SUPER_ADMIN);
+      
+      // Combine all users and format for selection
+      const users = [...allUsers, ...adminUsers, ...superAdmins].map(user => ({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        username: user.username
+      }));
+      
+      console.log(`Returning ${users.length} users for selection`);
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
   // Farm Users route
   app.get("/api/farms/:farmId/users", async (req, res) => {
     try {
