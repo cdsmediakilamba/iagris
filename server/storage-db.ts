@@ -90,6 +90,23 @@ export class DatabaseStorage implements IStorage {
     return updatedUser || undefined;
   }
 
+  async deleteUser(id: number): Promise<boolean> {
+    try {
+      // First remove user from all farms
+      await db.delete(userFarms).where(eq(userFarms.userId, id));
+      
+      // Remove user permissions
+      await db.delete(userPermissions).where(eq(userPermissions.userId, id));
+      
+      // Then delete the user
+      const result = await db.delete(users).where(eq(users.id, id));
+      return result.rowCount !== null && result.rowCount !== undefined && result.rowCount > 0;
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      return false;
+    }
+  }
+
   // Farm operations
   async getFarm(id: number): Promise<Farm | undefined> {
     const [farm] = await db.select().from(farms).where(eq(farms.id, id));

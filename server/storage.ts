@@ -24,6 +24,7 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, user: Partial<User>): Promise<User | undefined>;
+  deleteUser?(id: number): Promise<boolean>;
   getUsersByRole(role: UserRole): Promise<User[]>;
   
   // Animal Vaccination operations

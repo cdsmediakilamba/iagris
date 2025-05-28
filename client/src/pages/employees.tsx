@@ -144,7 +144,7 @@ export default function Employees() {
     mutationFn: async (data: UserFormData) => {
       return apiRequest('/api/users', {
         method: 'POST',
-        body: JSON.stringify(data),
+        data: data,
       });
     },
     onSuccess: () => {
@@ -171,7 +171,7 @@ export default function Employees() {
     mutationFn: async (data: { id: number; userData: Partial<UserFormData> }) => {
       return apiRequest(`/api/users/${data.id}`, {
         method: 'PATCH',
-        body: JSON.stringify(data.userData),
+        data: data.userData,
       });
     },
     onSuccess: () => {
