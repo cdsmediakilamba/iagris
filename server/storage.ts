@@ -65,6 +65,7 @@ export interface IStorage {
   getAnimalsByFarm(farmId: number): Promise<Animal[]>;
   createAnimal(animal: InsertAnimal): Promise<Animal>;
   updateAnimal(id: number, animal: Partial<Animal>): Promise<Animal | undefined>;
+  deleteAnimal(id: number): Promise<boolean>;
   generateAnimalRegistrationCode(speciesId: number, farmId: number): Promise<string>;
   
   // Animal Vaccination operations

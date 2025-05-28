@@ -218,7 +218,7 @@ export class DatabaseStorage implements IStorage {
       
       // Then delete the animal
       const result = await db.delete(animals).where(eq(animals.id, id));
-      return result.rowCount !== undefined && result.rowCount > 0;
+      return result.rowCount !== null && result.rowCount !== undefined && result.rowCount > 0;
     } catch (error) {
       console.error("Error deleting animal:", error);
       return false;
