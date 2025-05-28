@@ -6,7 +6,6 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { UserRole } from '@shared/schema';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -31,7 +30,7 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
-  DialogClose,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import {
   Form,
@@ -48,57 +47,32 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Search,
-  PlusCircle,
-  Users,
-  Mail,
-  Phone,
-  Calendar,
-  MapPin,
-  Briefcase,
-  User,
-  Loader2,
-  MoreHorizontal,
-  Edit,
-  Trash2,
-  FileText,
-  ChartBar,
+import { 
+  Plus, 
+  Search, 
+  Edit, 
+  Trash2, 
+  User, 
+  Building2,
+  Users
 } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
-// Employee schema for form validation
-const employeeSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters" }),
-  position: z.string().min(1, { message: "Position is required" }),
-  email: z.string().email({ message: "Invalid email address" }),
-  phone: z.string().min(9, { message: "Phone number is required" }),
-  address: z.string().optional(),
-  hireDate: z.date(),
-  status: z.enum(["active", "onLeave", "inactive"]),
-  role: z.enum(["admin", "manager", "employee", "veterinarian", "agronomist", "consultant"]),
-  farmId: z.number()
-});
-
-// A user in our system can be considered an employee
-interface Employee {
+// User interface based on schema
+interface User {
   id: number;
   username: string;
   name: string;
@@ -107,338 +81,258 @@ interface Employee {
   language: string;
   farmId: number | null;
   createdAt: string;
-  
-  // Additional employee properties that might come from the user API
-  position?: string;
-  phone?: string;
-  address?: string;
-  hireDate?: string;
-  status?: "active" | "onLeave" | "inactive";
 }
 
-// We'll use users from the API instead of mock data
+// Farm interface
+interface Farm {
+  id: number;
+  name: string;
+  location: string;
+  size: number | null;
+  type: string | null;
+  description: string | null;
+}
+
+// Form schema for creating/editing users
+const userFormSchema = z.object({
+  username: z.string().min(3, 'Nome de usuário deve ter pelo menos 3 caracteres'),
+  name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
+  email: z.string().email('Email inválido'),
+  password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
+  role: z.string().min(1, 'Função é obrigatória'),
+  language: z.string().min(1, 'Idioma é obrigatório'),
+  farmId: z.number().nullable(),
+});
+
+type UserFormData = z.infer<typeof userFormSchema>;
 
 export default function Employees() {
   const { t, language } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedFarmId, setSelectedFarmId] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState('all');
+  const [selectedRole, setSelectedRole] = useState<string>('all');
 
-  // Check if user has permission to manage employees
-  const canManageEmployees = user?.role === 'farm_admin' || user?.role === 'manager' || user?.role === 'super_admin';
+  // Get users
+  const { data: users = [], isLoading: isLoadingUsers } = useQuery<User[]>({
+    queryKey: ['/api/users'],
+  });
 
-  // Get user's farms
-  const { data: farms = [], isLoading: isLoadingFarms } = useQuery<any[]>({
+  // Get farms for the dropdown
+  const { data: farms = [], isLoading: isLoadingFarms } = useQuery<Farm[]>({
     queryKey: ['/api/farms'],
   });
 
-  // Use first farm by default
-  React.useEffect(() => {
-    if (farms.length > 0 && !selectedFarmId) {
-      setSelectedFarmId(farms[0].id);
-    }
-  }, [farms, selectedFarmId]);
-
-  // Get employees from the API
-  const { data: employees, isLoading: isLoadingEmployees } = useQuery<Employee[]>({
-    queryKey: ['/api/users'],
-    // If user is not a SUPER_ADMIN, we only want employees for the selected farm
-    enabled: true,
-  });
-
-  // Filter employees based on tab, search term, and selected farm
-  const getFilteredEmployees = () => {
-    if (!employees) return [];
-    
-    let filteredList = employees;
-    
-    // If not super admin and farm is selected, filter by farm
-    if (user?.role !== 'super_admin' && selectedFarmId) {
-      filteredList = filteredList.filter(employee => employee.farmId === selectedFarmId);
-    }
-    
-    // Filter by status if not showing all
-    if (activeTab !== 'all') {
-      filteredList = filteredList.filter(employee => employee.role === activeTab);
-    }
-    
-    // Apply search filter
-    if (searchTerm) {
-      filteredList = filteredList.filter(employee => 
-        employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        employee.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        employee.email.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-    
-    return filteredList;
-  };
-
-  const filteredEmployees = getFilteredEmployees();
-
-  // Form schema for adding/editing employees
-  const formSchema = employeeSchema.omit({ 
-    farmId: true 
-  });
-
-  // Setup form
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  // Form setup
+  const form = useForm<UserFormData>({
+    resolver: zodResolver(userFormSchema),
     defaultValues: {
+      username: '',
       name: '',
-      position: '',
       email: '',
-      phone: '',
-      address: '',
-      hireDate: new Date(),
-      status: 'active',
+      password: '',
       role: 'employee',
+      language: 'pt',
+      farmId: null,
     },
   });
 
-  // Create employee mutation to connect to API
-  const createEmployee = useMutation({
-    mutationFn: async (data: z.infer<typeof formSchema>) => {
-      if (!selectedFarmId) throw new Error("No farm selected");
-      
-      // Use the API to register a new user
-      const userData = {
-        username: data.email.split('@')[0],
-        password: 'defaultpassword', // In a real app, we would use a proper password generation/management
-        name: data.name,
-        email: data.email,
-        role: 'employee',
-        language: 'pt',
-        farmId: selectedFarmId
-      };
-      
-      // Register the new user
-      return apiRequest('POST', '/api/register', userData);
+  // Create user mutation
+  const createUserMutation = useMutation({
+    mutationFn: async (data: UserFormData) => {
+      return apiRequest('/api/users', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
     },
     onSuccess: () => {
-      // Invalidate the users query to refresh the list
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
-      
       toast({
         title: t('employees.employeeAdded'),
-        description: t('common.success'),
+        description: 'Funcionário criado com sucesso',
       });
-      form.reset();
       setDialogOpen(false);
+      form.reset();
+      setEditingUser(null);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
-        title: t('common.error'),
-        description: error.message,
+        title: 'Erro',
+        description: error.message || 'Erro ao criar funcionário',
         variant: 'destructive',
       });
     },
   });
 
-  // Submit handler
-  const onSubmit = (data: z.infer<typeof formSchema>) => {
-    createEmployee.mutate(data);
-  };
+  // Update user mutation
+  const updateUserMutation = useMutation({
+    mutationFn: async (data: { id: number; userData: Partial<UserFormData> }) => {
+      return apiRequest(`/api/users/${data.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data.userData),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      toast({
+        title: t('employees.employeeUpdated'),
+        description: 'Funcionário atualizado com sucesso',
+      });
+      setDialogOpen(false);
+      form.reset();
+      setEditingUser(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro',
+        description: error.message || 'Erro ao atualizar funcionário',
+        variant: 'destructive',
+      });
+    },
+  });
 
-  // Status badge renderer for roles
-  const getRoleBadge = (role: string) => {
-    switch (role) {
-      case 'super_admin':
-        return (
-          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
-            {t('employees.roles.super_admin')}
-          </Badge>
-        );
-      case 'farm_admin':
-        return (
-          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-            {t('employees.roles.farm_admin')}
-          </Badge>
-        );
-      case 'manager':
-        return (
-          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-            {t('employees.roles.manager')}
-          </Badge>
-        );
-      case 'employee':
-        return (
-          <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
-            {t('employees.roles.employee')}
-          </Badge>
-        );
-      case 'veterinarian':
-        return (
-          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
-            {t('employees.roles.veterinarian')}
-          </Badge>
-        );
-      case 'agronomist':
-        return (
-          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-            {t('employees.roles.agronomist')}
-          </Badge>
-        );
-      default:
-        return (
-          <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
-            {role}
-          </Badge>
-        );
+  // Delete user mutation
+  const deleteUserMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return apiRequest(`/api/users/${id}`, {
+        method: 'DELETE',
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      toast({
+        title: t('employees.employeeDeleted'),
+        description: 'Funcionário excluído com sucesso',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro',
+        description: error.message || 'Erro ao excluir funcionário',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Handle form submission
+  const onSubmit = (data: UserFormData) => {
+    if (editingUser) {
+      updateUserMutation.mutate({
+        id: editingUser.id,
+        userData: data,
+      });
+    } else {
+      createUserMutation.mutate(data);
     }
   };
 
-  // Function to get avatar initials from name
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(part => part.charAt(0))
-      .join('')
-      .toUpperCase()
-      .substring(0, 2);
+  // Handle edit user
+  const handleEditUser = (userToEdit: User) => {
+    setEditingUser(userToEdit);
+    form.reset({
+      username: userToEdit.username,
+      name: userToEdit.name,
+      email: userToEdit.email,
+      password: '', // Don't populate password for security
+      role: userToEdit.role,
+      language: userToEdit.language,
+      farmId: userToEdit.farmId,
+    });
+    setDialogOpen(true);
   };
+
+  // Handle add new user
+  const handleAddUser = () => {
+    setEditingUser(null);
+    form.reset();
+    setDialogOpen(true);
+  };
+
+  // Filter users
+  const filteredUsers = users.filter((userItem) => {
+    const matchesSearch = 
+      userItem.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      userItem.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      userItem.email.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesRole = selectedRole === 'all' || userItem.role === selectedRole;
+    
+    return matchesSearch && matchesRole;
+  });
+
+  // Get role display name
+  const getRoleDisplay = (role: string) => {
+    return t(`employees.roles.${role}`) || role;
+  };
+
+  // Get farm name
+  const getFarmName = (farmId: number | null) => {
+    if (!farmId) return 'Nenhuma';
+    const farm = farms.find(f => f.id === farmId);
+    return farm?.name || 'Fazenda não encontrada';
+  };
+
+  // Check permissions
+  const canManageUsers = user?.role === 'super_admin' || user?.role === 'farm_admin';
+
+  if (isLoadingUsers) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg">Carregando funcionários...</div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
-      <div className="mb-6">
-        <h1 className="text-2xl font-medium text-gray-900 mb-4">{t('employees.title')}</h1>
-        
-        <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-          {/* Search and farm select */}
-          <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder={t('common.search')}
-                className="pl-8"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            
-            {farms && farms.length > 0 && (
-              <Select
-                value={selectedFarmId?.toString()}
-                onValueChange={(value) => setSelectedFarmId(parseInt(value))}
-              >
-                <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder={t('dashboard.farm')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {farms.map((farm) => (
-                    <SelectItem key={farm.id} value={farm.id.toString()}>
-                      {farm.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">{t('employees.title')}</h1>
+            <p className="text-muted-foreground">
+              Gerencie funcionários e suas permissões no sistema
+            </p>
           </div>
           
-          {/* Add employee button - only visible to admins and managers */}
-          {canManageEmployees && (
+          {canManageUsers && (
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="w-full sm:w-auto">
-                  <PlusCircle className="mr-2 h-4 w-4" />
+                <Button onClick={handleAddUser}>
+                  <Plus className="h-4 w-4 mr-2" />
                   {t('employees.addEmployee')}
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[600px]">
                 <DialogHeader>
-                  <DialogTitle>{t('employees.addEmployee')}</DialogTitle>
+                  <DialogTitle>
+                    {editingUser ? t('employees.editEmployee') : t('employees.addEmployee')}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {editingUser 
+                      ? 'Edite as informações do funcionário'
+                      : 'Preencha os dados para criar um novo funcionário'
+                    }
+                  </DialogDescription>
                 </DialogHeader>
+                
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
-                        name="name"
+                        name="username"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{t('employees.name')}</FormLabel>
-                            <FormControl>
-                              <Input {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="position"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t('employees.position')}</FormLabel>
-                            <FormControl>
-                              <Input {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t('employees.email')}</FormLabel>
-                            <FormControl>
-                              <Input type="email" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="phone"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t('employees.phone')}</FormLabel>
-                            <FormControl>
-                              <Input {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    
-                    <FormField
-                      control={form.control}
-                      name="address"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t('employees.address')}</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="hireDate"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t('employees.hireDate')}</FormLabel>
+                            <FormLabel>{t('employees.username')}</FormLabel>
                             <FormControl>
                               <Input 
-                                type="date" 
-                                value={field.value instanceof Date ? field.value.toISOString().substring(0, 10) : ''}
-                                onChange={(e) => field.onChange(new Date(e.target.value))}
+                                placeholder={t('employees.usernamePlaceholder')}
+                                {...field} 
                               />
                             </FormControl>
                             <FormMessage />
@@ -448,23 +342,97 @@ export default function Employees() {
                       
                       <FormField
                         control={form.control}
-                        name="status"
+                        name="name"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{t('employees.status')}</FormLabel>
-                            <Select
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                            >
+                            <FormLabel>{t('employees.name')}</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Nome completo" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('employees.email')}</FormLabel>
+                          <FormControl>
+                            <Input type="email" placeholder="email@exemplo.com" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('employees.password')}</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="password" 
+                              placeholder={t('employees.passwordPlaceholder')}
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="role"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{t('employees.role')}</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder={t('employees.status')} />
+                                  <SelectValue placeholder="Selecione a função" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="active">{t('employees.statuses.active')}</SelectItem>
-                                <SelectItem value="onLeave">{t('employees.statuses.onLeave')}</SelectItem>
-                                <SelectItem value="inactive">{t('employees.statuses.inactive')}</SelectItem>
+                                <SelectItem value="employee">{t('employees.roles.employee')}</SelectItem>
+                                <SelectItem value="manager">{t('employees.roles.manager')}</SelectItem>
+                                <SelectItem value="agronomist">{t('employees.roles.agronomist')}</SelectItem>
+                                <SelectItem value="veterinarian">{t('employees.roles.veterinarian')}</SelectItem>
+                                {user?.role === 'super_admin' && (
+                                  <>
+                                    <SelectItem value="farm_admin">{t('employees.roles.farm_admin')}</SelectItem>
+                                    <SelectItem value="super_admin">{t('employees.roles.super_admin')}</SelectItem>
+                                  </>
+                                )}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="language"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{t('employees.language')}</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione o idioma" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="pt">{t('employees.languages.pt')}</SelectItem>
+                                <SelectItem value="en">{t('employees.languages.en')}</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -472,51 +440,45 @@ export default function Employees() {
                         )}
                       />
                     </div>
-                    
+
                     <FormField
                       control={form.control}
-                      name="role"
+                      name="farmId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('employees.role')}</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
+                          <FormLabel>{t('employees.farm')}</FormLabel>
+                          <Select 
+                            onValueChange={(value) => field.onChange(value === 'null' ? null : parseInt(value))} 
+                            defaultValue={field.value?.toString() || 'null'}
                           >
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder={t('employees.role')} />
+                                <SelectValue placeholder={t('employees.selectFarm')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {user?.role === UserRole.ADMIN && (
-                                <SelectItem value="admin">{t('employees.roles.admin')}</SelectItem>
-                              )}
-                              <SelectItem value="manager">{t('employees.roles.manager')}</SelectItem>
-                              <SelectItem value="employee">{t('employees.roles.employee')}</SelectItem>
-                              <SelectItem value="veterinarian">{t('employees.roles.veterinarian')}</SelectItem>
-                              <SelectItem value="agronomist">{t('employees.roles.agronomist')}</SelectItem>
-                              <SelectItem value="consultant">{t('employees.roles.consultant')}</SelectItem>
+                              <SelectItem value="null">Nenhuma fazenda</SelectItem>
+                              {farms.map((farm) => (
+                                <SelectItem key={farm.id} value={farm.id.toString()}>
+                                  {farm.name}
+                                </SelectItem>
+                              ))}
                             </SelectContent>
                           </Select>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    
+
                     <DialogFooter>
-                      <DialogClose asChild>
-                        <Button variant="outline">{t('common.cancel')}</Button>
-                      </DialogClose>
-                      <Button type="submit" disabled={createEmployee.isPending}>
-                        {createEmployee.isPending ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            {t('common.loading')}
-                          </>
-                        ) : (
-                          t('common.save')
-                        )}
+                      <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+                        Cancelar
+                      </Button>
+                      <Button 
+                        type="submit" 
+                        disabled={createUserMutation.isPending || updateUserMutation.isPending}
+                      >
+                        {editingUser ? t('employees.updateUser') : t('employees.createUser')}
                       </Button>
                     </DialogFooter>
                   </form>
@@ -525,162 +487,142 @@ export default function Employees() {
             </Dialog>
           )}
         </div>
-      </div>
-      
-      <Card>
-        <CardHeader>
-          <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
-            <div className="flex justify-between items-center">
-              <CardTitle>{t('employees.title')}</CardTitle>
-              <TabsList>
-                <TabsTrigger value="all">{t('common.all')}</TabsTrigger>
-                <TabsTrigger value="active">{t('employees.statuses.active')}</TabsTrigger>
-                <TabsTrigger value="onLeave">{t('employees.statuses.onLeave')}</TabsTrigger>
-                <TabsTrigger value="inactive">{t('employees.statuses.inactive')}</TabsTrigger>
-              </TabsList>
+
+        {/* Filters */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Input
+                    placeholder={t('employees.searchPlaceholder')}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <Select value={selectedRole} onValueChange={setSelectedRole}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Filtrar por função" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('employees.all')}</SelectItem>
+                  <SelectItem value="employee">{t('employees.roles.employee')}</SelectItem>
+                  <SelectItem value="manager">{t('employees.roles.manager')}</SelectItem>
+                  <SelectItem value="agronomist">{t('employees.roles.agronomist')}</SelectItem>
+                  <SelectItem value="veterinarian">{t('employees.roles.veterinarian')}</SelectItem>
+                  <SelectItem value="farm_admin">{t('employees.roles.farm_admin')}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          </Tabs>
-        </CardHeader>
-        <CardContent>
-          {isLoadingEmployees ? (
-            <div className="flex justify-center items-center h-64">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : filteredEmployees.length > 0 ? (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t('employees.name')}</TableHead>
-                    <TableHead>{t('employees.username')}</TableHead>
-                    <TableHead>{t('employees.contact')}</TableHead>
-                    <TableHead>{t('employees.createdAt')}</TableHead>
-                    <TableHead>{t('employees.language')}</TableHead>
-                    <TableHead>{t('employees.role')}</TableHead>
-                    <TableHead>{t('common.actions')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredEmployees.map((employee) => (
-                    <TableRow key={employee.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Avatar>
-                            <AvatarFallback>{getInitials(employee.name)}</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <div className="font-medium">{employee.name}</div>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          <User className="h-4 w-4 mr-2 text-gray-500" />
-                          {employee.username}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <div className="flex items-center text-sm">
-                            <Mail className="h-4 w-4 mr-2 text-gray-500" />
-                            {employee.email}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          <Calendar className="h-4 w-4 mr-2 text-gray-500" />
-                          {format(new Date(employee.createdAt), 'dd/MM/yyyy')}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="capitalize">
-                          {employee.language === 'pt' ? 'Português' : 'English'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {getRoleBadge(employee.role)}
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem 
-                              className="flex items-center"
-                              onClick={() => {
-                                // Navigate to user profile
-                                window.location.href = `/user-profile/${employee.id}`;
-                              }}
-                            >
-                              <User className="h-4 w-4 mr-2" />
-                              {t('common.viewProfile')}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              className="flex items-center"
-                              onClick={() => {
-                                // Go to tasks page filtered by this user
-                                window.location.href = `/tasks?userId=${employee.id}`;
-                              }}
-                            >
-                              <FileText className="h-4 w-4 mr-2" />
-                              {t('employees.taskHistory')}
-                            </DropdownMenuItem>
-                            {canManageEmployees && (
-                              <>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem 
-                                  className="flex items-center"
-                                  onClick={() => {
-                                    // Open user profile in edit mode
-                                    window.location.href = `/user-profile/${employee.id}?edit=true`;
-                                  }}
-                                >
-                                  <Edit className="h-4 w-4 mr-2" />
-                                  {t('common.edit')}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem 
-                                  className="flex items-center text-destructive"
-                                  onClick={() => {
-                                    if (confirm(t('common.confirmDelete'))) {
-                                      // This would call the API to delete the user in a real implementation
-                                      toast({
-                                        title: t('employees.userDeleted'),
-                                        description: t('common.success'),
-                                      });
-                                    }
-                                  }}
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  {t('common.delete')}
-                                </DropdownMenuItem>
-                              </>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
+          </CardContent>
+        </Card>
+
+        {/* Users Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Funcionários ({filteredUsers.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {filteredUsers.length === 0 ? (
+              <div className="text-center py-8">
+                <User className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <p className="text-gray-500">{t('employees.noEmployees')}</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('employees.name')}</TableHead>
+                      <TableHead>{t('employees.username')}</TableHead>
+                      <TableHead>{t('employees.email')}</TableHead>
+                      <TableHead>{t('employees.role')}</TableHead>
+                      <TableHead>{t('employees.farm')}</TableHead>
+                      <TableHead>{t('employees.language')}</TableHead>
+                      <TableHead>{t('employees.createdAt')}</TableHead>
+                      {canManageUsers && <TableHead>Ações</TableHead>}
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          ) : (
-            <div className="text-center py-10">
-              <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-1">{t('employees.noEmployees')}</h3>
-              <p className="text-gray-500">
-                {searchTerm 
-                  ? t('common.noSearchResults') 
-                  : canManageEmployees ? t('employees.addEmployee') : t('employees.noEmployeesMessage')
-                }
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredUsers.map((userItem) => (
+                      <TableRow key={userItem.id}>
+                        <TableCell className="font-medium">{userItem.name}</TableCell>
+                        <TableCell>{userItem.username}</TableCell>
+                        <TableCell>{userItem.email}</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">
+                            {getRoleDisplay(userItem.role)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <Building2 className="h-4 w-4 text-gray-400" />
+                            {getFarmName(userItem.farmId)}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">
+                            {t(`employees.languages.${userItem.language}`)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {format(new Date(userItem.createdAt), 'dd/MM/yyyy')}
+                        </TableCell>
+                        {canManageUsers && (
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEditUser(userItem)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              
+                              {userItem.id !== user?.id && (
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button variant="ghost" size="sm">
+                                      <Trash2 className="h-4 w-4 text-red-500" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Excluir funcionário</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        {t('employees.confirmDelete')}
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => deleteUserMutation.mutate(userItem.id)}
+                                        className="bg-red-600 hover:bg-red-700"
+                                      >
+                                        Excluir
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              )}
+                            </div>
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </DashboardLayout>
   );
 }

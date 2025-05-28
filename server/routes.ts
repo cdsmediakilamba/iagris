@@ -1083,6 +1083,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to create user" });
     }
   });
+
+  // Update user
+  app.patch("/api/users/:id", checkRole([UserRole.SUPER_ADMIN, UserRole.FARM_ADMIN]), async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id, 10);
+      
+      // Check if user exists
+      const existingUser = await storage.getUser(userId);
+      if (!existingUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Prevent users from editing themselves if it would remove their admin privileges
+      if (userId === req.user.id && req.body.role && req.body.role !== req.user.role) {
+        return res.status(403).json({ message: "Cannot change your own role" });
+      }
+
+      // Farm admins cannot modify super admins or create super admins
+      if (req.user.role === UserRole.FARM_ADMIN) {
+        if (existingUser.role === UserRole.SUPER_ADMIN) {
+          return res.status(403).json({ message: "Farm administrators cannot modify super admin accounts" });
+        }
+        if (req.body.role === UserRole.SUPER_ADMIN) {
+          return res.status(403).json({ message: "Farm administrators cannot assign super admin role" });
+        }
+      }
+
+      // Hash password if it's being updated
+      const updateData = { ...req.body };
+      if (updateData.password) {
+        updateData.password = await hashPassword(updateData.password);
+      }
+
+      const updatedUser = await storage.updateUser(userId, updateData);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Don't send password in response
+      const { password, ...userWithoutPassword } = updatedUser;
+      
+      res.json(userWithoutPassword);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Failed to update user" });
+    }
+  });
+
+  // Delete user
+  app.delete("/api/users/:id", checkRole([UserRole.SUPER_ADMIN, UserRole.FARM_ADMIN]), async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id, 10);
+      
+      // Check if user exists
+      const existingUser = await storage.getUser(userId);
+      if (!existingUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Prevent users from deleting themselves
+      if (userId === req.user.id) {
+        return res.status(403).json({ message: "Cannot delete your own account" });
+      }
+
+      // Farm admins cannot delete super admins
+      if (req.user.role === UserRole.FARM_ADMIN && existingUser.role === UserRole.SUPER_ADMIN) {
+        return res.status(403).json({ message: "Farm administrators cannot delete super admin accounts" });
+      }
+
+      // Note: In a production system, you might want to soft delete or archive users
+      // instead of hard deleting them to preserve data integrity
+      
+      // For now, we'll just remove the user from the users table
+      // In a real implementation, you'd want to handle related data cleanup
+      const deleted = await storage.deleteUser?.(userId);
+      
+      if (deleted) {
+        res.json({ message: "User deleted successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to delete user" });
+      }
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
   
   // Farm-User association routes
   // Rota para verificar as associações de usuários a fazendas
