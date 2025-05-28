@@ -149,6 +149,7 @@ export default function Employees() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      queryClient.refetchQueries({ queryKey: ['/api/users'] });
       toast({
         title: t('employees.employeeAdded'),
         description: 'Funcionário criado com sucesso',
@@ -176,6 +177,7 @@ export default function Employees() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      queryClient.refetchQueries({ queryKey: ['/api/users'] });
       toast({
         title: t('employees.employeeUpdated'),
         description: 'Funcionário atualizado com sucesso',
