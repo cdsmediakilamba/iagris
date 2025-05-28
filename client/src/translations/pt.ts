@@ -211,6 +211,7 @@ export const pt = {
   dashboard: {
     title: 'Dashboard',
     farm: 'Fazenda',
+    selectFarm: 'Selecionar Fazenda',
     totalAnimals: 'Total de Animais',
     cultivatedArea: 'Área Cultivada',
     currentBalance: 'Saldo Atual',
