@@ -996,11 +996,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let users = [];
       
       if (req.user.role === UserRole.SUPER_ADMIN) {
-        // Super admin can see all users
-        // This would be implemented with a getAllUsers method in a production app
-        // For now using a simple loop as placeholder
-        const usersPromises = Array.from(Array(20).keys()).map(id => {
-          return storage.getUser(id);
+        // Super admin can see all users - try to get users up to ID 100 to cover all created users
+        const usersPromises = Array.from(Array(100).keys()).map(id => {
+          return storage.getUser(id + 1); // Start from ID 1
         });
         
         const resolvedUsers = await Promise.all(usersPromises);
