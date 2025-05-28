@@ -264,6 +264,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
+  // Update animal route
+  app.patch("/api/farms/:farmId/animals/:animalId", 
+    checkModuleAccess(SystemModule.ANIMALS, AccessLevel.FULL), 
+    async (req, res) => {
+      try {
+        const farmId = parseInt(req.params.farmId, 10);
+        const animalId = parseInt(req.params.animalId, 10);
+        
+        // First, get the animal to check permissions
+        const animal = await storage.getAnimal(animalId);
+        if (!animal) {
+          return res.status(404).json({ message: "Animal not found" });
+        }
+        
+        // Check if animal belongs to the specified farm
+        if (animal.farmId !== farmId) {
+          return res.status(400).json({ message: "Animal does not belong to this farm" });
+        }
+        
+        // Check if user has permission to update animals on this farm
+        const hasAccess = await storage.checkUserAccess(
+          req.user.id,
+          farmId,
+          SystemModule.ANIMALS,
+          AccessLevel.FULL
+        );
+        
+        if (!hasAccess) {
+          return res.status(403).json({ message: "You don't have permission to update animals" });
+        }
+        
+        console.log("Updating animal with data:", req.body);
+        const updatedAnimal = await storage.updateAnimal(animalId, req.body);
+        
+        if (!updatedAnimal) {
+          return res.status(404).json({ message: "Failed to update animal" });
+        }
+        
+        res.json(updatedAnimal);
+      } catch (error) {
+        console.error("Error updating animal:", error);
+        res.status(500).json({ 
+          message: "Failed to update animal", 
+          error: error instanceof Error ? error.message : String(error)
+        });
+      }
+    }
+  );
+
+  // Delete animal route
+  app.delete("/api/farms/:farmId/animals/:animalId", 
+    checkModuleAccess(SystemModule.ANIMALS, AccessLevel.FULL), 
+    async (req, res) => {
+      try {
+        const farmId = parseInt(req.params.farmId, 10);
+        const animalId = parseInt(req.params.animalId, 10);
+        
+        // First, get the animal to check permissions
+        const animal = await storage.getAnimal(animalId);
+        if (!animal) {
+          return res.status(404).json({ message: "Animal not found" });
+        }
+        
+        // Check if animal belongs to the specified farm
+        if (animal.farmId !== farmId) {
+          return res.status(400).json({ message: "Animal does not belong to this farm" });
+        }
+        
+        // Check if user has permission to delete animals on this farm
+        const hasAccess = await storage.checkUserAccess(
+          req.user.id,
+          farmId,
+          SystemModule.ANIMALS,
+          AccessLevel.FULL
+        );
+        
+        if (!hasAccess) {
+          return res.status(403).json({ message: "You don't have permission to delete animals" });
+        }
+        
+        console.log("Deleting animal:", animalId);
+        const success = await storage.deleteAnimal(animalId);
+        
+        if (!success) {
+          return res.status(404).json({ message: "Failed to delete animal" });
+        }
+        
+        res.status(200).json({ message: "Animal deleted successfully", success: true });
+      } catch (error) {
+        console.error("Error deleting animal:", error);
+        res.status(500).json({ 
+          message: "Failed to delete animal", 
+          error: error instanceof Error ? error.message : String(error)
+        });
+      }
+    }
+  );
+
   // Animal Vaccination routes
   app.get("/api/animals/:animalId/vaccinations",
     checkModuleAccess(SystemModule.ANIMALS, AccessLevel.READ_ONLY),

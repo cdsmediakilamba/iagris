@@ -181,6 +181,7 @@ export const pt = {
     visit: 'Visitar',
     viewProfile: 'Ver Perfil',
     location: 'Localização',
+    observations: 'Observações',
   },
   validation: {
     required: 'Este campo é obrigatório',
@@ -282,6 +283,8 @@ export const pt = {
     genders: {
       male: 'Macho',
       female: 'Fêmea',
+      macho: 'Macho',
+      'fêmea': 'Fêmea',
     },
     speciesTypes: {
       'Bovino': 'Bovino',
@@ -294,7 +297,8 @@ export const pt = {
       'Boi': 'Boi',
       'Galinha': 'Galinha',
       'Ovelha': 'Ovelha',
-      'Cabra': 'Cabra'
+      'Cabra': 'Cabra',
+      'Peixes': 'Peixes'
     },
     birthDate: 'Data de Nascimento',
     weight: 'Peso (kg)',
@@ -312,7 +316,7 @@ export const pt = {
       sick: 'Doente',
       treatment: 'Em Tratamento',
       quarantine: 'Em Quarentena',
-      pregnant: 'Grávida',
+      pregnant: 'Prenha',
       lactating: 'Em Lactação',
       needsAttention: 'Precisa de Atenção',
     },

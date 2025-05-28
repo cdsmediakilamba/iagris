@@ -211,6 +211,20 @@ export class DatabaseStorage implements IStorage {
     return updatedAnimal || undefined;
   }
 
+  async deleteAnimal(id: number): Promise<boolean> {
+    try {
+      // First delete any related animal vaccinations
+      await db.delete(animalVaccinations).where(eq(animalVaccinations.animalId, id));
+      
+      // Then delete the animal
+      const result = await db.delete(animals).where(eq(animals.id, id));
+      return result.rowCount !== undefined && result.rowCount > 0;
+    } catch (error) {
+      console.error("Error deleting animal:", error);
+      return false;
+    }
+  }
+
   // Crop operations
   async getCrop(id: number): Promise<Crop | undefined> {
     const [crop] = await db.select().from(crops).where(eq(crops.id, id));
