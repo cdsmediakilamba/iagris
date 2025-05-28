@@ -691,6 +691,7 @@ export const pt = {
       feed: 'Alimentação',
       veterinary: 'Veterinário',
       seeds: 'Sementes',
+      fertilizer: 'Fertilizantes',
       fertilizers: 'Fertilizantes',
       taxes: 'Impostos',
       other: 'Outros',

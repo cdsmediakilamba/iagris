@@ -60,7 +60,7 @@ const CostsPage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [_, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   const farmId = 6; // Por padrão, usamos a fazenda com ID 6 para demonstração
   
   // Estado para o modal de criação de custo
@@ -324,14 +324,14 @@ const CostsPage = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => window.location.href = `/costs/${cost.id}?farmId=${farmId}`}
+                          onClick={() => navigate(`/costs/${cost.id}?farmId=${farmId}`)}
                         >
                           {t('common.view') || 'Ver'}
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => window.location.href = `/costs/edit/${cost.id}?farmId=${farmId}`}
+                          onClick={() => navigate(`/costs/edit/${cost.id}?farmId=${farmId}`)}
                         >
                           {t('common.edit') || 'Editar'}
                         </Button>
