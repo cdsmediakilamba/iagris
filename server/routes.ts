@@ -1797,6 +1797,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get a specific cost by ID
+  app.get("/api/farms/:farmId/costs/:id", (req, res, next) => {
+    checkAuth(req, res, next);
+  }, async (req, res) => {
+    try {
+      const farmId = parseInt(req.params.farmId, 10);
+      const costId = parseInt(req.params.id, 10);
+      
+      // Ensure the farm exists
+      const farm = await storage.getFarm(farmId);
+      if (!farm) {
+        return res.status(404).json({ message: "Farm not found" });
+      }
+      
+      // Check if the user has access to this farm
+      if (!await hasAccessToFarm(req.user, farmId)) {
+        return res.status(403).json({ message: "You don't have access to this farm" });
+      }
+      
+      // Get the cost
+      const cost = await storage.getCost(costId);
+      if (!cost) {
+        return res.status(404).json({ message: "Cost not found" });
+      }
+      
+      // Verify the cost belongs to the specified farm
+      if (cost.farmId !== farmId) {
+        return res.status(404).json({ message: "Cost not found" });
+      }
+      
+      res.json(cost);
+    } catch (error) {
+      console.error("Error fetching cost:", error);
+      res.status(500).json({ message: "Failed to fetch cost" });
+    }
+  });
+
   // Create a new cost
   app.post("/api/farms/:farmId/costs", (req, res, next) => {
     checkAuth(req, res, next);
@@ -1833,11 +1870,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Update a cost
-  app.patch("/api/costs/:id", (req, res, next) => {
+  app.patch("/api/farms/:farmId/costs/:id", (req, res, next) => {
     checkAuth(req, res, next);
   }, async (req, res) => {
     try {
+      const farmId = parseInt(req.params.farmId, 10);
       const costId = parseInt(req.params.id, 10);
+      
+      // Ensure the farm exists
+      const farm = await storage.getFarm(farmId);
+      if (!farm) {
+        return res.status(404).json({ message: "Farm not found" });
+      }
       
       // Get the existing cost
       const existingCost = await storage.getCost(costId);
@@ -1845,8 +1889,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Cost not found" });
       }
       
+      // Verify the cost belongs to the specified farm
+      if (existingCost.farmId !== farmId) {
+        return res.status(404).json({ message: "Cost not found" });
+      }
+      
       // Check if the user has access to modify this cost
-      if (!await hasAccessToModify(req.user, existingCost.farmId, SystemModule.COSTS)) {
+      if (!await hasAccessToModify(req.user, farmId, SystemModule.COSTS)) {
         return res.status(403).json({ message: "You don't have permission to update this cost" });
       }
       
@@ -1861,11 +1910,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Delete a cost
-  app.delete("/api/costs/:id", (req, res, next) => {
+  app.delete("/api/farms/:farmId/costs/:id", (req, res, next) => {
     checkAuth(req, res, next);
   }, async (req, res) => {
     try {
+      const farmId = parseInt(req.params.farmId, 10);
       const costId = parseInt(req.params.id, 10);
+      
+      // Ensure the farm exists
+      const farm = await storage.getFarm(farmId);
+      if (!farm) {
+        return res.status(404).json({ message: "Farm not found" });
+      }
       
       // Get the existing cost
       const existingCost = await storage.getCost(costId);
@@ -1873,8 +1929,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Cost not found" });
       }
       
+      // Verify the cost belongs to the specified farm
+      if (existingCost.farmId !== farmId) {
+        return res.status(404).json({ message: "Cost not found" });
+      }
+      
       // Check if the user has access to delete this cost
-      if (!await hasAccessToModify(req.user, existingCost.farmId, SystemModule.COSTS)) {
+      if (!await hasAccessToModify(req.user, farmId, SystemModule.COSTS)) {
         return res.status(403).json({ message: "You don't have permission to delete this cost" });
       }
       
