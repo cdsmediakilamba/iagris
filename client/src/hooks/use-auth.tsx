@@ -33,11 +33,36 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   
-  // Estados para controle de tentativas de login
-  const [failedAttempts, setFailedAttempts] = useState(0);
-  const [isBlocked, setIsBlocked] = useState(false);
-  const [blockEndTime, setBlockEndTime] = useState<number | null>(null);
+  // Estados para controle de tentativas de login (com persistência)
+  const [failedAttempts, setFailedAttempts] = useState(() => {
+    const stored = localStorage.getItem('loginAttempts');
+    return stored ? parseInt(stored, 10) : 0;
+  });
+  
+  const [isBlocked, setIsBlocked] = useState(() => {
+    const blockTime = localStorage.getItem('blockEndTime');
+    if (blockTime) {
+      const endTime = parseInt(blockTime, 10);
+      return Date.now() < endTime;
+    }
+    return false;
+  });
+  
+  const [blockEndTime, setBlockEndTime] = useState<number | null>(() => {
+    const stored = localStorage.getItem('blockEndTime');
+    return stored ? parseInt(stored, 10) : null;
+  });
+  
   const [timeRemaining, setTimeRemaining] = useState(0);
+
+  // Inicializar contador regressivo se há bloqueio ativo
+  useEffect(() => {
+    if (isBlocked && blockEndTime) {
+      const now = Date.now();
+      const remaining = Math.max(0, blockEndTime - now);
+      setTimeRemaining(Math.ceil(remaining / 1000));
+    }
+  }, []);
 
   // Efeito para o contador regressivo
   useEffect(() => {
@@ -54,6 +79,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setFailedAttempts(0);
           setBlockEndTime(null);
           setTimeRemaining(0);
+          localStorage.removeItem('loginAttempts');
+          localStorage.removeItem('blockEndTime');
         }
       }, 1000);
     }
@@ -104,12 +131,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       const newFailedAttempts = failedAttempts + 1;
       setFailedAttempts(newFailedAttempts);
+      localStorage.setItem('loginAttempts', newFailedAttempts.toString());
       
       if (newFailedAttempts >= 3) {
         const blockTime = Date.now() + (10 * 60 * 1000); // 10 minutos
         setIsBlocked(true);
         setBlockEndTime(blockTime);
         setTimeRemaining(600); // 10 minutos em segundos
+        localStorage.setItem('blockEndTime', blockTime.toString());
         
         toast({
           title: "Conta temporariamente bloqueada",
@@ -208,6 +237,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsBlocked(false);
         setBlockEndTime(null);
         setTimeRemaining(0);
+        localStorage.removeItem('loginAttempts');
+        localStorage.removeItem('blockEndTime');
         if (onSuccess) onSuccess();
       }
     });
