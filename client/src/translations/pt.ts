@@ -148,6 +148,7 @@ export const pt = {
     signIn: 'Entrar',
     signUp: 'Registrar',
     submit: 'Enviar',
+    allRightsReserved: 'Todos os direitos reservados',
     newTask: 'Nova Tarefa',
     management: 'Gestão',
     system: 'Sistema',

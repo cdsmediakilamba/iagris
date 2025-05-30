@@ -146,7 +146,8 @@ export const en = {
     notes: 'Notes',
     from: 'From',
     to: 'To',
-    apply: 'Apply'
+    apply: 'Apply',
+    allRightsReserved: 'All rights reserved'
   },
   validation: {
     required: 'This field is required',
