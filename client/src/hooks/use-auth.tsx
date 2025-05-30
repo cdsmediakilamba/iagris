@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext } from "react";
+import { createContext, ReactNode, useContext, useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { insertUserSchema, User as SelectUser } from "@shared/schema";
 import { getQueryFn, queryClient } from "../lib/queryClient";
@@ -13,6 +13,9 @@ type AuthContextType = {
   login: (credentials: LoginData, onSuccess?: () => void) => void;
   register: (userData: RegisterData, onSuccess?: () => void) => void;
   logout: (onSuccess?: () => void) => void;
+  failedAttempts: number;
+  isBlocked: boolean;
+  timeRemaining: number;
 };
 
 // Schema para login (apenas username e password)
@@ -29,6 +32,36 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
+  
+  // Estados para controle de tentativas de login
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [blockEndTime, setBlockEndTime] = useState<number | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState(0);
+
+  // Efeito para o contador regressivo
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    
+    if (isBlocked && blockEndTime) {
+      interval = setInterval(() => {
+        const now = Date.now();
+        const remaining = Math.max(0, blockEndTime - now);
+        setTimeRemaining(Math.ceil(remaining / 1000));
+        
+        if (remaining <= 0) {
+          setIsBlocked(false);
+          setFailedAttempts(0);
+          setBlockEndTime(null);
+          setTimeRemaining(0);
+        }
+      }, 1000);
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isBlocked, blockEndTime]);
   
   // Consulta para obter dados do usuário atual
   const {
@@ -68,11 +101,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onError: (error: Error) => {
       console.error("Erro de login:", error);
-      toast({
-        title: "Falha no login",
-        description: error.message,
-        variant: "destructive",
-      });
+      
+      const newFailedAttempts = failedAttempts + 1;
+      setFailedAttempts(newFailedAttempts);
+      
+      if (newFailedAttempts >= 3) {
+        const blockTime = Date.now() + (10 * 60 * 1000); // 10 minutos
+        setIsBlocked(true);
+        setBlockEndTime(blockTime);
+        setTimeRemaining(600); // 10 minutos em segundos
+        
+        toast({
+          title: "Conta temporariamente bloqueada",
+          description: "Muitas tentativas falhadas. Tente novamente em 10 minutos.",
+          variant: "destructive",
+        });
+      } else {
+        const attemptsLeft = 3 - newFailedAttempts;
+        toast({
+          title: "Dados de acesso incorretos",
+          description: `Verifique seu nome de usuário e senha. Tentativas restantes: ${attemptsLeft}`,
+          variant: "destructive",
+        });
+      }
     },
   });
 
@@ -141,8 +192,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Funções de wrapper para as mutations
   const login = (credentials: LoginData, onSuccess?: () => void) => {
+    if (isBlocked) {
+      toast({
+        title: "Conta bloqueada",
+        description: `Aguarde ${Math.floor(timeRemaining / 60)}:${(timeRemaining % 60).toString().padStart(2, '0')} para tentar novamente.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
     loginMutation.mutate(credentials, {
       onSuccess: () => {
+        // Reset tentativas em caso de sucesso
+        setFailedAttempts(0);
+        setIsBlocked(false);
+        setBlockEndTime(null);
+        setTimeRemaining(0);
         if (onSuccess) onSuccess();
       }
     });
@@ -172,7 +237,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         error,
         login,
         register,
-        logout
+        logout,
+        failedAttempts,
+        isBlocked,
+        timeRemaining
       }}
     >
       {children}

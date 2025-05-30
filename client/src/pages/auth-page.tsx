@@ -17,6 +17,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle, Clock } from "lucide-react";
 import Footer from "@/components/Footer";
 
 // Login form schema
@@ -28,7 +30,7 @@ const loginSchema = z.object({
 export default function AuthPage() {
   const [, setLocation] = useLocation();
   const { t } = useLanguage();
-  const { user, login } = useAuth();
+  const { user, login, failedAttempts, isBlocked, timeRemaining } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   
   // Redirect if already logged in
@@ -72,6 +74,39 @@ export default function AuthPage() {
               <CardDescription>{t('auth.subTitle')}</CardDescription>
             </CardHeader>
             <CardContent>
+              {/* Alerta de bloqueio */}
+              {isBlocked && (
+                <Alert variant="destructive" className="mb-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium">Conta temporariamente bloqueada</div>
+                      <div className="text-sm">Muitas tentativas falhadas. Tente novamente em:</div>
+                    </div>
+                    <div className="flex items-center ml-4">
+                      <Clock className="h-4 w-4 mr-1" />
+                      <span className="font-mono text-lg">
+                        {Math.floor(timeRemaining / 60).toString().padStart(2, '0')}:
+                        {(timeRemaining % 60).toString().padStart(2, '0')}
+                      </span>
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {/* Alerta de tentativas restantes */}
+              {!isBlocked && failedAttempts > 0 && (
+                <Alert variant="destructive" className="mb-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    <div className="font-medium">Dados de acesso incorretos</div>
+                    <div className="text-sm">
+                      Tentativas restantes: {3 - failedAttempts}
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              )}
+
               {/* Login Form */}
               <Form {...loginForm}>
                 <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
@@ -82,7 +117,7 @@ export default function AuthPage() {
                       <FormItem>
                         <FormLabel>{t('common.username')}</FormLabel>
                         <FormControl>
-                          <Input {...field} disabled={isLoading} />
+                          <Input {...field} disabled={isLoading || isBlocked} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -95,7 +130,7 @@ export default function AuthPage() {
                       <FormItem>
                         <FormLabel>{t('common.password')}</FormLabel>
                         <FormControl>
-                          <Input type="password" {...field} disabled={isLoading} />
+                          <Input type="password" {...field} disabled={isLoading || isBlocked} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -104,9 +139,9 @@ export default function AuthPage() {
                   <Button 
                     type="submit" 
                     className="w-full" 
-                    disabled={isLoading}
+                    disabled={isLoading || isBlocked}
                   >
-                    {isLoading ? t('common.loading') : t('common.signIn')}
+                    {isBlocked ? 'Conta bloqueada' : (isLoading ? t('common.loading') : t('common.signIn'))}
                   </Button>
                 </form>
               </Form>
