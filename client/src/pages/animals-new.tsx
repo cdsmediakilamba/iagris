@@ -187,8 +187,8 @@ export default function NewAnimalsPage() {
         const search = filters.searchTerm.toLowerCase();
         return (
           (animal.name && animal.name.toLowerCase().includes(search)) ||
-          animal.registrationCode.toLowerCase().includes(search) ||
-          animal.breed.toLowerCase().includes(search)
+          (animal.registrationCode && animal.registrationCode.toLowerCase().includes(search)) ||
+          (animal.breed && animal.breed.toLowerCase().includes(search))
         );
       }
       
