@@ -156,9 +156,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const allUsers = await storage.getUsersByRole(UserRole.EMPLOYEE);
       const adminUsers = await storage.getUsersByRole(UserRole.FARM_ADMIN);
       const superAdmins = await storage.getUsersByRole(UserRole.SUPER_ADMIN);
+      const managers = await storage.getUsersByRole(UserRole.MANAGER);
+      const veterinarians = await storage.getUsersByRole(UserRole.VETERINARIAN);
+      const agronomists = await storage.getUsersByRole(UserRole.AGRONOMIST);
       
       // Combine all users and format for selection
-      const users = [...allUsers, ...adminUsers, ...superAdmins].map(user => ({
+      const users = [...allUsers, ...adminUsers, ...superAdmins, ...managers, ...veterinarians, ...agronomists].map(user => ({
         id: user.id,
         name: user.name,
         email: user.email,
