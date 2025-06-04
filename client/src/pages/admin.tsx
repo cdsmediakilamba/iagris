@@ -71,6 +71,17 @@ import {
   AvatarImage,
 } from '@/components/ui/avatar';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import {
   Search,
   PlusCircle,
   ShieldAlert,
@@ -101,9 +112,12 @@ export default function Admin() {
   const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [userDialogOpen, setUserDialogOpen] = useState(false);
+  const [editUserDialogOpen, setEditUserDialogOpen] = useState(false);
+  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   const [farmDialogOpen, setFarmDialogOpen] = useState(false);
   const [farmSearchTerm, setFarmSearchTerm] = useState('');
   const [selectedFarm, setSelectedFarm] = useState<number | null>(null);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
   
   // Estado para o diálogo de edição de funções
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
@@ -325,6 +339,19 @@ export default function Admin() {
     },
   });
 
+  // Edit user form (without password fields)
+  const editUserSchema = insertUserSchema.omit({ password: true });
+  const editForm = useForm<z.infer<typeof editUserSchema>>({
+    resolver: zodResolver(editUserSchema),
+    defaultValues: {
+      username: '',
+      name: '',
+      email: '',
+      role: 'employee',
+      language: 'pt',
+    },
+  });
+
   // Create user mutation
   const createUserMutation = useMutation({
     mutationFn: async (userData: z.infer<typeof insertUserSchema>) => {
@@ -338,6 +365,50 @@ export default function Admin() {
       });
       form.reset();
       setUserDialogOpen(false);
+    },
+    onError: (error) => {
+      toast({
+        title: t('common.error'),
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Update user mutation
+  const updateUserMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number, data: Partial<any> }) => {
+      return await apiRequest(`/api/users/${id}`, { method: 'PATCH', data });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      toast({
+        title: 'Usuário atualizado',
+        description: 'As informações do usuário foram atualizadas com sucesso',
+      });
+      setEditUserDialogOpen(false);
+      setSelectedUser(null);
+    },
+    onError: (error) => {
+      toast({
+        title: t('common.error'),
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Delete user mutation
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      return await apiRequest(`/api/users/${userId}`, { method: 'DELETE' });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      toast({
+        title: 'Usuário excluído',
+        description: 'O usuário foi excluído com sucesso',
+      });
     },
     onError: (error) => {
       toast({
