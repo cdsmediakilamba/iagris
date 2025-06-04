@@ -983,22 +983,22 @@ export default function Admin() {
                     </TableHeader>
                     <TableBody>
                       {filteredUsers.map((userItem) => (
-                        <TableRow key={user.id}>
+                        <TableRow key={userItem.id}>
                           <TableCell>
                             <div className="flex items-center gap-3">
                               <Avatar>
-                                <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                                <AvatarFallback>{getInitials(userItem.name)}</AvatarFallback>
                               </Avatar>
                               <div>
-                                <div className="font-medium">{user.name}</div>
-                                <div className="text-sm text-gray-500">{user.username}</div>
+                                <div className="font-medium">{userItem.name}</div>
+                                <div className="text-sm text-gray-500">@{userItem.username}</div>
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell>{user.email}</TableCell>
+                          <TableCell>{userItem.email}</TableCell>
                           <TableCell>
                             <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                              {t(`employees.roles.${user.role}`)}
+                              {t(`employees.roles.${userItem.role}`)}
                             </Badge>
                           </TableCell>
                           <TableCell>
@@ -1022,19 +1022,19 @@ export default function Admin() {
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem 
                                   className="flex items-center"
-                                  onClick={() => handleViewProfile(user)}
+                                  onClick={() => handleViewProfile(userItem)}
                                 >
                                   <User className="h-4 w-4 mr-2" />
                                   {t('common.viewProfile')}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem 
                                   className="flex items-center"
-                                  onClick={() => handleEditUser(user)}
+                                  onClick={() => handleEditUser(userItem)}
                                 >
                                   <Edit className="h-4 w-4 mr-2" />
                                   {t('common.edit')}
                                 </DropdownMenuItem>
-                                {user.id !== user?.id && (
+                                {userItem.id !== user?.id && (
                                   <AlertDialog>
                                     <AlertDialogTrigger asChild>
                                       <DropdownMenuItem 
@@ -1049,13 +1049,13 @@ export default function Admin() {
                                       <AlertDialogHeader>
                                         <AlertDialogTitle>Excluir usuário</AlertDialogTitle>
                                         <AlertDialogDescription>
-                                          Tem certeza que deseja excluir o usuário "{user.name}"? Esta ação não pode ser desfeita.
+                                          Tem certeza que deseja excluir o usuário "{userItem.name}"? Esta ação não pode ser desfeita.
                                         </AlertDialogDescription>
                                       </AlertDialogHeader>
                                       <AlertDialogFooter>
                                         <AlertDialogCancel>Cancelar</AlertDialogCancel>
                                         <AlertDialogAction
-                                          onClick={() => deleteUserMutation.mutate(user.id)}
+                                          onClick={() => deleteUserMutation.mutate(userItem.id)}
                                           className="bg-red-600 hover:bg-red-700"
                                         >
                                           Excluir
@@ -1086,6 +1086,174 @@ export default function Admin() {
               )}
             </CardContent>
           </Card>
+          
+          {/* Edit User Dialog */}
+          <Dialog open={editUserDialogOpen} onOpenChange={setEditUserDialogOpen}>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Editar Usuário</DialogTitle>
+              </DialogHeader>
+              <Form {...editForm}>
+                <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
+                  <FormField
+                    control={editForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nome Completo</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="username"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nome de Usuário</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input {...field} type="email" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="role"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Função</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione uma função" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="employee">Funcionário</SelectItem>
+                            <SelectItem value="farm_admin">Administrador de Fazenda</SelectItem>
+                            <SelectItem value="super_admin">Super Administrador</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="language"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Idioma</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione um idioma" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="pt">Português</SelectItem>
+                            <SelectItem value="en">Inglês</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <DialogFooter>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => setEditUserDialogOpen(false)}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      disabled={updateUserMutation.isPending}
+                    >
+                      {updateUserMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Salvar Alterações
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
+
+          {/* Profile View Dialog */}
+          <Dialog open={profileDialogOpen} onOpenChange={setProfileDialogOpen}>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Perfil do Usuário</DialogTitle>
+              </DialogHeader>
+              {selectedUser && (
+                <div className="space-y-6">
+                  <div className="flex items-center space-x-4">
+                    <Avatar className="h-16 w-16">
+                      <AvatarFallback className="text-lg">
+                        {getInitials(selectedUser.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h3 className="text-lg font-semibold">{selectedUser.name}</h3>
+                      <p className="text-sm text-gray-500">@{selectedUser.username}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Email</label>
+                      <p className="text-sm">{selectedUser.email}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Função</label>
+                      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                        {t(`employees.roles.${selectedUser.role}`)}
+                      </Badge>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Idioma</label>
+                      <p className="text-sm">{selectedUser.language === 'pt' ? 'Português' : 'English'}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Status</label>
+                      <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                        Ativo
+                      </Badge>
+                    </div>
+                  </div>
+                  
+                  {selectedUser.createdAt && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Criado em</label>
+                      <p className="text-sm">{formatDate(new Date(selectedUser.createdAt), 'PPpp', language)}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+              <DialogFooter>
+                <Button onClick={() => setProfileDialogOpen(false)}>Fechar</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </TabsContent>
 
         {/* Role Management Tab */}
