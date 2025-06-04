@@ -467,6 +467,32 @@ export default function Admin() {
     createUserMutation.mutate(userData);
   };
 
+  // Edit user submit handler
+  const onEditSubmit = (data: z.infer<typeof editUserSchema>) => {
+    if (selectedUser) {
+      updateUserMutation.mutate({ id: selectedUser.id, data });
+    }
+  };
+
+  // Handle edit user
+  const handleEditUser = (userToEdit: any) => {
+    setSelectedUser(userToEdit);
+    editForm.reset({
+      username: userToEdit.username,
+      name: userToEdit.name,
+      email: userToEdit.email,
+      role: userToEdit.role,
+      language: userToEdit.language,
+    });
+    setEditUserDialogOpen(true);
+  };
+
+  // Handle view user profile
+  const handleViewProfile = (userToView: any) => {
+    setSelectedUser(userToView);
+    setProfileDialogOpen(true);
+  };
+
   // Function to get initials from name
   const getInitials = (name: string) => {
     return name
@@ -956,7 +982,7 @@ export default function Admin() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredUsers.map((user) => (
+                      {filteredUsers.map((userItem) => (
                         <TableRow key={user.id}>
                           <TableCell>
                             <div className="flex items-center gap-3">
@@ -994,18 +1020,50 @@ export default function Admin() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem className="flex items-center">
+                                <DropdownMenuItem 
+                                  className="flex items-center"
+                                  onClick={() => handleViewProfile(user)}
+                                >
                                   <User className="h-4 w-4 mr-2" />
                                   {t('common.viewProfile')}
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="flex items-center">
+                                <DropdownMenuItem 
+                                  className="flex items-center"
+                                  onClick={() => handleEditUser(user)}
+                                >
                                   <Edit className="h-4 w-4 mr-2" />
                                   {t('common.edit')}
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="flex items-center text-destructive">
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  {t('common.delete')}
-                                </DropdownMenuItem>
+                                {user.id !== user?.id && (
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <DropdownMenuItem 
+                                        className="flex items-center text-destructive"
+                                        onSelect={(e) => e.preventDefault()}
+                                      >
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                        {t('common.delete')}
+                                      </DropdownMenuItem>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Excluir usuário</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          Tem certeza que deseja excluir o usuário "{user.name}"? Esta ação não pode ser desfeita.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                        <AlertDialogAction
+                                          onClick={() => deleteUserMutation.mutate(user.id)}
+                                          className="bg-red-600 hover:bg-red-700"
+                                        >
+                                          Excluir
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                )}
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>
