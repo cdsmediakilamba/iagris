@@ -70,7 +70,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { HelpCircle, MoreVertical, Loader2, Plus, Search, ChevronLeft, ChevronRight, Edit, Trash2, Eye } from 'lucide-react';
+import { HelpCircle, MoreVertical, Loader2, Plus, Search, ChevronLeft, ChevronRight, Edit, Trash2, Eye, Archive } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Link } from 'wouter';
 
@@ -713,6 +713,12 @@ export default function NewAnimalsPage() {
                 </SelectContent>
               </Select>
             )}
+            <Link href="/removed-animals">
+              <Button variant="outline">
+                <Archive className="mr-2 h-4 w-4" />
+                Animais Removidos
+              </Button>
+            </Link>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button>
