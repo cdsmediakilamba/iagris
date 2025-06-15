@@ -469,7 +469,11 @@ const AnimalDetails: React.FC = () => {
                               <FormItem>
                                 <FormLabel>{t("vaccination.batchNumber")}</FormLabel>
                                 <FormControl>
-                                  <Input {...field} value={field.value || ''} />
+                                  <Input 
+                                    {...field} 
+                                    value={field.value || ''} 
+                                    onChange={(e) => field.onChange(e.target.value || null)}
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -547,7 +551,14 @@ const AnimalDetails: React.FC = () => {
                               <FormItem>
                                 <FormLabel>{t("common.notes")}</FormLabel>
                                 <FormControl>
-                                  <Textarea {...field} />
+                                  <Textarea 
+                                    name={field.name}
+                                    onBlur={field.onBlur}
+                                    ref={field.ref}
+                                    disabled={field.disabled}
+                                    value={field.value || ''} 
+                                    onChange={(e) => field.onChange(e.target.value || null)}
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
