@@ -713,7 +713,7 @@ export default function NewAnimalsPage() {
                 </SelectContent>
               </Select>
             )}
-            <Link href="/removed-animals">
+            <Link href="/animals-removed">
               <Button variant="outline">
                 <Archive className="mr-2 h-4 w-4" />
                 Animais Removidos
