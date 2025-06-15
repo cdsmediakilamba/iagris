@@ -366,6 +366,14 @@ const AnimalDetails: React.FC = () => {
                   ({animal.registrationCode})
                 </span>
               </span>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setIsRemovalDialogOpen(true)}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Remover Animal
+              </Button>
             </CardTitle>
             <CardDescription>
               {getSpeciesName(animal.speciesId)} • {animal.breed} • {t(`animals.genders.${animal.gender}`)}
@@ -922,6 +930,136 @@ const AnimalDetails: React.FC = () => {
                 >
                   {updateVaccinationMutation.isPending ? 
                     t("common.saving") : t("common.save")}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Animal Removal Dialog */}
+      <Dialog open={isRemovalDialogOpen} onOpenChange={setIsRemovalDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Remover Animal</DialogTitle>
+            <DialogDescription>
+              Selecione o motivo da remoção do animal {animal.name || "sem nome"} ({animal.registrationCode}).
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...removalForm}>
+            <form onSubmit={removalForm.handleSubmit(onSubmitRemoval)} className="space-y-4">
+              {/* Reason for removal */}
+              <FormField
+                control={removalForm.control}
+                name="removalReason"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Motivo da Remoção *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o motivo" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="sold">Vendido</SelectItem>
+                        <SelectItem value="died">Morreu</SelectItem>
+                        <SelectItem value="lost">Perdido/Extraviado</SelectItem>
+                        <SelectItem value="slaughtered">Abatido</SelectItem>
+                        <SelectItem value="transferred">Transferido</SelectItem>
+                        <SelectItem value="stolen">Roubado</SelectItem>
+                        <SelectItem value="other">Outro</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Sale price - only show if sold */}
+              {removalForm.watch("removalReason") === "sold" && (
+                <FormField
+                  control={removalForm.control}
+                  name="salePrice"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Preço de Venda (AOA)</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="number" step="0.01" placeholder="0.00" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {/* Buyer - only show if sold */}
+              {removalForm.watch("removalReason") === "sold" && (
+                <FormField
+                  control={removalForm.control}
+                  name="buyer"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Comprador</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Nome do comprador" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {/* Transfer destination - only show if transferred */}
+              {removalForm.watch("removalReason") === "transferred" && (
+                <FormField
+                  control={removalForm.control}
+                  name="transferDestination"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Destino da Transferência</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Para onde foi transferido" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {/* Observations */}
+              <FormField
+                control={removalForm.control}
+                name="removalObservations"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Observações</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        {...field} 
+                        placeholder="Informações adicionais sobre a remoção..." 
+                        rows={3}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <DialogFooter>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsRemovalDialogOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  type="submit" 
+                  variant="destructive"
+                  disabled={removeAnimalMutation.isPending}
+                >
+                  {removeAnimalMutation.isPending ? "Removendo..." : "Confirmar Remoção"}
                 </Button>
               </DialogFooter>
             </form>
