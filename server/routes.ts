@@ -1991,6 +1991,118 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ======= REMOVED ANIMALS ROUTES =======
+  
+  // Remove an animal (delete with history tracking)
+  app.delete("/api/animals/:animalId/remove", 
+    async (req, res) => {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
+      try {
+        const animalId = parseInt(req.params.animalId, 10);
+        
+        // Get the animal to check farm access
+        const animal = await storage.getAnimal(animalId);
+        if (!animal) {
+          return res.status(404).json({ message: "Animal not found" });
+        }
+        
+        // Check if user has access to modify animals in this farm
+        if (!await hasAccessToModify(req.user, animal.farmId, SystemModule.ANIMALS)) {
+          return res.status(403).json({ message: "You don't have permission to remove animals from this farm" });
+        }
+        
+        const removalData = {
+          removalReason: req.body.removalReason,
+          removalObservations: req.body.removalObservations || null,
+          removedBy: req.user.id,
+          salePrice: req.body.salePrice ? parseFloat(req.body.salePrice) : undefined,
+          buyer: req.body.buyer || null,
+          transferDestination: req.body.transferDestination || null
+        };
+        
+        const removedAnimal = await storage.removeAnimal(animalId, removalData);
+        res.status(200).json(removedAnimal);
+      } catch (error) {
+        console.error("Error removing animal:", error);
+        res.status(500).json({ message: "Failed to remove animal" });
+      }
+    }
+  );
+  
+  // Get removed animals by farm
+  app.get("/api/farms/:farmId/removed-animals", 
+    async (req, res) => {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
+      try {
+        const farmId = parseInt(req.params.farmId, 10);
+        
+        // Check if user has access to this farm
+        if (!await hasAccessToFarm(req.user, farmId)) {
+          return res.status(403).json({ message: "You don't have access to this farm" });
+        }
+        
+        const removedAnimals = await storage.getRemovedAnimalsByFarm(farmId);
+        res.json(removedAnimals);
+      } catch (error) {
+        console.error("Error fetching removed animals:", error);
+        res.status(500).json({ message: "Failed to fetch removed animals" });
+      }
+    }
+  );
+  
+  // Get all removed animals (super admin only)
+  app.get("/api/removed-animals", 
+    async (req, res) => {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
+      // Only super admin can view all removed animals
+      if (req.user.role !== UserRole.SUPER_ADMIN) {
+        return res.status(403).json({ message: "Only super admin can view all removed animals" });
+      }
+      
+      try {
+        const removedAnimals = await storage.getAllRemovedAnimals();
+        res.json(removedAnimals);
+      } catch (error) {
+        console.error("Error fetching all removed animals:", error);
+        res.status(500).json({ message: "Failed to fetch removed animals" });
+      }
+    }
+  );
+  
+  // Get removed animals by reason
+  app.get("/api/farms/:farmId/removed-animals/reason/:reason", 
+    async (req, res) => {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
+      try {
+        const farmId = parseInt(req.params.farmId, 10);
+        const reason = req.params.reason;
+        
+        // Check if user has access to this farm
+        if (!await hasAccessToFarm(req.user, farmId)) {
+          return res.status(403).json({ message: "You don't have access to this farm" });
+        }
+        
+        const removedAnimals = await storage.getRemovedAnimalsByReason(farmId, reason);
+        res.json(removedAnimals);
+      } catch (error) {
+        console.error("Error fetching removed animals by reason:", error);
+        res.status(500).json({ message: "Failed to fetch removed animals" });
+      }
+    }
+  );
+
   // Create HTTP server
   const httpServer = createServer(app);
   return httpServer;

@@ -11,6 +11,7 @@ import {
   Species, 
   AnimalVaccination, 
   VaccinationStatus,
+  AnimalRemovalReason,
   insertAnimalVaccinationSchema 
 } from '@shared/schema';
 import { queryClient, apiRequest } from '@/lib/queryClient';
@@ -63,7 +64,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { CalendarIcon, Plus, Edit, ArrowLeft } from 'lucide-react';
+import { CalendarIcon, Plus, Edit, ArrowLeft, Trash2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Link } from 'wouter';
 
@@ -77,6 +78,17 @@ const vaccinationFormSchema = insertAnimalVaccinationSchema.extend({
 
 type VaccinationFormValues = z.infer<typeof vaccinationFormSchema>;
 
+// Removal dialog schema
+const removalFormSchema = z.object({
+  removalReason: z.string().min(1, "Motivo da remoção é obrigatório"),
+  removalObservations: z.string().optional(),
+  salePrice: z.string().optional(),
+  buyer: z.string().optional(),
+  transferDestination: z.string().optional(),
+});
+
+type RemovalFormValues = z.infer<typeof removalFormSchema>;
+
 const AnimalDetails: React.FC = () => {
   const { t, language } = useLanguage();
   const { toast } = useToast();
@@ -85,6 +97,7 @@ const AnimalDetails: React.FC = () => {
   const [isAddVaccinationOpen, setIsAddVaccinationOpen] = useState(false);
   const [isEditVaccinationOpen, setIsEditVaccinationOpen] = useState(false);
   const [editingVaccination, setEditingVaccination] = useState<AnimalVaccination | null>(null);
+  const [isRemovalDialogOpen, setIsRemovalDialogOpen] = useState(false);
 
   // Fetch animal details
   const { data: animal, isLoading: animalLoading } = useQuery({
@@ -157,6 +170,31 @@ const AnimalDetails: React.FC = () => {
     },
   });
 
+  // Remove animal mutation
+  const removeAnimalMutation = useMutation({
+    mutationFn: (data: RemovalFormValues) => 
+      apiRequest(`/api/animals/${animalId}/remove`, {
+        method: 'DELETE',
+        data,
+      }),
+    onSuccess: () => {
+      toast({
+        title: t("common.success"),
+        description: "Animal removido com sucesso",
+      });
+      setIsRemovalDialogOpen(false);
+      // Redirect to animals list
+      window.location.href = '/animals';
+    },
+    onError: (error) => {
+      toast({
+        title: t("common.error"),
+        description: "Erro ao remover animal",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Form for adding a new vaccination
   const form = useForm<VaccinationFormValues>({
     resolver: zodResolver(vaccinationFormSchema),
@@ -190,6 +228,23 @@ const AnimalDetails: React.FC = () => {
       farmId: animal?.farmId || 0,
     },
   });
+
+  // Form for animal removal
+  const removalForm = useForm<RemovalFormValues>({
+    resolver: zodResolver(removalFormSchema),
+    defaultValues: {
+      removalReason: '',
+      removalObservations: '',
+      salePrice: '',
+      buyer: '',
+      transferDestination: '',
+    },
+  });
+
+  // Handler for animal removal
+  const onSubmitRemoval = (values: RemovalFormValues) => {
+    removeAnimalMutation.mutate(values);
+  };
 
   // Handler for adding a new vaccination
   const onSubmitVaccination = (values: VaccinationFormValues) => {
