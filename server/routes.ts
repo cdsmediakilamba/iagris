@@ -1996,21 +1996,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Remove an animal (delete with history tracking)
   app.delete("/api/animals/:animalId/remove", 
     async (req, res) => {
+      console.log("=== Animal Removal Request ===");
+      console.log("Request params:", req.params);
+      console.log("Request body:", req.body);
+      console.log("User authenticated:", req.isAuthenticated());
+      console.log("User:", req.user);
+      
       if (!req.isAuthenticated()) {
         return res.status(401).json({ message: "Not authenticated" });
       }
       
       try {
         const animalId = parseInt(req.params.animalId, 10);
+        console.log("Parsed animal ID:", animalId);
+        
+        // Validate required fields
+        if (!req.body.removalReason) {
+          console.log("Missing removalReason");
+          return res.status(400).json({ message: "removalReason is required" });
+        }
         
         // Get the animal to check farm access
         const animal = await storage.getAnimal(animalId);
+        console.log("Found animal:", animal);
         if (!animal) {
           return res.status(404).json({ message: "Animal not found" });
         }
         
-        // Check if user has access to modify animals in this farm
-        if (!await hasAccessToModify(req.user, animal.farmId, SystemModule.ANIMALS)) {
+        // Check if user has access to this farm
+        const hasAccess = await hasAccessToFarm(req.user, animal.farmId);
+        console.log("User has access to farm:", hasAccess);
+        if (!hasAccess) {
           return res.status(403).json({ message: "You don't have permission to remove animals from this farm" });
         }
         
@@ -2023,11 +2039,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           transferDestination: req.body.transferDestination || null
         };
         
+        console.log("Removal data:", removalData);
         const removedAnimal = await storage.removeAnimal(animalId, removalData);
+        console.log("Animal removed successfully:", removedAnimal);
         res.status(200).json(removedAnimal);
       } catch (error) {
         console.error("Error removing animal:", error);
-        res.status(500).json({ message: "Failed to remove animal" });
+        res.status(500).json({ message: "Failed to remove animal", error: error.message });
       }
     }
   );
