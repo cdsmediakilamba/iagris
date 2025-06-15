@@ -1,11 +1,11 @@
 import { 
-  users, farms, userFarms, userPermissions, animals, species, crops, inventory, inventoryTransactions, tasks, goals, animalVaccinations, costs,
+  users, farms, userFarms, userPermissions, animals, species, crops, inventory, inventoryTransactions, tasks, goals, animalVaccinations, costs, removedAnimals,
   type User, type InsertUser, type Farm, type InsertFarm, 
   type UserFarm, type InsertUserFarm, type UserPermission, type InsertUserPermission,
   type Animal, type InsertAnimal, type Species, type InsertSpecies, type Crop, type InsertCrop, 
   type Inventory, type InsertInventory, type InventoryTransaction, type InsertInventoryTransaction,
   type Task, type InsertTask, type Goal, type InsertGoal, type AnimalVaccination, type InsertAnimalVaccination,
-  type Cost, type InsertCost
+  type Cost, type InsertCost, type RemovedAnimal, type InsertRemovedAnimal
 } from "@shared/schema";
 import { IStorage } from "./storage";
 import { db } from "./db";
@@ -1029,5 +1029,96 @@ export class DatabaseStorage implements IStorage {
       .where(eq(costs.id, id));
     
     return result.rowCount > 0;
+  }
+
+  // Métodos para gerenciar animais removidos
+  
+  async removeAnimal(animalId: number, removalData: {
+    removalReason: string;
+    removalObservations?: string;
+    removedBy: number;
+    salePrice?: number;
+    buyer?: string;
+    transferDestination?: string;
+  }): Promise<RemovedAnimal> {
+    // Primeiro, obter os dados completos do animal
+    const animal = await this.getAnimal(animalId);
+    if (!animal) {
+      throw new Error('Animal não encontrado');
+    }
+
+    // Criar o registro no histórico de animais removidos
+    const removedAnimalData: InsertRemovedAnimal = {
+      originalAnimalId: animal.id,
+      registrationCode: animal.registrationCode,
+      name: animal.name,
+      speciesId: animal.speciesId,
+      breed: animal.breed,
+      gender: animal.gender,
+      birthDate: animal.birthDate,
+      weight: animal.weight,
+      farmId: animal.farmId,
+      originalStatus: animal.status,
+      originalObservations: animal.observations,
+      fatherId: animal.fatherId,
+      motherId: animal.motherId,
+      lastVaccineDate: animal.lastVaccineDate,
+      originalCreatedAt: animal.createdAt,
+      removalReason: removalData.removalReason,
+      removalDate: new Date(),
+      removalObservations: removalData.removalObservations,
+      removedBy: removalData.removedBy,
+      salePrice: removalData.salePrice ? removalData.salePrice.toString() : undefined,
+      buyer: removalData.buyer,
+      transferDestination: removalData.transferDestination
+    };
+
+    // Inserir no histórico
+    const [removedAnimal] = await db
+      .insert(removedAnimals)
+      .values(removedAnimalData)
+      .returning();
+
+    // Remover o animal da tabela principal
+    await db
+      .delete(animals)
+      .where(eq(animals.id, animalId));
+
+    return removedAnimal;
+  }
+
+  async getRemovedAnimalsByFarm(farmId: number): Promise<RemovedAnimal[]> {
+    return await db
+      .select()
+      .from(removedAnimals)
+      .where(eq(removedAnimals.farmId, farmId))
+      .orderBy(desc(removedAnimals.removalDate));
+  }
+
+  async getAllRemovedAnimals(): Promise<RemovedAnimal[]> {
+    return await db
+      .select()
+      .from(removedAnimals)
+      .orderBy(desc(removedAnimals.removalDate));
+  }
+
+  async getRemovedAnimalsByReason(farmId: number, reason: string): Promise<RemovedAnimal[]> {
+    return await db
+      .select()
+      .from(removedAnimals)
+      .where(and(
+        eq(removedAnimals.farmId, farmId),
+        eq(removedAnimals.removalReason, reason)
+      ))
+      .orderBy(desc(removedAnimals.removalDate));
+  }
+
+  async getRemovedAnimal(id: number): Promise<RemovedAnimal | undefined> {
+    const [removedAnimal] = await db
+      .select()
+      .from(removedAnimals)
+      .where(eq(removedAnimals.id, id));
+    
+    return removedAnimal || undefined;
   }
 }

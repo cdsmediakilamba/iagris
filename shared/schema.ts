@@ -228,6 +228,17 @@ export enum VaccinationStatus {
   CANCELLED = "cancelled"   // Cancelada
 }
 
+// Define motivos de remoção de animais
+export enum AnimalRemovalReason {
+  SOLD = "sold",                   // Vendido
+  DIED = "died",                   // Morreu
+  LOST = "lost",                   // Extraviado/Perdido
+  SLAUGHTERED = "slaughtered",     // Abatido
+  TRANSFERRED = "transferred",     // Transferido
+  STOLEN = "stolen",               // Roubado
+  OTHER = "other"                  // Outro motivo
+}
+
 // Define categorias de custos
 export enum CostCategory {
   SUPPLIES = "supplies",           // Suprimentos
@@ -283,6 +294,37 @@ export const animalVaccinations = pgTable("animal_vaccinations", {
   farmId: integer("farm_id").notNull(), // Fazenda relacionada
   notes: text("notes"), // Observações
   createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Removed Animals History table schema - Histórico de animais removidos/excluídos
+export const removedAnimals = pgTable("removed_animals", {
+  id: serial("id").primaryKey(),
+  // Dados originais do animal
+  originalAnimalId: integer("original_animal_id").notNull(), // ID original do animal
+  registrationCode: text("registration_code").notNull(), // Código de registro
+  name: text("name"), // Nome do animal
+  speciesId: integer("species_id").notNull(), // Espécie
+  breed: text("breed").notNull(), // Raça
+  gender: text("gender").notNull(), // Gênero
+  birthDate: timestamp("birth_date"), // Data de nascimento
+  weight: decimal("weight", { precision: 10, scale: 2 }), // Peso
+  farmId: integer("farm_id").notNull(), // Fazenda
+  originalStatus: text("original_status").notNull(), // Status original antes da remoção
+  originalObservations: text("original_observations"), // Observações originais
+  fatherId: integer("father_id"), // Pai
+  motherId: integer("mother_id"), // Mãe
+  lastVaccineDate: timestamp("last_vaccine_date"), // Última vacina
+  originalCreatedAt: timestamp("original_created_at").notNull(), // Data de criação original
+  
+  // Dados da remoção
+  removalReason: text("removal_reason").notNull(), // Motivo da remoção (usar enum AnimalRemovalReason)
+  removalDate: timestamp("removal_date").notNull().defaultNow(), // Data da remoção
+  removalObservations: text("removal_observations"), // Observações sobre a remoção
+  removedBy: integer("removed_by").notNull(), // Usuário que removeu
+  salePrice: decimal("sale_price", { precision: 10, scale: 2 }), // Preço de venda (se vendido)
+  buyer: text("buyer"), // Comprador (se vendido)
+  transferDestination: text("transfer_destination"), // Destino da transferência (se transferido)
+  createdAt: timestamp("created_at").defaultNow(), // Data de criação do registro de remoção
 });
 
 // Insert schemas using drizzle-zod
@@ -354,6 +396,11 @@ export const insertCostSchema = createInsertSchema(costs).omit({
   createdAt: true,
 });
 
+export const insertRemovedAnimalSchema = createInsertSchema(removedAnimals).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Export types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -393,3 +440,6 @@ export type AnimalVaccination = typeof animalVaccinations.$inferSelect;
 
 export type InsertCost = z.infer<typeof insertCostSchema>;
 export type Cost = typeof costs.$inferSelect;
+
+export type InsertRemovedAnimal = z.infer<typeof insertRemovedAnimalSchema>;
+export type RemovedAnimal = typeof removedAnimals.$inferSelect;
