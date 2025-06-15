@@ -895,10 +895,7 @@ export class DatabaseStorage implements IStorage {
       processedData.applicationDate = new Date(processedData.applicationDate);
     }
     
-    // Processa a data de expiração se existir
-    if (processedData.expirationDate && typeof processedData.expirationDate === 'string') {
-      processedData.expirationDate = new Date(processedData.expirationDate);
-    }
+    // Campo expirationDate removido do schema - não precisa processar
     
     // Processa a data da próxima aplicação se existir
     if (processedData.nextApplicationDate && typeof processedData.nextApplicationDate === 'string') {
@@ -926,10 +923,7 @@ export class DatabaseStorage implements IStorage {
       vaccinationData.applicationDate = new Date(vaccinationData.applicationDate);
     }
     
-    // Processa a data de expiração se existir
-    if (vaccinationData.expirationDate && typeof vaccinationData.expirationDate === 'string') {
-      vaccinationData.expirationDate = new Date(vaccinationData.expirationDate);
-    }
+    // Campo expirationDate removido do schema - não precisa processar
     
     // Processa a data da próxima aplicação se existir
     if (vaccinationData.nextApplicationDate && typeof vaccinationData.nextApplicationDate === 'string') {
@@ -1028,7 +1022,7 @@ export class DatabaseStorage implements IStorage {
       .delete(costs)
       .where(eq(costs.id, id));
     
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   // Métodos para gerenciar animais removidos
@@ -1062,8 +1056,8 @@ export class DatabaseStorage implements IStorage {
       originalObservations: animal.observations,
       fatherId: animal.fatherId,
       motherId: animal.motherId,
-      lastVaccineDate: animal.lastVaccineDate,
-      originalCreatedAt: animal.createdAt,
+      lastVaccineDate: animal.lastVaccineDate || null,
+      originalCreatedAt: animal.createdAt ?? new Date(),
       removalReason: removalData.removalReason,
       removalDate: new Date(),
       removalObservations: removalData.removalObservations,

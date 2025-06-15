@@ -11,6 +11,7 @@ import { userFarms, type UserFarm, type InsertUserFarm } from "@shared/schema";
 import { userPermissions, type UserPermission, type InsertUserPermission } from "@shared/schema";
 import { animalVaccinations, type AnimalVaccination, type InsertAnimalVaccination } from "@shared/schema";
 import { costs, type Cost, type InsertCost } from "@shared/schema";
+import { removedAnimals, type RemovedAnimal, type InsertRemovedAnimal } from "@shared/schema";
 import { UserRole, SystemModule, AccessLevel, GoalStatus, InventoryTransactionType, CostCategory } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
@@ -124,6 +125,20 @@ export interface IStorage {
   createCost(cost: InsertCost): Promise<Cost>;
   updateCost(id: number, cost: Partial<Cost>): Promise<Cost | undefined>;
   deleteCost(id: number): Promise<boolean>;
+  
+  // Removed Animals operations
+  removeAnimal(animalId: number, removalData: {
+    removalReason: string;
+    removalObservations?: string;
+    removedBy: number;
+    salePrice?: number;
+    buyer?: string;
+    transferDestination?: string;
+  }): Promise<RemovedAnimal>;
+  getRemovedAnimalsByFarm(farmId: number): Promise<RemovedAnimal[]>;
+  getAllRemovedAnimals(): Promise<RemovedAnimal[]>;
+  getRemovedAnimalsByReason(farmId: number, reason: string): Promise<RemovedAnimal[]>;
+  getRemovedAnimal(id: number): Promise<RemovedAnimal | undefined>;
   
   // Session store
   sessionStore: any; // Using any to avoid type issues with SessionStore
