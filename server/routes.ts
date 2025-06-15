@@ -2032,51 +2032,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
   
-  // Get removed animals by farm
-  app.get("/api/farms/:farmId/removed-animals", 
-    async (req, res) => {
-      if (!req.isAuthenticated()) {
-        return res.status(401).json({ message: "Not authenticated" });
-      }
+  // Get all removed animals (for super admin and cross-farm view)
+  app.get("/api/removed-animals", checkAuth, async (req, res) => {
+    try {
+      let removedAnimals;
       
-      try {
-        const farmId = parseInt(req.params.farmId, 10);
+      if (req.user.role === 'super_admin') {
+        // Super admin can see all removed animals
+        removedAnimals = await storage.getAllRemovedAnimals();
+      } else {
+        // Regular users can only see animals from their accessible farms
+        const userFarms = await storage.getFarmsAccessibleByUser(req.user.id);
+        const farmIds = userFarms.map(farm => farm.id);
         
-        // Check if user has access to this farm
-        if (!await hasAccessToFarm(req.user, farmId)) {
-          return res.status(403).json({ message: "You don't have access to this farm" });
+        if (farmIds.length === 0) {
+          return res.json([]);
         }
         
-        const removedAnimals = await storage.getRemovedAnimalsByFarm(farmId);
-        res.json(removedAnimals);
-      } catch (error) {
-        console.error("Error fetching removed animals:", error);
-        res.status(500).json({ message: "Failed to fetch removed animals" });
-      }
-    }
-  );
-  
-  // Get all removed animals (super admin only)
-  app.get("/api/removed-animals", 
-    async (req, res) => {
-      if (!req.isAuthenticated()) {
-        return res.status(401).json({ message: "Not authenticated" });
+        // Get removed animals from all accessible farms
+        const allRemovedAnimals = await storage.getAllRemovedAnimals();
+        removedAnimals = allRemovedAnimals.filter(animal => 
+          farmIds.includes(animal.farmId)
+        );
       }
       
-      // Only super admin can view all removed animals
-      if (req.user.role !== UserRole.SUPER_ADMIN) {
-        return res.status(403).json({ message: "Only super admin can view all removed animals" });
+      res.json(removedAnimals);
+    } catch (error) {
+      console.error("Error fetching removed animals:", error);
+      res.status(500).json({ message: "Failed to fetch removed animals" });
+    }
+  });
+
+  // Get removed animals by farm
+  app.get("/api/farms/:farmId/removed-animals", checkAuth, async (req, res) => {
+    try {
+      const farmId = parseInt(req.params.farmId, 10);
+      
+      // Check if user has access to this farm
+      if (!await hasAccessToFarm(req.user, farmId)) {
+        return res.status(403).json({ message: "You don't have access to this farm" });
       }
       
-      try {
-        const removedAnimals = await storage.getAllRemovedAnimals();
-        res.json(removedAnimals);
-      } catch (error) {
-        console.error("Error fetching all removed animals:", error);
-        res.status(500).json({ message: "Failed to fetch removed animals" });
-      }
+      const removedAnimals = await storage.getRemovedAnimalsByFarm(farmId);
+      res.json(removedAnimals);
+    } catch (error) {
+      console.error("Error fetching removed animals:", error);
+      res.status(500).json({ message: "Failed to fetch removed animals" });
     }
-  );
+  });
   
   // Get removed animals by reason
   app.get("/api/farms/:farmId/removed-animals/reason/:reason", 
