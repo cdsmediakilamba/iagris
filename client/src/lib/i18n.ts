@@ -10,11 +10,24 @@ const locales = {
 
 // Format date based on current language
 export const formatDate = (
-  date: Date | number,
+  date: Date | string | number,
   formatString: string,
   language: Language
 ): string => {
-  return format(date, formatString, {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  return format(dateObj, formatString, {
+    locale: locales[language],
+  });
+};
+
+// Simple date formatter for common use (DD/MM/YYYY or MM/DD/YYYY)
+export const formatDateSimple = (
+  date: Date | string | number,
+  language: Language
+): string => {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  const formatString = language === 'pt' ? 'dd/MM/yyyy' : 'MM/dd/yyyy';
+  return format(dateObj, formatString, {
     locale: locales[language],
   });
 };

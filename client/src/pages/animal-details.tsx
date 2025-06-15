@@ -15,7 +15,7 @@ import {
 } from '@shared/schema';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { formatDate } from '@/lib/i18n';
+import { formatDate, formatDateSimple } from '@/lib/i18n';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Card,
@@ -324,7 +324,7 @@ const AnimalDetails: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium">{t("animals.birthDate")}:</p>
-                <p>{animal.birthDate ? formatDate(animal.birthDate, language) : t("common.notSpecified")}</p>
+                <p>{animal.birthDate ? formatDateSimple(animal.birthDate, language) : t("common.notSpecified")}</p>
               </div>
               <div>
                 <p className="text-sm font-medium">{t("animals.weight")}:</p>
@@ -332,7 +332,7 @@ const AnimalDetails: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium">{t("animals.lastVaccineDate")}:</p>
-                <p>{animal.lastVaccineDate ? formatDate(animal.lastVaccineDate, language) : t("common.notSpecified")}</p>
+                <p>{animal.lastVaccineDate ? formatDateSimple(animal.lastVaccineDate, language) : t("common.notSpecified")}</p>
               </div>
               {animal.observations && (
                 <div className="col-span-2">
@@ -385,7 +385,7 @@ const AnimalDetails: React.FC = () => {
                                         className="w-full pl-3 text-left font-normal"
                                       >
                                         {field.value ? (
-                                          formatDate(field.value, language)
+                                          formatDateSimple(field.value, language)
                                         ) : (
                                           <span>{t("common.selectDate")}</span>
                                         )}
@@ -514,7 +514,7 @@ const AnimalDetails: React.FC = () => {
                                         className="w-full pl-3 text-left font-normal"
                                       >
                                         {field.value ? (
-                                          formatDate(field.value, language)
+                                          formatDateSimple(field.value, language)
                                         ) : (
                                           <span>{t("common.optional")}</span>
                                         )}
