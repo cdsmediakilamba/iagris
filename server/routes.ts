@@ -1994,8 +1994,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ======= REMOVED ANIMALS ROUTES =======
   
   // Remove an animal (delete with history tracking)
-  app.delete("/api/animals/:animalId/remove", 
-    async (req, res) => {
+  app.delete("/api/animals/:animalId/remove", checkAuth, async (req, res) => {
       console.log("=== Animal Removal Request ===");
       console.log("Request params:", req.params);
       console.log("Request body:", req.body);
