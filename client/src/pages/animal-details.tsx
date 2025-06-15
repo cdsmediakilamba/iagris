@@ -469,7 +469,7 @@ const AnimalDetails: React.FC = () => {
                               <FormItem>
                                 <FormLabel>{t("vaccination.batchNumber")}</FormLabel>
                                 <FormControl>
-                                  <Input {...field} />
+                                  <Input {...field} value={field.value || ''} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -588,7 +588,7 @@ const AnimalDetails: React.FC = () => {
                       {vaccinations.map((vaccination) => (
                         <TableRow key={vaccination.id}>
                           <TableCell>
-                            {formatDate(vaccination.applicationDate, language)}
+                            {formatDateSimple(vaccination.applicationDate, language)}
                           </TableCell>
                           <TableCell>{vaccination.vaccineName}</TableCell>
                           <TableCell>
@@ -599,7 +599,7 @@ const AnimalDetails: React.FC = () => {
                           </TableCell>
                           <TableCell>
                             {vaccination.nextApplicationDate 
-                              ? formatDate(vaccination.nextApplicationDate, language) 
+                              ? formatDateSimple(vaccination.nextApplicationDate, language) 
                               : t("common.notSpecified")}
                           </TableCell>
                           <TableCell className="text-right">
@@ -636,7 +636,7 @@ const AnimalDetails: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-sm font-medium">{t("animals.createdAt")}:</p>
-                    <p>{formatDate(animal.createdAt, language)}</p>
+                    <p>{animal.createdAt ? formatDateSimple(animal.createdAt, language) : t("common.notSpecified")}</p>
                   </div>
                   {animal.fatherId && (
                     <div>
@@ -680,7 +680,7 @@ const AnimalDetails: React.FC = () => {
                             className="w-full pl-3 text-left font-normal"
                           >
                             {field.value ? (
-                              formatDate(field.value, language)
+                              formatDateSimple(field.value, language)
                             ) : (
                               <span>{t("common.selectDate")}</span>
                             )}
@@ -809,7 +809,7 @@ const AnimalDetails: React.FC = () => {
                             className="w-full pl-3 text-left font-normal"
                           >
                             {field.value ? (
-                              formatDate(field.value, language)
+                              formatDateSimple(field.value, language)
                             ) : (
                               <span>{t("common.optional")}</span>
                             )}
