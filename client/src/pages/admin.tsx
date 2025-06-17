@@ -35,6 +35,17 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import {
   Tabs,
   TabsContent,
   TabsList,
@@ -70,17 +81,6 @@ import {
   AvatarFallback,
   AvatarImage,
 } from '@/components/ui/avatar';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 import {
   Search,
   PlusCircle,
@@ -118,6 +118,7 @@ export default function Admin() {
   const [farmSearchTerm, setFarmSearchTerm] = useState('');
   const [selectedFarm, setSelectedFarm] = useState<number | null>(null);
   const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [farmToDelete, setFarmToDelete] = useState<Farm | null>(null);
   
   // Estado para o diálogo de edição de funções
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
@@ -460,6 +461,41 @@ export default function Admin() {
     },
   });
 
+  // Delete farm mutation
+  const deleteFarmMutation = useMutation({
+    mutationFn: async (farmId: number) => {
+      return await apiRequest(`/api/farms/${farmId}`, { method: 'DELETE' });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/farms'] });
+      toast({
+        title: 'Fazenda excluída',
+        description: 'A fazenda foi excluída com sucesso',
+      });
+      setFarmToDelete(null);
+    },
+    onError: (error) => {
+      toast({
+        title: t('common.error'),
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Handle farm details
+  const handleFarmDetails = (farm: Farm) => {
+    toast({
+      title: `Detalhes - ${farm.name}`,
+      description: `Localização: ${farm.location} | Tamanho: ${farm.size} ha`,
+    });
+  };
+
+  // Handle farm visit
+  const handleFarmVisit = (farm: Farm) => {
+    setLocation(`/animals-new`);
+  };
+
   // Submit handler
   const onSubmit = (data: z.infer<typeof registerSchema>) => {
     // Remove confirmPassword as it's not part of the schema
@@ -750,14 +786,61 @@ export default function Admin() {
                           </div>
                         </CardContent>
                         <div className="p-4 bg-gray-50 border-t flex justify-between">
-                          <Button variant="outline" size="sm" className="text-xs">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="text-xs"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleFarmDetails(farm);
+                            }}
+                          >
                             <Info className="h-3.5 w-3.5 mr-1" />
                             {t('common.details')}
                           </Button>
-                          <Button size="sm" className="text-xs">
-                            <Globe className="h-3.5 w-3.5 mr-1" />
-                            {t('common.visit')}
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button 
+                              size="sm" 
+                              className="text-xs"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleFarmVisit(farm);
+                              }}
+                            >
+                              <Globe className="h-3.5 w-3.5 mr-1" />
+                              {t('common.visit')}
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button 
+                                  variant="destructive" 
+                                  size="sm" 
+                                  className="text-xs"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <Trash2 className="h-3.5 w-3.5 mr-1" />
+                                  Excluir
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Excluir fazenda</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Tem certeza que deseja excluir a fazenda "{farm.name}"? Esta ação não pode ser desfeita e todos os dados relacionados serão perdidos.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => deleteFarmMutation.mutate(farm.id)}
+                                    className="bg-red-600 hover:bg-red-700"
+                                  >
+                                    Excluir
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
                         </div>
                       </Card>
                     ))}
