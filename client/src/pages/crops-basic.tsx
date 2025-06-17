@@ -415,7 +415,7 @@ export default function CropsPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectLabel>Fazendas</SelectLabel>
+                <SelectLabel>{t('crops.farms')}</SelectLabel>
                 {farms.map((farm) => (
                   <SelectItem key={farm.id} value={farm.id.toString()}>
                     {farm.name} - {farm.location}
@@ -429,7 +429,7 @@ export default function CropsPage() {
             variant="outline"
             size="icon"
             onClick={() => refetchCrops()}
-            title="Atualizar dados"
+            title={t('crops.refreshData')}
           >
             <RefreshCw className="h-4 w-4" />
           </Button>
@@ -442,15 +442,15 @@ export default function CropsPage() {
           <AlertTitle className="text-md font-semibold">
             {currentFarm.name}
             <span className="ml-2 text-sm font-normal text-muted-foreground">
-              ({currentFarm.type === 'crop' ? 'Agrícola' : 
-                currentFarm.type === 'livestock' ? 'Pecuária' : 'Mista'})
+              ({currentFarm.type === 'crop' ? t('crops.agricultural') : 
+                currentFarm.type === 'livestock' ? t('crops.livestock') : t('crops.mixed')})
             </span>
           </AlertTitle>
           <AlertDescription className="text-sm flex justify-between items-center">
             <span>{currentFarm.location} • {currentFarm.size} hectares</span>
             {crops && (
               <span className="text-muted-foreground">
-                {crops.length} plantações cadastradas
+                {crops.length} {t('crops.cropsRegistered')}
               </span>
             )}
           </AlertDescription>
@@ -460,38 +460,38 @@ export default function CropsPage() {
       {/* Formulário simples */}
       <Card className="mb-8">
         <CardHeader>
-          <CardTitle>Adicionar Nova Plantação</CardTitle>
+          <CardTitle>{t('crops.addNewCrop')}</CardTitle>
           <CardDescription>
-            Preencha os campos abaixo para adicionar uma nova plantação à fazenda selecionada
+            {t('crops.addNewCropDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Nome da Plantação</label>
+              <label className="text-sm font-medium">{t('crops.cropName')}</label>
               <Input 
                 value={name} 
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Ex: Milho, Feijão, etc."
+                placeholder={t('crops.cropNamePlaceholder')}
               />
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-medium">Setor</label>
+              <label className="text-sm font-medium">{t('crops.sector')}</label>
               <Input 
                 value={sector} 
                 onChange={(e) => setSector(e.target.value)}
-                placeholder="Ex: Setor A, Campo Norte, etc."
+                placeholder={t('crops.sectorPlaceholder')}
               />
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-medium">Área (m²)</label>
+              <label className="text-sm font-medium">{t('crops.area')}</label>
               <Input 
                 type="number" 
                 value={area === 0 ? '' : area} 
                 onChange={(e) => setArea(Number(e.target.value))}
-                placeholder="Área em metros quadrados"
+                placeholder={t('crops.areaPlaceholder')}
               />
             </div>
             
@@ -503,10 +503,10 @@ export default function CropsPage() {
               {createCrop.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processando...
+                  {t('crops.processing')}
                 </>
               ) : (
-                'Adicionar Plantação'
+                t('crops.addCrop')
               )}
             </Button>
           </form>
@@ -517,14 +517,14 @@ export default function CropsPage() {
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="flex justify-between items-center">
-            <span>Filtros</span>
+            <span>{t('crops.filters')}</span>
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={clearFilters}
               disabled={!filters.search && !filters.status && !filters.sector}
             >
-              <X className="h-4 w-4 mr-1" /> Limpar
+              <X className="h-4 w-4 mr-1" /> {t('crops.clear')}
             </Button>
           </CardTitle>
         </CardHeader>
