@@ -402,7 +402,7 @@ export default function CropsPage() {
   return (
     <DashboardLayout>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-medium">Plantações</h1>
+        <h1 className="text-2xl font-medium">{t('crops.title')}</h1>
         
         {/* Seletor de fazenda */}
         <div className="flex items-center gap-4">
@@ -411,7 +411,7 @@ export default function CropsPage() {
             onValueChange={handleFarmChange}
           >
             <SelectTrigger className="w-[280px]">
-              <SelectValue placeholder="Selecione uma fazenda" />
+              <SelectValue placeholder={t('crops.selectFarm')} />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
