@@ -169,7 +169,7 @@ export default function CropsPage() {
   // Mutação para criar plantação
   const createCrop = useMutation({
     mutationFn: async (cropData: any) => {
-      if (!selectedFarmId) throw new Error("Nenhuma fazenda selecionada");
+      if (!selectedFarmId) throw new Error(t('crops.noFarmSelected'));
       
       return await apiRequest(
         `/api/farms/${selectedFarmId}/crops`,
@@ -206,7 +206,7 @@ export default function CropsPage() {
   // Mutação para atualizar uma plantação
   const updateCrop = useMutation({
     mutationFn: async ({ cropId, data }: { cropId: number, data: any }) => {
-      if (!selectedFarmId) throw new Error("Nenhuma fazenda selecionada");
+      if (!selectedFarmId) throw new Error(t('crops.noFarmSelected'));
       
       return await apiRequest(
         `/api/farms/${selectedFarmId}/crops/${cropId}`,
@@ -228,8 +228,8 @@ export default function CropsPage() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
-        description: "Não foi possível atualizar a plantação: " + error.message,
+        title: t('crops.error'),
+        description: t('crops.couldNotUpdate') + error.message,
         variant: "destructive",
       });
     }
@@ -240,8 +240,8 @@ export default function CropsPage() {
     
     if (!name || !sector || area <= 0) {
       toast({
-        title: "Erro",
-        description: "Preencha todos os campos do formulário",
+        title: t('crops.error'),
+        description: t('crops.fillAllFields'),
         variant: "destructive",
       });
       return;
