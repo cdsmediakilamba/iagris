@@ -531,11 +531,11 @@ export default function CropsPage() {
         <CardContent>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
-              <label className="text-sm font-medium mb-2 block">Pesquisa</label>
+              <label className="text-sm font-medium mb-2 block">{t('crops.search')}</label>
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar por nome ou setor..."
+                  placeholder={t('crops.searchPlaceholder')}
                   className="pl-8"
                   value={filters.search}
                   onChange={handleSearchChange}
@@ -544,16 +544,16 @@ export default function CropsPage() {
             </div>
             
             <div className="w-full md:w-[180px]">
-              <label className="text-sm font-medium mb-2 block">Status</label>
+              <label className="text-sm font-medium mb-2 block">{t('crops.status')}</label>
               <Select
                 value={filters.status || ""}
                 onValueChange={(value) => handleStatusFilterChange(value === "" ? null : value)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Todos os status" />
+                  <SelectValue placeholder={t('crops.allStatuses')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="all">{t('crops.all')}</SelectItem>
                   {CROP_STATUSES.map(status => (
                     <SelectItem key={status.value} value={status.value}>
                       {status.label}
@@ -564,16 +564,16 @@ export default function CropsPage() {
             </div>
             
             <div className="w-full md:w-[180px]">
-              <label className="text-sm font-medium mb-2 block">Setor</label>
+              <label className="text-sm font-medium mb-2 block">{t('crops.sector')}</label>
               <Select
                 value={filters.sector || ""}
                 onValueChange={(value) => handleSectorFilterChange(value === "" ? null : value)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Todos os setores" />
+                  <SelectValue placeholder={t('crops.allSectors')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="all">{t('crops.all')}</SelectItem>
                   {uniqueSectors.map(sector => (
                     <SelectItem key={sector} value={sector}>
                       {sector}
@@ -586,7 +586,7 @@ export default function CropsPage() {
           
           {/* Contador de resultados */}
           <div className="mt-4 text-sm text-muted-foreground">
-            {filteredAndSortedCrops.length} resultados encontrados
+            {filteredAndSortedCrops.length} {t('crops.resultsFound')}
           </div>
         </CardContent>
       </Card>
@@ -594,9 +594,9 @@ export default function CropsPage() {
       {/* Tabela de plantações */}
       <Card>
         <CardHeader>
-          <CardTitle>Lista de Plantações</CardTitle>
+          <CardTitle>{t('crops.cropsList')}</CardTitle>
           <CardDescription>
-            Mostrando plantações para a fazenda selecionada. Clique nos títulos das colunas para ordenar.
+            {t('crops.showingCropsFor')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -678,9 +678,9 @@ export default function CropsPage() {
           ) : (
             <div className="text-center py-8">
               <Leaf className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500">Nenhuma plantação encontrada com os filtros atuais</p>
+              <p className="text-gray-500">{t('crops.noCropsCurrentFilters')}</p>
               <p className="text-sm text-gray-400 mt-1">
-                {crops?.length ? 'Tente ajustar seus filtros' : 'Utilize o formulário acima para adicionar uma nova plantação'}
+                {crops?.length ? t('crops.adjustFilters') : t('crops.useFormAbove')}
               </p>
             </div>
           )}
@@ -692,16 +692,16 @@ export default function CropsPage() {
         <Dialog open={!!selectedCrop} onOpenChange={(open) => !open && setSelectedCrop(null)}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Detalhes da Plantação</DialogTitle>
+              <DialogTitle>{t('crops.cropDetails')}</DialogTitle>
               <DialogDescription>
-                Visualize e edite informações da plantação selecionada
+                {t('crops.viewEditSelected')}
               </DialogDescription>
             </DialogHeader>
               
             <Tabs defaultValue="details" className="mt-4">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="details">Detalhes</TabsTrigger>
-                <TabsTrigger value="status">Status</TabsTrigger>
+                <TabsTrigger value="details">{t('crops.details')}</TabsTrigger>
+                <TabsTrigger value="status">{t('crops.status')}</TabsTrigger>
               </TabsList>
                 
               <TabsContent value="details" className="space-y-6 py-4">
