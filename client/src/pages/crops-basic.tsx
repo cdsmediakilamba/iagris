@@ -190,14 +190,14 @@ export default function CropsPage() {
       
       // Mostrar mensagem de sucesso
       toast({
-        title: "Sucesso",
-        description: "Plantação adicionada com sucesso",
+        title: t('crops.success'),
+        description: t('crops.cropAddedSuccess'),
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Erro",
-        description: "Não foi possível adicionar a plantação: " + error.message,
+        title: t('crops.error'),
+        description: t('crops.couldNotAdd') + error.message,
         variant: "destructive",
       });
     }
@@ -222,8 +222,8 @@ export default function CropsPage() {
       
       // Mostrar mensagem de sucesso
       toast({
-        title: "Sucesso",
-        description: "Plantação atualizada com sucesso",
+        title: t('crops.success'),
+        description: t('crops.cropUpdatedSuccess'),
       });
     },
     onError: (error: any) => {
@@ -708,22 +708,22 @@ export default function CropsPage() {
                 <div className="grid gap-4">
                   <div>
                     <h3 className="text-md font-semibold">{selectedCrop.name}</h3>
-                    <p className="text-sm text-muted-foreground">Plantação #{selectedCrop.id}</p>
+                    <p className="text-sm text-muted-foreground">{t('crops.cropId')}{selectedCrop.id}</p>
                   </div>
                     
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <div className="text-sm font-medium mb-1">Setor</div>
+                      <div className="text-sm font-medium mb-1">{t('crops.sector')}</div>
                       <div className="text-sm">{selectedCrop.sector}</div>
                     </div>
                     <div>
-                      <div className="text-sm font-medium mb-1">Área</div>
+                      <div className="text-sm font-medium mb-1">{t('crops.area')}</div>
                       <div className="text-sm">{selectedCrop.area} m²</div>
                     </div>
                   </div>
                     
                   <div>
-                    <div className="text-sm font-medium mb-1">Status atual</div>
+                    <div className="text-sm font-medium mb-1">{t('crops.currentStatus')}</div>
                     <div>
                       {(() => {
                         const statusInfo = CROP_STATUSES.find(s => s.value === selectedCrop.status) || CROP_STATUSES[0];
@@ -736,27 +736,27 @@ export default function CropsPage() {
                     
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <div className="text-sm font-medium mb-1">Data de criação</div>
+                      <div className="text-sm font-medium mb-1">{t('crops.creationDate')}</div>
                       <div className="text-sm">
                         {new Date(selectedCrop.createdAt).toLocaleDateString('pt-BR')}
                       </div>
                     </div>
                     <div>
-                      <div className="text-sm font-medium mb-1">Data de plantio</div>
+                      <div className="text-sm font-medium mb-1">{t('crops.plantingDate')}</div>
                       <div className="text-sm">
                         {selectedCrop.plantingDate ? 
                           new Date(selectedCrop.plantingDate).toLocaleDateString('pt-BR') : 
-                          "Não especificada"}
+                          t('crops.notSpecified')}
                       </div>
                     </div>
                   </div>
                     
                   <div>
-                    <div className="text-sm font-medium mb-1">Data esperada de colheita</div>
+                    <div className="text-sm font-medium mb-1">{t('crops.expectedHarvestDate')}</div>
                     <div className="text-sm">
                       {selectedCrop.expectedHarvestDate ? 
                         new Date(selectedCrop.expectedHarvestDate).toLocaleDateString('pt-BR') : 
-                        "Não especificada"}
+                        t('crops.notSpecified')}
                     </div>
                   </div>
                 </div>
@@ -764,7 +764,7 @@ export default function CropsPage() {
                 
               <TabsContent value="status" className="space-y-6 py-4">
                 <div className="space-y-4">
-                  <div className="text-sm font-medium mb-1">Status atual</div>
+                  <div className="text-sm font-medium mb-1">{t('crops.currentStatus')}</div>
                   <div>
                     {(() => {
                       const statusInfo = CROP_STATUSES.find(s => s.value === selectedCrop.status) || CROP_STATUSES[0];
@@ -774,7 +774,7 @@ export default function CropsPage() {
                     })()}
                   </div>
                     
-                  <div className="text-sm font-medium mb-1">Atualizar status</div>
+                  <div className="text-sm font-medium mb-1">{t('crops.updateStatus')}</div>
                   <div className="grid grid-cols-2 gap-3">
                     {CROP_STATUSES.filter(s => s.value !== selectedCrop.status).map(status => (
                       <Button 
@@ -801,7 +801,7 @@ export default function CropsPage() {
                 variant="outline" 
                 onClick={() => setSelectedCrop(null)}
               >
-                Fechar
+                {t('crops.close')}
               </Button>
             </DialogFooter>
           </DialogContent>
