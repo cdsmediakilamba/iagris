@@ -407,8 +407,9 @@ export const en = {
     cropAddedSuccess: 'Crop added successfully',
     couldNotUpdate: 'Could not update crop: ',
     cropUpdatedSuccess: 'Crop updated successfully',
+    fillAllFields: 'Please fill in all form fields',
     noFarmSelected: 'No farm selected',
-    fillAllFields: 'Please fill all form fields'
+    plantingDate: 'Planting date'
   },
   inventory: {
     title: 'Supplies & Resources Management',
