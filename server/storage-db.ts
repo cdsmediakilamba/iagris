@@ -1,12 +1,14 @@
 import { 
-  users, farms, userFarms, userPermissions, animals, species, crops, inventory, inventoryTransactions, tasks, goals, animalVaccinations, costs, removedAnimals,
-  type User, type InsertUser, type Farm, type InsertFarm, 
-  type UserFarm, type InsertUserFarm, type UserPermission, type InsertUserPermission,
-  type Animal, type InsertAnimal, type Species, type InsertSpecies, type Crop, type InsertCrop, 
-  type Inventory, type InsertInventory, type InventoryTransaction, type InsertInventoryTransaction,
-  type Task, type InsertTask, type Goal, type InsertGoal, type AnimalVaccination, type InsertAnimalVaccination,
-  type Cost, type InsertCost, type RemovedAnimal, type InsertRemovedAnimal
-} from "@shared/schema";
+  users, farms, animals, species, crops, inventory, tasks, goals, userFarms, userPermissions, 
+  animalVaccinations, inventoryTransactions, removedAnimals, costs,
+  type InsertUser, type InsertFarm, type InsertAnimal, type InsertCrop, 
+  type InsertInventory, type InsertTask, type InsertGoal, type User, type Farm, 
+  type Animal, type Crop, type Inventory, type Task, type Goal, type Species,
+  type AnimalVaccination, type InsertAnimalVaccination, type UserFarm, type InsertUserFarm,
+  type UserPermission, type InsertUserPermission, type InventoryTransaction, type InsertInventoryTransaction,
+  type RemovedAnimal, type InsertRemovedAnimal, type Cost, type InsertCost
+} from "./db";
+import { inArray } from "drizzle-orm";
 import { IStorage } from "./storage";
 import { db } from "./db";
 import { eq, and, desc, asc, between, isNotNull, gt, lt, gte, lte } from "drizzle-orm";
@@ -18,7 +20,7 @@ import { pool } from "./db";
 
 export class DatabaseStorage implements IStorage {
   sessionStore: any;
-  
+
   constructor() {
     const PgSession = ConnectPgSimple(session);
     this.sessionStore = new PgSession({
@@ -26,7 +28,7 @@ export class DatabaseStorage implements IStorage {
       tableName: 'session',
       createTableIfMissing: true
     });
-    
+
     // Inicializar as espécies básicas
     setTimeout(() => {
       this.initializeSpecies().catch(err => {
@@ -34,7 +36,7 @@ export class DatabaseStorage implements IStorage {
       });
     }, 1000); // Pequeno delay para garantir que o banco de dados esteja pronto
   }
-  
+
   // Método para inicializar as espécies básicas no banco de dados
   async initializeSpecies(): Promise<void> {
     // Verificar se já existem espécies cadastradas
@@ -42,7 +44,7 @@ export class DatabaseStorage implements IStorage {
     if (existingSpecies.length > 0) {
       return; // Não inicializar novamente se já existem espécies
     }
-    
+
     // Espécies básicas para inicialização
     const defaultSpecies = [
       { name: "Bovino", abbreviation: "BOI" },
@@ -52,12 +54,12 @@ export class DatabaseStorage implements IStorage {
       { name: "Aves", abbreviation: "AVE" },
       { name: "Equino", abbreviation: "EQU" }
     ];
-    
+
     // Inserir as espécies no banco de dados
     for (const species of defaultSpecies) {
       await this.createSpecies(species);
     }
-    
+
     console.log("Espécies básicas inicializadas com sucesso.");
   }
 
@@ -94,10 +96,10 @@ export class DatabaseStorage implements IStorage {
     try {
       // First remove user from all farms
       await db.delete(userFarms).where(eq(userFarms.userId, id));
-      
+
       // Remove user permissions
       await db.delete(userPermissions).where(eq(userPermissions.userId, id));
-      
+
       // Then delete the user
       const result = await db.delete(users).where(eq(users.id, id));
       return result.rowCount !== null && result.rowCount !== undefined && result.rowCount > 0;
@@ -174,6 +176,61 @@ export class DatabaseStorage implements IStorage {
     return farm;
   }
 
+  async deleteFarm(id: number): Promise<boolean> {
+    try {
+      // Delete in order to respect foreign key constraints
+
+      // Delete user permissions for this farm
+      await db.delete(userPermissions).where(eq(userPermissions.farmId, id));
+
+      // Delete user-farm associations
+      await db.delete(userFarms).where(eq(userFarms.farmId, id));
+
+      // Delete animal vaccinations first (they reference animals)
+      const farmAnimals = await db.select({ id: animals.id }).from(animals).where(eq(animals.farmId, id));
+      const animalIds = farmAnimals.map(a => a.id);
+      if (animalIds.length > 0) {
+        await db.delete(animalVaccinations).where(inArray(animalVaccinations.animalId, animalIds));
+      }
+
+      // Delete animals
+      await db.delete(animals).where(eq(animals.farmId, id));
+
+      // Delete removed animals
+      await db.delete(removedAnimals).where(eq(removedAnimals.farmId, id));
+
+      // Delete inventory transactions first
+      const farmInventoryItems = await db.select({ id: inventory.id }).from(inventory).where(eq(inventory.farmId, id));
+      const inventoryIds = farmInventoryItems.map(i => i.id);
+      if (inventoryIds.length > 0) {
+        await db.delete(inventoryTransactions).where(inArray(inventoryTransactions.inventoryId, inventoryIds));
+      }
+
+      // Delete inventory items
+      await db.delete(inventory).where(eq(inventory.farmId, id));
+
+      // Delete crops
+      await db.delete(crops).where(eq(crops.farmId, id));
+
+      // Delete tasks
+      await db.delete(tasks).where(eq(tasks.farmId, id));
+
+      // Delete goals
+      await db.delete(goals).where(eq(goals.farmId, id));
+
+      // Delete costs
+      await db.delete(costs).where(eq(costs.farmId, id));
+
+      // Finally, delete the farm
+      const result = await db.delete(farms).where(eq(farms.id, id));
+
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error("Error deleting farm:", error);
+      return false;
+    }
+  }
+
   async updateFarm(id: number, farmData: Partial<Farm>): Promise<Farm | undefined> {
     const [updatedFarm] = await db
       .update(farms)
@@ -196,43 +253,43 @@ export class DatabaseStorage implements IStorage {
   async createAnimal(animalData: InsertAnimal): Promise<Animal> {
     // Gerar o código de registro para o animal
     const registrationCode = await this.generateAnimalRegistrationCode(animalData.speciesId, animalData.farmId);
-    
+
     // Processa a data de nascimento
     let processedData = { ...animalData };
     if (typeof processedData.birthDate === 'string') {
       processedData.birthDate = new Date(processedData.birthDate);
     }
-    
+
     // Processa a data da última vacina
     if (typeof processedData.lastVaccineDate === 'string') {
       processedData.lastVaccineDate = new Date(processedData.lastVaccineDate);
     }
-    
+
     console.log("Processed animal data:", processedData);
-    
+
     // Inserir o animal com o código de registro gerado
     const [animal] = await db.insert(animals).values({
       ...processedData,
       registrationCode
     }).returning();
-    
+
     return animal;
   }
 
   async updateAnimal(id: number, animalData: Partial<Animal>): Promise<Animal | undefined> {
     // Processa as datas que podem vir como strings
     let processedData = { ...animalData };
-    
+
     if (processedData.birthDate && typeof processedData.birthDate === 'string') {
       processedData.birthDate = new Date(processedData.birthDate);
     }
-    
+
     if (processedData.lastVaccineDate && typeof processedData.lastVaccineDate === 'string') {
       processedData.lastVaccineDate = new Date(processedData.lastVaccineDate);
     }
-    
+
     console.log("Processed update data:", processedData);
-    
+
     const [updatedAnimal] = await db
       .update(animals)
       .set(processedData)
@@ -245,7 +302,7 @@ export class DatabaseStorage implements IStorage {
     try {
       // First delete any related animal vaccinations
       await db.delete(animalVaccinations).where(eq(animalVaccinations.animalId, id));
-      
+
       // Then delete the animal
       const result = await db.delete(animals).where(eq(animals.id, id));
       return result.rowCount !== null && result.rowCount !== undefined && result.rowCount > 0;
@@ -304,7 +361,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(inventory)
       .where(eq(inventory.farmId, farmId));
-    
+
     // Filter in JS to find critical items
     return items.filter(item => 
       item.minimumLevel !== null && 
@@ -332,7 +389,7 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return updatedItem || undefined;
   }
-  
+
   // Inventory Transaction operations
   async getInventoryTransaction(id: number): Promise<InventoryTransaction | undefined> {
     const [transaction] = await db
@@ -341,7 +398,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(inventoryTransactions.id, id));
     return transaction || undefined;
   }
-  
+
   async getInventoryTransactionsByItem(inventoryId: number): Promise<InventoryTransaction[]> {
     return await db
       .select()
@@ -349,7 +406,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(inventoryTransactions.inventoryId, inventoryId))
       .orderBy(desc(inventoryTransactions.date));
   }
-  
+
   async getInventoryTransactionsByFarm(farmId: number): Promise<InventoryTransaction[]> {
     return await db
       .select()
@@ -357,7 +414,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(inventoryTransactions.farmId, farmId))
       .orderBy(desc(inventoryTransactions.date));
   }
-  
+
   async getInventoryTransactionsByPeriod(farmId: number, startDate: Date, endDate: Date): Promise<InventoryTransaction[]> {
     return await db
       .select()
@@ -371,7 +428,7 @@ export class DatabaseStorage implements IStorage {
       )
       .orderBy(desc(inventoryTransactions.date));
   }
-  
+
   async createInventoryTransaction(transactionData: InsertInventoryTransaction): Promise<InventoryTransaction> {
     const [transaction] = await db
       .insert(inventoryTransactions)
@@ -379,7 +436,7 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return transaction;
   }
-  
+
   async registerInventoryEntry(
     inventoryId: number, 
     quantity: number, 
@@ -393,21 +450,21 @@ export class DatabaseStorage implements IStorage {
     if (!item) {
       throw new Error(`Inventory item with ID ${inventoryId} not found`);
     }
-    
+
     // 2. Calculate new balance
     const previousBalance = Number(item.quantity);
     const newBalance = previousBalance + quantity;
-    
+
     // 3. Update inventory item with new balance
     const updatedItem = await this.updateInventoryItem(inventoryId, {
       quantity: String(newBalance),
       lastUpdated: new Date()
     });
-    
+
     if (!updatedItem) {
       throw new Error(`Failed to update inventory item with ID ${inventoryId}`);
     }
-    
+
     // 4. Create transaction record
     const transaction = await this.createInventoryTransaction({
       inventoryId,
@@ -425,10 +482,10 @@ export class DatabaseStorage implements IStorage {
       totalPrice: unitPrice ? String(quantity * unitPrice) : null,
       category: item.category
     });
-    
+
     return { transaction, inventory: updatedItem };
   }
-  
+
   async registerInventoryWithdrawal(
     inventoryId: number, 
     quantity: number, 
@@ -441,26 +498,26 @@ export class DatabaseStorage implements IStorage {
     if (!item) {
       throw new Error(`Inventory item with ID ${inventoryId} not found`);
     }
-    
+
     // 2. Calculate new balance
     const previousBalance = Number(item.quantity);
-    
+
     if (previousBalance < quantity) {
       throw new Error(`Insufficient inventory. Current balance: ${previousBalance}, Requested: ${quantity}`);
     }
-    
+
     const newBalance = previousBalance - quantity;
-    
+
     // 3. Update inventory item with new balance
     const updatedItem = await this.updateInventoryItem(inventoryId, {
       quantity: String(newBalance),
       lastUpdated: new Date()
     });
-    
+
     if (!updatedItem) {
       throw new Error(`Failed to update inventory item with ID ${inventoryId}`);
     }
-    
+
     // 4. Create transaction record
     const transaction = await this.createInventoryTransaction({
       inventoryId,
@@ -478,10 +535,10 @@ export class DatabaseStorage implements IStorage {
       totalPrice: null,
       category: item.category
     });
-    
+
     return { transaction, inventory: updatedItem };
   }
-  
+
   async registerInventoryAdjustment(
     inventoryId: number, 
     newQuantity: number, 
@@ -493,21 +550,21 @@ export class DatabaseStorage implements IStorage {
     if (!item) {
       throw new Error(`Inventory item with ID ${inventoryId} not found`);
     }
-    
+
     // 2. Calculate adjustment
     const previousBalance = Number(item.quantity);
     const adjustmentQuantity = newQuantity - previousBalance;
-    
+
     // 3. Update inventory item with new balance
     const updatedItem = await this.updateInventoryItem(inventoryId, {
       quantity: String(newQuantity),
       lastUpdated: new Date()
     });
-    
+
     if (!updatedItem) {
       throw new Error(`Failed to update inventory item with ID ${inventoryId}`);
     }
-    
+
     // 4. Create transaction record
     const transaction = await this.createInventoryTransaction({
       inventoryId,
@@ -525,7 +582,7 @@ export class DatabaseStorage implements IStorage {
       totalPrice: null,
       category: item.category
     });
-    
+
     return { transaction, inventory: updatedItem };
   }
 
@@ -547,7 +604,7 @@ export class DatabaseStorage implements IStorage {
           eq(userFarms.farmId, farmId)
         )
       );
-    
+
     // Also remove all permissions for this user in this farm
     await db
       .delete(userPermissions)
@@ -557,7 +614,7 @@ export class DatabaseStorage implements IStorage {
           eq(userPermissions.farmId, farmId)
         )
       );
-    
+
     return true;
   }
 
@@ -600,7 +657,7 @@ export class DatabaseStorage implements IStorage {
           eq(userPermissions.module, permissionData.module)
         )
       );
-    
+
     if (existingPermission) {
       // Update existing permission
       const [updatedPermission] = await db
@@ -675,16 +732,16 @@ export class DatabaseStorage implements IStorage {
     const [speciesItem] = await db.select().from(species).where(eq(species.id, id));
     return speciesItem || undefined;
   }
-  
+
   async getAllSpecies(): Promise<Species[]> {
     return await db.select().from(species);
   }
-  
+
   async createSpecies(speciesData: InsertSpecies): Promise<Species> {
     const [newSpecies] = await db.insert(species).values(speciesData).returning();
     return newSpecies;
   }
-  
+
   async updateSpecies(id: number, speciesData: Partial<Species>): Promise<Species | undefined> {
     const [updatedSpecies] = await db
       .update(species)
@@ -693,7 +750,7 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return updatedSpecies || undefined;
   }
-  
+
   // Método para gerar código de registro de animal
   async generateAnimalRegistrationCode(speciesId: number, farmId: number): Promise<string> {
     // Obter a espécie pelo ID
@@ -701,19 +758,19 @@ export class DatabaseStorage implements IStorage {
     if (!speciesItem) {
       throw new Error("Espécie não encontrada");
     }
-    
+
     const abbreviation = speciesItem.abbreviation;
-    
+
     // Obter data atual no formato YYYYMMDD
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const day = String(now.getDate()).padStart(2, '0');
     const dateString = `${year}${month}${day}`;
-    
+
     // Consultar banco de dados para obter o último número sequencial para esta espécie, data e fazenda
     const pattern = `${abbreviation}-${dateString}-%`;
-    
+
     // Buscar todos os animais da mesma espécie registrados na mesma data e fazenda
     const animalsWithSimilarCode = await db
       .select()
@@ -724,15 +781,15 @@ export class DatabaseStorage implements IStorage {
           eq(animals.speciesId, speciesId)
         )
       );
-    
+
     // Filtrar animais cujo código começa com o padrão e encontrar o maior número sequencial
     const regex = new RegExp(`^${abbreviation}-${dateString}-([0-9]{4})$`);
     let maxSequential = 0;
-    
+
     // Para cada animal com pattern similar, extrair o número sequencial e encontrar o maior
     for (const animal of animalsWithSimilarCode) {
       if (!animal.registrationCode) continue;
-      
+
       const match = animal.registrationCode.match(regex);
       if (match && match[1]) {
         const sequentialNumber = parseInt(match[1], 10);
@@ -741,11 +798,11 @@ export class DatabaseStorage implements IStorage {
         }
       }
     }
-    
+
     // Incrementar o contador e formatar com zeros à esquerda
     const newSequential = maxSequential + 1;
     const sequentialFormatted = String(newSequential).padStart(4, '0');
-    
+
     // Gerar código no formato [ABREVIAÇÃO]-[YYYYMMDD]-[SEQUENCIAL]
     return `${abbreviation}-${dateString}-${sequentialFormatted}`;
   }
@@ -833,7 +890,7 @@ export class DatabaseStorage implements IStorage {
       )
       .orderBy(desc(goals.endDate));
   }
-  
+
   async getAllGoals(): Promise<Goal[]> {
     return await db
       .select()
@@ -894,26 +951,26 @@ export class DatabaseStorage implements IStorage {
     if (typeof processedData.applicationDate === 'string') {
       processedData.applicationDate = new Date(processedData.applicationDate);
     }
-    
+
     // Campo expirationDate removido do schema - não precisa processar
-    
+
     // Processa a data da próxima aplicação se existir
     if (processedData.nextApplicationDate && typeof processedData.nextApplicationDate === 'string') {
       processedData.nextApplicationDate = new Date(processedData.nextApplicationDate);
     }
-    
+
     // Inserir o registro de vacinação
     const [vaccination] = await db
       .insert(animalVaccinations)
       .values(processedData)
       .returning();
-    
+
     // Atualizar a data da última vacina no animal
     await db
       .update(animals)
       .set({ lastVaccineDate: processedData.applicationDate })
       .where(eq(animals.id, processedData.animalId));
-    
+
     return vaccination;
   }
 
@@ -922,20 +979,20 @@ export class DatabaseStorage implements IStorage {
     if (vaccinationData.applicationDate && typeof vaccinationData.applicationDate === 'string') {
       vaccinationData.applicationDate = new Date(vaccinationData.applicationDate);
     }
-    
+
     // Campo expirationDate removido do schema - não precisa processar
-    
+
     // Processa a data da próxima aplicação se existir
     if (vaccinationData.nextApplicationDate && typeof vaccinationData.nextApplicationDate === 'string') {
       vaccinationData.nextApplicationDate = new Date(vaccinationData.nextApplicationDate);
     }
-    
+
     const [updatedVaccination] = await db
       .update(animalVaccinations)
       .set(vaccinationData)
       .where(eq(animalVaccinations.id, id))
       .returning();
-    
+
     // Se a data de aplicação foi alterada, atualizar a data da última vacina no animal
     if (updatedVaccination && vaccinationData.applicationDate) {
       await db
@@ -943,7 +1000,7 @@ export class DatabaseStorage implements IStorage {
         .set({ lastVaccineDate: vaccinationData.applicationDate })
         .where(eq(animals.id, updatedVaccination.animalId));
     }
-    
+
     return updatedVaccination || undefined;
   }
 
@@ -998,7 +1055,7 @@ export class DatabaseStorage implements IStorage {
       .insert(costs)
       .values(processedData)
       .returning();
-    
+
     return cost;
   }
 
@@ -1013,7 +1070,7 @@ export class DatabaseStorage implements IStorage {
       .set(costData)
       .where(eq(costs.id, id))
       .returning();
-    
+
     return updatedCost || undefined;
   }
 
@@ -1021,12 +1078,12 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .delete(costs)
       .where(eq(costs.id, id));
-    
+
     return (result.rowCount || 0) > 0;
   }
 
   // Métodos para gerenciar animais removidos
-  
+
   async removeAnimal(animalId: number, removalData: {
     removalReason: string;
     removalObservations?: string;
@@ -1112,7 +1169,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(removedAnimals)
       .where(eq(removedAnimals.id, id));
-    
+
     return removedAnimal || undefined;
   }
 }

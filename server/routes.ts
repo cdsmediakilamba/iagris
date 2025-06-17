@@ -139,6 +139,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete farm route
+  app.delete("/api/farms/:farmId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
+    
+    try {
+      const farmId = parseInt(req.params.farmId, 10);
+      
+      // Get the farm to check permissions
+      const farm = await storage.getFarm(farmId);
+      if (!farm) {
+        return res.status(404).json({ message: "Farm not found" });
+      }
+      
+      // Only super admin or farm owner/admin can delete a farm
+      if (req.user.role !== UserRole.SUPER_ADMIN && 
+          farm.createdBy !== req.user.id && 
+          farm.adminId !== req.user.id) {
+        return res.status(403).json({ message: "You don't have permission to delete this farm" });
+      }
+      
+      // Delete the farm
+      const deleted = await storage.deleteFarm(farmId);
+      
+      if (deleted) {
+        res.status(200).json({ message: "Farm deleted successfully", success: true });
+      } else {
+        res.status(500).json({ message: "Failed to delete farm" });
+      }
+    } catch (error) {
+      console.error("Error deleting farm:", error);
+      res.status(500).json({ message: "Failed to delete farm" });
+    }
+  });
+
   // All Users route (for task/goal assignment)
   app.get("/api/users", async (req, res) => {
     try {

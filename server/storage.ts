@@ -714,6 +714,63 @@ export class MemStorage implements IStorage {
     return farm;
   }
   
+  async deleteFarm(id: number): Promise<boolean> {
+    try {
+      // Remove the farm
+      const farmDeleted = this.farms.delete(id);
+      
+      if (farmDeleted) {
+        // Remove all user-farm associations for this farm
+        const userFarmsToDelete = Array.from(this.userFarms.entries())
+          .filter(([_, userFarm]) => userFarm.farmId === id)
+          .map(([key, _]) => key);
+        
+        userFarmsToDelete.forEach(key => this.userFarms.delete(key));
+        
+        // Remove all permissions for this farm
+        const permissionsToDelete = Array.from(this.userPermissions.entries())
+          .filter(([_, permission]) => permission.farmId === id)
+          .map(([key, _]) => key);
+        
+        permissionsToDelete.forEach(key => this.userPermissions.delete(key));
+        
+        // Remove all farm-related data (animals, crops, inventory, etc.)
+        const animalsToDelete = Array.from(this.animals.entries())
+          .filter(([_, animal]) => animal.farmId === id)
+          .map(([key, _]) => key);
+        animalsToDelete.forEach(key => this.animals.delete(key));
+        
+        const cropsToDelete = Array.from(this.crops.entries())
+          .filter(([_, crop]) => crop.farmId === id)
+          .map(([key, _]) => key);
+        cropsToDelete.forEach(key => this.crops.delete(key));
+        
+        const inventoryToDelete = Array.from(this.inventory.entries())
+          .filter(([_, item]) => item.farmId === id)
+          .map(([key, _]) => key);
+        inventoryToDelete.forEach(key => this.inventory.delete(key));
+        
+        const tasksToDelete = Array.from(this.tasks.entries())
+          .filter(([_, task]) => task.farmId === id)
+          .map(([key, _]) => key);
+        tasksToDelete.forEach(key => this.tasks.delete(key));
+        
+        const goalsToDelete = Array.from(this.goals.entries())
+          .filter(([_, goal]) => goal.farmId === id)
+          .map(([key, _]) => key);
+        goalsToDelete.forEach(key => this.goals.delete(key));
+        
+        console.log(`Farm ${id} and all related data deleted successfully`);
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error("Error deleting farm:", error);
+      return false;
+    }
+  }
+  
   async updateFarm(id: number, farmData: Partial<Farm>): Promise<Farm | undefined> {
     const farm = this.farms.get(id);
     if (!farm) return undefined;
