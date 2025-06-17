@@ -1,4 +1,4 @@
-import { 
+import {
   users, farms, animals, species, crops, inventory, tasks, goals, userFarms, userPermissions, 
   animalVaccinations, inventoryTransactions, removedAnimals, costs,
   type InsertUser, type InsertFarm, type InsertAnimal, type InsertCrop, 
@@ -6,11 +6,11 @@ import {
   type Animal, type Crop, type Inventory, type Task, type Goal, type Species,
   type AnimalVaccination, type InsertAnimalVaccination, type UserFarm, type InsertUserFarm,
   type UserPermission, type InsertUserPermission, type InventoryTransaction, type InsertInventoryTransaction,
-  type RemovedAnimal, type InsertRemovedAnimal, type Cost, type InsertCost
-} from "./db";
+  type RemovedAnimal, type InsertRemovedAnimal, type Cost, type InsertCost, type InsertSpecies
+} from "@shared/schema";
+import { db } from "./db";
 import { inArray } from "drizzle-orm";
 import { IStorage } from "./storage";
-import { db } from "./db";
 import { eq, and, desc, asc, between, isNotNull, gt, lt, gte, lte } from "drizzle-orm";
 import { UserRole, SystemModule, AccessLevel, GoalStatus, InventoryTransactionType } from "@shared/schema";
 import session from "express-session";
