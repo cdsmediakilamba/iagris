@@ -1103,12 +1103,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { password, ...userWithoutPassword } = user;
         // Get user's farm assignments
         const userFarms = await storage.getUserFarms(user.id);
+        console.log(`User ${user.name} (ID: ${user.id}) farm assignments:`, userFarms);
         return {
           ...userWithoutPassword,
           farmAssignments: userFarms
         };
       }));
       
+      console.log('Sample user with farm assignments:', sanitizedUsers[0]);
       res.json(sanitizedUsers);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch users" });
