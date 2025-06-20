@@ -552,7 +552,8 @@ export const en = {
     employeeAdded: 'Employee added successfully',
     employeeUpdated: 'Employee updated successfully',
     employeeDeleted: 'Employee deleted successfully',
-    confirmDelete: 'Are you sure you want to delete this employee?'
+    confirmDelete: 'Are you sure you want to delete this employee?',
+    farmNotFound: 'Farm not found'
   },
   farms: {
     myFarms: 'My Farms',

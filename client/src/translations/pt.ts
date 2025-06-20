@@ -607,6 +607,7 @@ export const pt = {
     assignTask: 'Atribuir Tarefa',
     searchPlaceholder: 'Buscar funcionários...',
     all: 'Todos',
+    farmNotFound: 'Fazenda não encontrada',
   },
   costs: {
     title: 'Gestão de Custos',

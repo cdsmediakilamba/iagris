@@ -271,9 +271,9 @@ export default function Employees() {
 
   // Get farm name
   const getFarmName = (farmId: number | null) => {
-    if (!farmId) return 'Nenhuma';
+    if (!farmId) return t('common.notSpecified');
     const farm = farms.find(f => f.id === farmId);
-    return farm?.name || 'Fazenda não encontrada';
+    return farm?.name || t('employees.farmNotFound');
   };
 
   // Check permissions
@@ -547,7 +547,6 @@ export default function Employees() {
                       <TableHead>{t('employees.role')}</TableHead>
                       <TableHead>{t('employees.farm')}</TableHead>
                       <TableHead>{t('employees.language')}</TableHead>
-                      <TableHead>{t('employees.createdAt')}</TableHead>
                       {canManageUsers && <TableHead>Ações</TableHead>}
                     </TableRow>
                   </TableHeader>
@@ -576,12 +575,7 @@ export default function Employees() {
                             }
                           </Badge>
                         </TableCell>
-                        <TableCell>
-                          {userItem.createdAt && !isNaN(new Date(userItem.createdAt).getTime()) 
-                            ? format(new Date(userItem.createdAt), 'dd/MM/yyyy')
-                            : t('common.notSpecified')
-                          }
-                        </TableCell>
+
                         {canManageUsers && (
                           <TableCell>
                             <div className="flex items-center gap-2">
