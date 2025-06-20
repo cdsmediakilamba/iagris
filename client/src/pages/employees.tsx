@@ -271,11 +271,8 @@ export default function Employees() {
 
   // Get farm name
   const getFarmName = (farmId: number | null) => {
-    console.log('getFarmName called with farmId:', farmId);
-    console.log('Available farms:', farms);
     if (!farmId) return t('common.notSpecified');
     const farm = farms.find(f => f.id === farmId);
-    console.log('Found farm:', farm);
     return farm?.name || t('employees.farmNotFound');
   };
 
@@ -554,9 +551,7 @@ export default function Employees() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredUsers.map((userItem) => {
-                      console.log('Rendering user:', userItem.name, 'with farmId:', userItem.farmId);
-                      return (
+                    {filteredUsers.map((userItem) => (
                         <TableRow key={userItem.id}>
                           <TableCell className="font-medium">{userItem.name}</TableCell>
                           <TableCell>{userItem.username}</TableCell>
@@ -620,8 +615,7 @@ export default function Employees() {
                             </TableCell>
                           )}
                         </TableRow>
-                      );
-                    })}
+                      ))}
                   </TableBody>
                 </Table>
               </div>

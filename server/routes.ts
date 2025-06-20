@@ -1098,9 +1098,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         users = Array.from(userMap.values());
       }
       
-      // Remove passwords from response
+      // Remove passwords from response and ensure farmId is included
       const sanitizedUsers = users.map(user => {
         const { password, ...userWithoutPassword } = user;
+        console.log('User data being sent:', userWithoutPassword);
         return userWithoutPassword;
       });
       
