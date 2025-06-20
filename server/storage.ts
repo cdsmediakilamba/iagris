@@ -630,8 +630,7 @@ export class MemStorage implements IStorage {
       id, 
       createdAt: new Date(),
       // Garante que os valores obrigatórios estejam definidos
-      role: insertUser.role ?? UserRole.EMPLOYEE,
-      language: insertUser.language ?? "pt"
+      role: insertUser.role ?? UserRole.EMPLOYEE
     };
     this.users.set(id, user);
     return user;
