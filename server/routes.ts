@@ -199,7 +199,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const users = await Promise.all(allUsersList.map(async user => {
         // Get user's farm assignments
         const farmAssignments = await storage.getUserFarms(user.id);
-        console.log(`User ${user.name} (ID: ${user.id}) farm assignments:`, farmAssignments);
         return {
           id: user.id,
           name: user.name,
@@ -211,7 +210,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }));
       
       console.log(`Returning ${users.length} users for selection`);
-      console.log('Sample user with assignments:', users[0]);
       res.json(users);
     } catch (error) {
       console.error("Error fetching users:", error);
