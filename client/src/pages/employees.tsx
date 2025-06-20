@@ -570,11 +570,17 @@ export default function Employees() {
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline">
-                            {t(`employees.languages.${userItem.language}`)}
+                            {userItem.language 
+                              ? t(`employees.languages.${userItem.language}`)
+                              : t('common.notSpecified')
+                            }
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          {format(new Date(userItem.createdAt), 'dd/MM/yyyy')}
+                          {userItem.createdAt && !isNaN(new Date(userItem.createdAt).getTime()) 
+                            ? format(new Date(userItem.createdAt), 'dd/MM/yyyy')
+                            : t('common.notSpecified')
+                          }
                         </TableCell>
                         {canManageUsers && (
                           <TableCell>
