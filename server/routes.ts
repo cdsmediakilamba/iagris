@@ -1185,10 +1185,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updateData.password = await hashPassword(updateData.password);
       }
 
+      // Handle farm assignment changes
+      const newFarmId = updateData.farmId;
+      const oldFarmId = existingUser.farmId;
+
+      // Update the user
       const updatedUser = await storage.updateUser(userId, updateData);
       
       if (!updatedUser) {
         return res.status(404).json({ message: "User not found" });
+      }
+
+      // Handle user-farm relationship changes
+      if (newFarmId !== oldFarmId) {
+        // Remove from old farm if existed
+        if (oldFarmId) {
+          await storage.removeUserFromFarm(userId, oldFarmId);
+        }
+
+        // Add to new farm if specified
+        if (newFarmId) {
+          // Check if farm exists
+          const farm = await storage.getFarm(newFarmId);
+          if (farm) {
+            // Check if user is not already assigned to this farm
+            const existingUserFarms = await storage.getUserFarms(userId);
+            const alreadyAssigned = existingUserFarms.some(uf => uf.farmId === newFarmId);
+            
+            if (!alreadyAssigned) {
+              // Determine the role in the farm based on user's system role
+              let farmRole = "member";
+              if (updatedUser.role === "farm_admin") {
+                farmRole = "admin";
+              } else if (updatedUser.role === "manager") {
+                farmRole = "manager";
+              } else if (updatedUser.role === "employee") {
+                farmRole = "worker";
+              } else if (updatedUser.role === "veterinarian" || updatedUser.role === "agronomist") {
+                farmRole = "specialist";
+              }
+
+              await storage.assignUserToFarm({
+                userId: userId,
+                farmId: newFarmId,
+                role: farmRole
+              });
+            }
+          }
+        }
       }
 
       // Don't send password in response
