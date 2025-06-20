@@ -336,7 +336,6 @@ export default function Admin() {
       name: '',
       email: '',
       role: 'employee',
-      language: 'pt',
     },
   });
 
@@ -349,7 +348,6 @@ export default function Admin() {
       name: '',
       email: '',
       role: 'employee',
-      language: 'pt',
     },
   });
 
@@ -518,7 +516,6 @@ export default function Admin() {
       name: userToEdit.name,
       email: userToEdit.email,
       role: userToEdit.role,
-      language: userToEdit.language,
     });
     setEditUserDialogOpen(true);
   };
@@ -998,30 +995,7 @@ export default function Admin() {
                               )}
                             />
                             
-                            <FormField
-                              control={form.control}
-                              name="language"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>{t('settings.language')}</FormLabel>
-                                  <Select
-                                    onValueChange={field.onChange}
-                                    defaultValue={field.value}
-                                  >
-                                    <FormControl>
-                                      <SelectTrigger>
-                                        <SelectValue placeholder={t('settings.language')} />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      <SelectItem value="pt">{t('settings.languageOptions.pt')}</SelectItem>
-                                      <SelectItem value="en">{t('settings.languageOptions.en')}</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
+
                           </div>
                           
                           <DialogFooter>
@@ -1239,27 +1213,7 @@ export default function Admin() {
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={editForm.control}
-                    name="language"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Idioma</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione um idioma" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="pt">Português</SelectItem>
-                            <SelectItem value="en">Inglês</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+
                   <DialogFooter>
                     <Button 
                       type="button" 
@@ -1312,10 +1266,7 @@ export default function Admin() {
                         {t(`employees.roles.${selectedUser.role}`)}
                       </Badge>
                     </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Idioma</label>
-                      <p className="text-sm">{selectedUser.language === 'pt' ? 'Português' : 'English'}</p>
-                    </div>
+
                     <div>
                       <label className="text-sm font-medium text-gray-500">Status</label>
                       <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
