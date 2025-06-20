@@ -78,7 +78,6 @@ interface User {
   name: string;
   email: string;
   role: string;
-  language: string;
   farmId: number | null;
   createdAt: string;
 }
@@ -100,7 +99,6 @@ const userFormSchema = z.object({
   email: z.string().email('Email inválido'),
   password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
   role: z.string().min(1, 'Função é obrigatória'),
-  language: z.string().min(1, 'Idioma é obrigatório'),
   farmId: z.number().nullable(),
 });
 
@@ -134,7 +132,6 @@ export default function Employees() {
       email: '',
       password: '',
       role: 'employee',
-      language: 'pt',
       farmId: null,
     },
   });
@@ -239,7 +236,6 @@ export default function Employees() {
       email: userToEdit.email,
       password: '', // Don't populate password for security
       role: userToEdit.role,
-      language: userToEdit.language,
       farmId: userToEdit.farmId,
     });
     setDialogOpen(true);
@@ -420,27 +416,7 @@ export default function Employees() {
                         )}
                       />
 
-                      <FormField
-                        control={form.control}
-                        name="language"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t('employees.language')}</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione o idioma" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="pt">{t('employees.languages.pt')}</SelectItem>
-                                <SelectItem value="en">{t('employees.languages.en')}</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+
                     </div>
 
                     <FormField
@@ -546,7 +522,7 @@ export default function Employees() {
                       <TableHead>{t('employees.email')}</TableHead>
                       <TableHead>{t('employees.role')}</TableHead>
                       <TableHead>{t('employees.farm')}</TableHead>
-                      <TableHead>{t('employees.language')}</TableHead>
+
                       {canManageUsers && <TableHead>Ações</TableHead>}
                     </TableRow>
                   </TableHeader>
@@ -567,14 +543,7 @@ export default function Employees() {
                               {getFarmName(userItem.farmId)}
                             </div>
                           </TableCell>
-                          <TableCell>
-                            <Badge variant="outline">
-                              {userItem.language 
-                                ? t(`employees.languages.${userItem.language}`)
-                                : t('common.notSpecified')
-                              }
-                            </Badge>
-                          </TableCell>
+
                           {canManageUsers && (
                             <TableCell>
                               <div className="flex items-center gap-2">
