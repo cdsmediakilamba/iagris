@@ -271,8 +271,11 @@ export default function Employees() {
 
   // Get farm name
   const getFarmName = (farmId: number | null) => {
+    console.log('getFarmName called with farmId:', farmId);
+    console.log('Available farms:', farms);
     if (!farmId) return t('common.notSpecified');
     const farm = farms.find(f => f.id === farmId);
+    console.log('Found farm:', farm);
     return farm?.name || t('employees.farmNotFound');
   };
 
@@ -551,73 +554,74 @@ export default function Employees() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredUsers.map((userItem) => (
-                      <TableRow key={userItem.id}>
-                        <TableCell className="font-medium">{userItem.name}</TableCell>
-                        <TableCell>{userItem.username}</TableCell>
-                        <TableCell>{userItem.email}</TableCell>
-                        <TableCell>
-                          <Badge variant="secondary">
-                            {getRoleDisplay(userItem.role)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Building2 className="h-4 w-4 text-gray-400" />
-                            {getFarmName(userItem.farmId)}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">
-                            {userItem.language 
-                              ? t(`employees.languages.${userItem.language}`)
-                              : t('common.notSpecified')
-                            }
-                          </Badge>
-                        </TableCell>
-
-                        {canManageUsers && (
+                    {filteredUsers.map((userItem) => {
+                      console.log('Rendering user:', userItem.name, 'with farmId:', userItem.farmId);
+                      return (
+                        <TableRow key={userItem.id}>
+                          <TableCell className="font-medium">{userItem.name}</TableCell>
+                          <TableCell>{userItem.username}</TableCell>
+                          <TableCell>{userItem.email}</TableCell>
                           <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEditUser(userItem)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              
-                              {userItem.id !== user?.id && (
-                                <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <Button variant="ghost" size="sm">
-                                      <Trash2 className="h-4 w-4 text-red-500" />
-                                    </Button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>Excluir funcionário</AlertDialogTitle>
-                                      <AlertDialogDescription>
-                                        {t('employees.confirmDelete')}
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                      <AlertDialogAction
-                                        onClick={() => deleteUserMutation.mutate(userItem.id)}
-                                        className="bg-red-600 hover:bg-red-700"
-                                      >
-                                        Excluir
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
-                              )}
+                            <Badge variant="secondary">
+                              {getRoleDisplay(userItem.role)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              <Building2 className="h-4 w-4 text-gray-400" />
+                              {getFarmName(userItem.farmId)}
                             </div>
                           </TableCell>
-                        )}
-                      </TableRow>
-                    ))}
+                          <TableCell>
+                            <Badge variant="outline">
+                              {userItem.language 
+                                ? t(`employees.languages.${userItem.language}`)
+                                : t('common.notSpecified')
+                              }
+                            </Badge>
+                          </TableCell>
+                          {canManageUsers && (
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleEditUser(userItem)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                {userItem.id !== user?.id && (
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <Button variant="ghost" size="sm">
+                                        <Trash2 className="h-4 w-4 text-red-500" />
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Excluir funcionário</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          {t('employees.confirmDelete')}
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                        <AlertDialogAction
+                                          onClick={() => deleteUserMutation.mutate(userItem.id)}
+                                          className="bg-red-600 hover:bg-red-700"
+                                        >
+                                          Excluir
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                )}
+                              </div>
+                            </TableCell>
+                          )}
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>
