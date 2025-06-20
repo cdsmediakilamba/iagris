@@ -250,7 +250,6 @@ export class MemStorage implements IStorage {
         name: "Administrador Geral",
         email: "admin@iagris.com",
         role: UserRole.SUPER_ADMIN,
-        language: "pt",
         farmId: null // Super Admin não está vinculado a nenhuma fazenda específica
       });
       
@@ -261,7 +260,6 @@ export class MemStorage implements IStorage {
         name: "Administrador de Fazenda",
         email: "farmadmin@iagris.com",
         role: UserRole.FARM_ADMIN,
-        language: "pt",
         farmId: null
       });
       
@@ -272,7 +270,6 @@ export class MemStorage implements IStorage {
         name: "Funcionário Regular",
         email: "employee@iagris.com",
         role: UserRole.EMPLOYEE,
-        language: "pt",
         farmId: null
       });
       
@@ -477,8 +474,7 @@ export class MemStorage implements IStorage {
       ...insertUser, 
       id, 
       createdAt: new Date(),
-      role: insertUser.role ?? UserRole.EMPLOYEE,
-      language: insertUser.language ?? "pt"
+      role: insertUser.role ?? UserRole.EMPLOYEE
     };
     this.users.set(id, user);
     return user;
