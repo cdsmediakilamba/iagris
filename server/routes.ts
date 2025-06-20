@@ -1098,16 +1098,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         users = Array.from(userMap.values());
       }
       
-      // Remove passwords from response and ensure farmId is included
-      const sanitizedUsers = users.map(user => {
+      // Remove passwords from response and include farm assignments
+      const sanitizedUsers = await Promise.all(users.map(async user => {
         const { password, ...userWithoutPassword } = user;
-        console.log('User data being sent:', { 
-          id: userWithoutPassword.id, 
-          name: userWithoutPassword.name, 
-          farmId: userWithoutPassword.farmId 
-        });
-        return userWithoutPassword;
-      });
+        // Get user's farm assignments
+        const userFarms = await storage.getUserFarms(user.id);
+        return {
+          ...userWithoutPassword,
+          farmAssignments: userFarms
+        };
+      }));
       
       res.json(sanitizedUsers);
     } catch (error) {

@@ -80,6 +80,13 @@ interface User {
   role: string;
   farmId: number | null;
   createdAt: string;
+  farmAssignments?: {
+    id: number;
+    userId: number;
+    farmId: number;
+    role: string;
+    createdAt: string;
+  }[];
 }
 
 // Farm interface
@@ -265,11 +272,18 @@ export default function Employees() {
     return t(`employees.roles.${role}`) || role;
   };
 
-  // Get farm name
-  const getFarmName = (farmId: number | null) => {
-    if (!farmId) return t('common.notSpecified');
-    const farm = farms.find(f => f.id === farmId);
-    return farm?.name || t('employees.farmNotFound');
+  // Get farm assignments for a user
+  const getFarmAssignments = (user: User) => {
+    if (!user.farmAssignments || user.farmAssignments.length === 0) {
+      return t('common.notSpecified');
+    }
+    
+    const farmNames = user.farmAssignments.map(assignment => {
+      const farm = farms.find(f => f.id === assignment.farmId);
+      return farm?.name || `Fazenda ${assignment.farmId}`;
+    });
+    
+    return farmNames.join(', ');
   };
 
   // Check permissions
@@ -540,7 +554,7 @@ export default function Employees() {
                           <TableCell>
                             <div className="flex items-center gap-1">
                               <Building2 className="h-4 w-4 text-gray-400" />
-                              {getFarmName(userItem.farmId)}
+                              {getFarmAssignments(userItem)}
                             </div>
                           </TableCell>
 
