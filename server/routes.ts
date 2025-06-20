@@ -194,16 +194,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const veterinarians = await storage.getUsersByRole(UserRole.VETERINARIAN);
       const agronomists = await storage.getUsersByRole(UserRole.AGRONOMIST);
       
-      // Combine all users and format for selection
-      const users = [...allUsers, ...adminUsers, ...superAdmins, ...managers, ...veterinarians, ...agronomists].map(user => ({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        username: user.username
+      // Combine all users and format for selection with farm assignments
+      const allUsersList = [...allUsers, ...adminUsers, ...superAdmins, ...managers, ...veterinarians, ...agronomists];
+      const users = await Promise.all(allUsersList.map(async user => {
+        // Get user's farm assignments
+        const farmAssignments = await storage.getUserFarms(user.id);
+        console.log(`User ${user.name} (ID: ${user.id}) farm assignments:`, farmAssignments);
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          username: user.username,
+          farmAssignments: farmAssignments
+        };
       }));
       
       console.log(`Returning ${users.length} users for selection`);
+      console.log('Sample user with assignments:', users[0]);
       res.json(users);
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -1065,6 +1073,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User management routes (admin only)
   app.get("/api/users", checkRole([UserRole.SUPER_ADMIN, UserRole.FARM_ADMIN]), async (req, res) => {
     try {
+      console.log("=== EXECUTING /api/users endpoint ===");
       let users = [];
       
       if (req.user.role === UserRole.SUPER_ADMIN) {
