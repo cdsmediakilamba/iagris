@@ -2488,6 +2488,174 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Purchase Requests routes
+  // Get all purchase requests for a farm
+  app.get("/api/farms/:farmId/purchase-requests", async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      const user = req.user;
+      const farmId = parseInt(req.params.farmId);
+
+      // Check access to purchase requests module
+      if (!await hasAccessToModify(user, farmId, SystemModule.PURCHASE_REQUESTS)) {
+        return res.status(403).json({ message: "You don't have access to purchase requests for this farm" });
+      }
+
+      const requests = await storage.getPurchaseRequestsByFarm(farmId);
+      res.json(requests);
+    } catch (error) {
+      console.error("Error fetching purchase requests:", error);
+      res.status(500).json({ message: "Failed to fetch purchase requests" });
+    }
+  });
+
+  // Get purchase requests by status
+  app.get("/api/farms/:farmId/purchase-requests/status/:status", async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      const user = req.user;
+      const farmId = parseInt(req.params.farmId);
+      const status = req.params.status;
+
+      // Check access to purchase requests module
+      if (!await hasAccessToModify(user, farmId, SystemModule.PURCHASE_REQUESTS)) {
+        return res.status(403).json({ message: "You don't have access to purchase requests for this farm" });
+      }
+
+      const requests = await storage.getPurchaseRequestsByStatus(farmId, status);
+      res.json(requests);
+    } catch (error) {
+      console.error("Error fetching purchase requests by status:", error);
+      res.status(500).json({ message: "Failed to fetch purchase requests" });
+    }
+  });
+
+  // Get urgent purchase requests
+  app.get("/api/farms/:farmId/purchase-requests/urgent", async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      const user = req.user;
+      const farmId = parseInt(req.params.farmId);
+
+      // Check access to purchase requests module
+      if (!await hasAccessToModify(user, farmId, SystemModule.PURCHASE_REQUESTS)) {
+        return res.status(403).json({ message: "You don't have access to purchase requests for this farm" });
+      }
+
+      const requests = await storage.getUrgentPurchaseRequests(farmId);
+      res.json(requests);
+    } catch (error) {
+      console.error("Error fetching urgent purchase requests:", error);
+      res.status(500).json({ message: "Failed to fetch urgent purchase requests" });
+    }
+  });
+
+  // Create a new purchase request
+  app.post("/api/farms/:farmId/purchase-requests", async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      const user = req.user;
+      const farmId = parseInt(req.params.farmId);
+
+      // Check access to purchase requests module
+      if (!await hasAccessToModify(user, farmId, SystemModule.PURCHASE_REQUESTS)) {
+        return res.status(403).json({ message: "You don't have permission to create purchase requests for this farm" });
+      }
+
+      const requestData = {
+        ...req.body,
+        farmId,
+        createdBy: user.id
+      };
+
+      const newRequest = await storage.createPurchaseRequest(requestData);
+      res.status(201).json(newRequest);
+    } catch (error) {
+      console.error("Error creating purchase request:", error);
+      res.status(500).json({ message: "Failed to create purchase request" });
+    }
+  });
+
+  // Update a purchase request
+  app.patch("/api/purchase-requests/:id", async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      const user = req.user;
+      const requestId = parseInt(req.params.id);
+
+      const existingRequest = await storage.getPurchaseRequest(requestId);
+      
+      if (!existingRequest) {
+        return res.status(404).json({ message: "Purchase request not found" });
+      }
+
+      // Check access to purchase requests module
+      if (!await hasAccessToModify(user, existingRequest.farmId, SystemModule.PURCHASE_REQUESTS)) {
+        return res.status(403).json({ message: "You don't have permission to update this purchase request" });
+      }
+
+      const updatedRequest = await storage.updatePurchaseRequest(requestId, req.body);
+      
+      if (!updatedRequest) {
+        return res.status(404).json({ message: "Purchase request not found" });
+      }
+
+      res.json(updatedRequest);
+    } catch (error) {
+      console.error("Error updating purchase request:", error);
+      res.status(500).json({ message: "Failed to update purchase request" });
+    }
+  });
+
+  // Delete a purchase request
+  app.delete("/api/purchase-requests/:id", async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      const user = req.user;
+      const requestId = parseInt(req.params.id);
+
+      const existingRequest = await storage.getPurchaseRequest(requestId);
+      
+      if (!existingRequest) {
+        return res.status(404).json({ message: "Purchase request not found" });
+      }
+
+      // Check access to purchase requests module
+      if (!await hasAccessToModify(user, existingRequest.farmId, SystemModule.PURCHASE_REQUESTS)) {
+        return res.status(403).json({ message: "You don't have permission to delete this purchase request" });
+      }
+
+      const deleted = await storage.deletePurchaseRequest(requestId);
+      
+      if (!deleted) {
+        return res.status(404).json({ message: "Purchase request not found" });
+      }
+
+      res.json({ message: "Purchase request deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting purchase request:", error);
+      res.status(500).json({ message: "Failed to delete purchase request" });
+    }
+  });
+
   // Create HTTP server
   const httpServer = createServer(app);
   return httpServer;

@@ -1,13 +1,13 @@
 import {
   users, farms, animals, species, crops, inventory, tasks, goals, userFarms, userPermissions, 
-  animalVaccinations, inventoryTransactions, removedAnimals, costs, temporaryEmployees,
+  animalVaccinations, inventoryTransactions, removedAnimals, costs, temporaryEmployees, purchaseRequests,
   type InsertUser, type InsertFarm, type InsertAnimal, type InsertCrop, 
   type InsertInventory, type InsertTask, type InsertGoal, type User, type Farm, 
   type Animal, type Crop, type Inventory, type Task, type Goal, type Species,
   type AnimalVaccination, type InsertAnimalVaccination, type UserFarm, type InsertUserFarm,
   type UserPermission, type InsertUserPermission, type InventoryTransaction, type InsertInventoryTransaction,
   type RemovedAnimal, type InsertRemovedAnimal, type Cost, type InsertCost, type InsertSpecies,
-  type TemporaryEmployee, type InsertTemporaryEmployee
+  type TemporaryEmployee, type InsertTemporaryEmployee, type PurchaseRequest, type InsertPurchaseRequest
 } from "@shared/schema";
 import { db } from "./db";
 import { inArray } from "drizzle-orm";
@@ -1240,5 +1240,68 @@ export class DatabaseStorage implements IStorage {
         lte(temporaryEmployees.endDate, thresholdDate.toISOString().split('T')[0])
       ))
       .orderBy(asc(temporaryEmployees.endDate));
+  }
+
+  // Purchase Request operations
+  async getPurchaseRequest(id: number): Promise<PurchaseRequest | undefined> {
+    const [request] = await db
+      .select()
+      .from(purchaseRequests)
+      .where(eq(purchaseRequests.id, id));
+    return request || undefined;
+  }
+
+  async getPurchaseRequestsByFarm(farmId: number): Promise<PurchaseRequest[]> {
+    return await db
+      .select()
+      .from(purchaseRequests)
+      .where(eq(purchaseRequests.farmId, farmId))
+      .orderBy(desc(purchaseRequests.createdAt));
+  }
+
+  async createPurchaseRequest(requestData: InsertPurchaseRequest): Promise<PurchaseRequest> {
+    const [request] = await db
+      .insert(purchaseRequests)
+      .values(requestData)
+      .returning();
+    return request;
+  }
+
+  async updatePurchaseRequest(id: number, requestData: Partial<PurchaseRequest>): Promise<PurchaseRequest | undefined> {
+    const [updatedRequest] = await db
+      .update(purchaseRequests)
+      .set(requestData)
+      .where(eq(purchaseRequests.id, id))
+      .returning();
+    return updatedRequest || undefined;
+  }
+
+  async deletePurchaseRequest(id: number): Promise<boolean> {
+    const result = await db
+      .delete(purchaseRequests)
+      .where(eq(purchaseRequests.id, id));
+    return result.rowCount! > 0;
+  }
+
+  async getPurchaseRequestsByStatus(farmId: number, status: string): Promise<PurchaseRequest[]> {
+    return await db
+      .select()
+      .from(purchaseRequests)
+      .where(and(
+        eq(purchaseRequests.farmId, farmId),
+        eq(purchaseRequests.status, status)
+      ))
+      .orderBy(desc(purchaseRequests.createdAt));
+  }
+
+  async getUrgentPurchaseRequests(farmId: number): Promise<PurchaseRequest[]> {
+    return await db
+      .select()
+      .from(purchaseRequests)
+      .where(and(
+        eq(purchaseRequests.farmId, farmId),
+        eq(purchaseRequests.urgente, true)
+      ))
+      .orderBy(desc(purchaseRequests.createdAt));
   }
 }

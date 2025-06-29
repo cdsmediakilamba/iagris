@@ -28,6 +28,7 @@ import Costs from "@/pages/costs";
 import CreateCost from "@/pages/costs/create";
 import CostDetailsPage from "@/pages/costs/detail";
 import EditCostPage from "@/pages/costs/edit";
+import PurchaseRequests from "@/pages/purchase-requests";
 import { UserRole } from "@shared/schema";
 import { AuthProvider } from "@/hooks/use-auth";
 import { LanguageProvider } from "@/context/LanguageContext";
@@ -50,6 +51,11 @@ function Router() {
       <ProtectedRoute path="/costs/edit/:id" component={EditCostPage} />
       <ProtectedRoute path="/costs/:id" component={CostDetailsPage} />
       <ProtectedRoute path="/costs" component={Costs} />
+      <ProtectedRoute 
+        path="/solicitacoes" 
+        component={PurchaseRequests} 
+        allowedRoles={[UserRole.SUPER_ADMIN, UserRole.FARM_ADMIN]} 
+      />
       <ProtectedRoute 
         path="/employees" 
         component={Employees} 

@@ -22,7 +22,8 @@ import {
   BarChart3,
   Package,
   UserCheck,
-  AlertTriangle
+  AlertTriangle,
+  ShoppingCart
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -122,6 +123,13 @@ export default function Sidebar({ isOpen }: SidebarProps) {
       icon: <BarChart3 className="mr-4 h-5 w-5" />,
       path: '/costs',
       active: location === '/costs' || location.includes('/costs'),
+    },
+    {
+      title: 'Solicitações de Compras',
+      icon: <ShoppingCart className="mr-4 h-5 w-5" />,
+      path: '/solicitacoes',
+      active: location === '/solicitacoes',
+      show: canAccessTempEmployees, // Apenas Super Admin e Farm Admin
     },
     {
       title: t('common.reports'),

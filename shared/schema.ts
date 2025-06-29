@@ -41,7 +41,8 @@ export enum SystemModule {
   REPORTS = "reports",
   GOALS = "goals",
   COSTS = "costs", // Novo módulo de custos
-  ADMINISTRATION = "administration" // Módulo para administração do sistema
+  ADMINISTRATION = "administration", // Módulo para administração do sistema
+  PURCHASE_REQUESTS = "purchase_requests" // Módulo de solicitações de compras
 }
 
 // User table schema
@@ -356,6 +357,30 @@ export const temporaryEmployees = pgTable("temporary_employees", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Define status para solicitações de compras
+export enum PurchaseRequestStatus {
+  NOVA = "nova",
+  EM_ANDAMENTO = "em_andamento", 
+  FINALIZADA = "finalizada"
+}
+
+// Purchase Requests table schema - Solicitações de Compras
+export const purchaseRequests = pgTable("purchase_requests", {
+  id: serial("id").primaryKey(),
+  produto: text("produto").notNull(), // Nome do produto
+  quantidade: text("quantidade").notNull(), // Quantidade solicitada
+  observacao: text("observacao"), // Observações (opcional)
+  responsavel: text("responsavel").notNull(), // Responsável pela solicitação
+  data: date("data").notNull(), // Data da solicitação
+  andamento: text("andamento"), // Informações sobre o andamento
+  finalizadoPor: text("finalizado_por"), // Quem finalizou a solicitação
+  status: text("status").notNull().default(PurchaseRequestStatus.NOVA), // Status da solicitação
+  urgente: boolean("urgente").notNull().default(false), // Se é urgente
+  farmId: integer("farm_id").notNull(), // Fazenda relacionada
+  createdBy: integer("created_by").notNull(), // Usuário que criou
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Insert schemas using drizzle-zod
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -435,6 +460,11 @@ export const insertTemporaryEmployeeSchema = createInsertSchema(temporaryEmploye
   createdAt: true,
 });
 
+export const insertPurchaseRequestSchema = createInsertSchema(purchaseRequests).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Export types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -480,3 +510,6 @@ export type RemovedAnimal = typeof removedAnimals.$inferSelect;
 
 export type InsertTemporaryEmployee = z.infer<typeof insertTemporaryEmployeeSchema>;
 export type TemporaryEmployee = typeof temporaryEmployees.$inferSelect;
+
+export type InsertPurchaseRequest = z.infer<typeof insertPurchaseRequestSchema>;
+export type PurchaseRequest = typeof purchaseRequests.$inferSelect;
