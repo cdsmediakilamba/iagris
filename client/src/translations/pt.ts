@@ -470,6 +470,20 @@ export const pt = {
     eventsFor: 'Eventos para',
     event: 'Evento',
     events: 'Eventos',
+    success: 'Evento salvo com sucesso!',
+    error: 'Erro ao salvar evento. Tente novamente.',
+    deleted: 'Evento excluído com sucesso!',
+    deleteError: 'Erro ao excluir evento. Tente novamente.',
+    eventType: 'Tipo de Evento',
+    eventTypes: {
+      general: 'Geral',
+      planting: 'Plantio',
+      harvesting: 'Colheita',
+      irrigation: 'Irrigação',
+      fertilization: 'Fertilização',
+      pestControl: 'Controle de Pragas',
+      maintenance: 'Manutenção'
+    }
   },
   inventory: {
     title: 'Gestão de Insumos e Recursos',

@@ -1069,10 +1069,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     checkModuleAccess(SystemModule.CROPS, AccessLevel.MANAGE), 
     async (req, res) => {
       try {
+        if (!req.user) {
+          return res.status(401).json({ message: "User not authenticated" });
+        }
+        
         const farmId = parseInt(req.params.farmId, 10);
         const eventData = {
           ...req.body,
           farmId: farmId,
+          createdBy: req.user.id,
           date: new Date(req.body.date)
         };
         const newEvent = await storage.createCalendarEvent(eventData);
