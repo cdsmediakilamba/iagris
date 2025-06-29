@@ -2493,18 +2493,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/farms/:farmId/purchase-requests", async (req, res) => {
     try {
       if (!req.user) {
+        console.log("No user found in request");
         return res.status(401).json({ message: "Authentication required" });
       }
 
       const user = req.user;
       const farmId = parseInt(req.params.farmId);
 
+      console.log("Purchase Requests - User:", user.username, "Role:", user.role, "Farm ID:", farmId);
+
       // Check access to purchase requests module
-      if (!await hasAccessToModify(user, farmId, SystemModule.PURCHASE_REQUESTS)) {
+      const hasAccess = await hasAccessToModify(user, farmId, SystemModule.PURCHASE_REQUESTS);
+      console.log("Has access to purchase requests:", hasAccess);
+      
+      if (!hasAccess) {
         return res.status(403).json({ message: "You don't have access to purchase requests for this farm" });
       }
 
       const requests = await storage.getPurchaseRequestsByFarm(farmId);
+      console.log("Found requests:", requests.length);
       res.json(requests);
     } catch (error) {
       console.error("Error fetching purchase requests:", error);
