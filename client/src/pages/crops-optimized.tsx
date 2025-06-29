@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLanguage } from "@/context/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,7 +25,6 @@ import {
   MapPin,
   Coins
 } from "lucide-react";
-import { apiRequest, queryClient } from "@/lib/queryClient";
 
 // Types
 interface Farm {
@@ -183,11 +183,29 @@ export default function CropsOptimizedPage() {
     }
   });
   
-  // Mutação para adicionar custo (simulado)
+  // Mutação para adicionar custo
   const addCost = useMutation({
     mutationFn: async (costData: any) => {
-      // Por enquanto apenas simula sucesso
-      return Promise.resolve(costData);
+      if (!selectedCrop) throw new Error('Nenhuma plantação selecionada');
+      
+      console.log('Enviando custo:', costData);
+      
+      const response = await apiRequest(`/api/crops/${selectedCrop.id}/costs`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          description: costData.description,
+          amount: parseFloat(costData.amount),
+          date: costData.date,
+          category: costData.category,
+          notes: costData.notes
+        })
+      });
+      
+      console.log('Resposta do servidor:', response);
+      return response;
     },
     onSuccess: () => {
       setCostForm({
@@ -199,12 +217,17 @@ export default function CropsOptimizedPage() {
       });
       setIsAddCostDialogOpen(false);
       setSelectedCrop(null);
+      
+      // Invalidar cache dos custos para recarregar
+      queryClient.invalidateQueries({ queryKey: ['/api/farms', selectedFarmId, 'crop-costs'] });
+      
       toast({
         title: "Sucesso",
         description: "Custo adicionado com sucesso",
       });
     },
     onError: (error: any) => {
+      console.error('Erro ao adicionar custo:', error);
       toast({
         title: "Erro",
         description: `Erro ao adicionar custo: ${error.message}`,
@@ -423,7 +446,7 @@ export default function CropsOptimizedPage() {
                         <SelectValue placeholder="Todos os status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Todos os status</SelectItem>
+                        <SelectItem key="all-status" value="">Todos os status</SelectItem>
                         {CROP_STATUSES.map(status => (
                           <SelectItem key={status.value} value={status.value}>
                             {status.label}
@@ -440,7 +463,7 @@ export default function CropsOptimizedPage() {
                         <SelectValue placeholder="Todos os setores" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Todos os setores</SelectItem>
+                        <SelectItem key="all-sectors" value="">Todos os setores</SelectItem>
                         {uniqueSectors.map(sector => (
                           <SelectItem key={sector} value={sector}>
                             {sector}
@@ -719,12 +742,12 @@ export default function CropsOptimizedPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="seeds">Sementes</SelectItem>
-                  <SelectItem value="fertilizer">Fertilizantes</SelectItem>
-                  <SelectItem value="pesticides">Pesticidas</SelectItem>
-                  <SelectItem value="labor">Mão de obra</SelectItem>
-                  <SelectItem value="equipment">Equipamentos</SelectItem>
-                  <SelectItem value="other">Outros</SelectItem>
+                  <SelectItem key="seeds" value="seeds">Sementes</SelectItem>
+                  <SelectItem key="fertilizer" value="fertilizer">Fertilizantes</SelectItem>
+                  <SelectItem key="pesticides" value="pesticides">Pesticidas</SelectItem>
+                  <SelectItem key="labor" value="labor">Mão de obra</SelectItem>
+                  <SelectItem key="equipment" value="equipment">Equipamentos</SelectItem>
+                  <SelectItem key="other" value="other">Outros</SelectItem>
                 </SelectContent>
               </Select>
             </div>
