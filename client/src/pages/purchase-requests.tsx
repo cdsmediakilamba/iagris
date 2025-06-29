@@ -24,8 +24,8 @@ import { useToast } from "@/hooks/use-toast";
 // Formulário para criar/editar solicitação
 const purchaseRequestFormSchema = insertPurchaseRequestSchema.extend({
   data: z.string().min(1, "Data é obrigatória"),
+  farmId: z.number().min(1, "Selecione uma fazenda"),
 }).omit({
-  farmId: true,
   createdBy: true,
 });
 
@@ -47,10 +47,24 @@ export default function PurchaseRequests() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFarmId, setSelectedFarmId] = useState<number | null>(user?.farmId || null);
 
-  // Query para buscar fazendas (para Super Admin)
+  // Query para buscar fazendas (todos os usuários precisam ver as fazendas para fazer solicitações)
   const { data: farms = [] } = useQuery<any[]>({
     queryKey: ["/api/farms"],
-    enabled: user?.role === "super_admin",
+  });
+
+  // Formulário para criar/editar
+  const form = useForm<PurchaseRequestFormData>({
+    resolver: zodResolver(purchaseRequestFormSchema),
+    defaultValues: {
+      produto: "",
+      quantidade: "",
+      observacao: "",
+      responsavel: "",
+      data: "",
+      urgente: false,
+      status: PurchaseRequestStatus.NOVA,
+      farmId: selectedFarmId || 0,
+    },
   });
 
   // Efeito para definir a primeira fazenda automaticamente para Super Admin
@@ -59,6 +73,15 @@ export default function PurchaseRequests() {
       setSelectedFarmId(farms[0].id);
     }
   }, [user?.role, farms, selectedFarmId]);
+
+  // Efeito para atualizar o farmId no formulário quando selectedFarmId muda
+  useEffect(() => {
+    if (selectedFarmId) {
+      form.setValue("farmId", selectedFarmId);
+    }
+  }, [selectedFarmId, form]);
+
+
 
   // Query para buscar solicitações
   const { data: requests = [], isLoading } = useQuery<PurchaseRequest[]>({
@@ -74,13 +97,24 @@ export default function PurchaseRequests() {
   // Mutations
   const createMutation = useMutation({
     mutationFn: (data: PurchaseRequestFormData) =>
-      apiRequest(`/api/farms/${selectedFarmId}/purchase-requests`, {
+      apiRequest(`/api/farms/${data.farmId}/purchase-requests`, {
         method: "POST",
         data: data,
       }),
-    onSuccess: () => {
+    onSuccess: (newRequest) => {
       queryClient.invalidateQueries({ queryKey: [`/api/farms/${selectedFarmId}/purchase-requests`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/farms/${newRequest.farmId}/purchase-requests`] });
       setIsCreateDialogOpen(false);
+      form.reset({
+        produto: "",
+        quantidade: "",
+        observacao: "",
+        responsavel: "",
+        data: "",
+        urgente: false,
+        status: PurchaseRequestStatus.NOVA,
+        farmId: selectedFarmId || 0,
+      });
       toast({ title: "Solicitação criada com sucesso!" });
     },
     onError: () => {
@@ -117,20 +151,6 @@ export default function PurchaseRequests() {
     },
     onError: () => {
       toast({ title: "Erro ao excluir solicitação", variant: "destructive" });
-    },
-  });
-
-  // Formulário para criar/editar
-  const form = useForm<PurchaseRequestFormData>({
-    resolver: zodResolver(purchaseRequestFormSchema),
-    defaultValues: {
-      produto: "",
-      quantidade: "",
-      observacao: "",
-      responsavel: "",
-      data: "",
-      urgente: false,
-      status: PurchaseRequestStatus.NOVA,
     },
   });
 
@@ -248,6 +268,31 @@ export default function PurchaseRequests() {
                         <FormControl>
                           <Input placeholder="Nome do produto" {...field} />
                         </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="farmId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Fazenda</FormLabel>
+                        <Select value={field.value?.toString()} onValueChange={(value) => field.onChange(Number(value))}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione uma fazenda" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {farms.map((farm: any) => (
+                              <SelectItem key={farm.id} value={farm.id.toString()}>
+                                {farm.name} - {farm.location}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
