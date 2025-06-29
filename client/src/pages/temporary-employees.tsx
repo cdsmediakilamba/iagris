@@ -311,7 +311,7 @@ export default function TemporaryEmployees() {
                   {editingEmployee ? t('temporaryEmployees.edit') : t('temporaryEmployees.add')}
                 </DialogTitle>
                 <DialogDescription>
-                  {editingEmployee ? 'Update employee information' : 'Fill in the employee details'}
+                  {editingEmployee ? 'Update employee information' : 'Preencha os dados do funcionário'}
                 </DialogDescription>
               </DialogHeader>
               
