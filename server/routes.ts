@@ -1050,6 +1050,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
+  // Calendar Events routes
+  app.get("/api/farms/:farmId/calendar-events", 
+    checkModuleAccess(SystemModule.CROPS, AccessLevel.READ_ONLY), 
+    async (req, res) => {
+      try {
+        const farmId = parseInt(req.params.farmId, 10);
+        const events = await storage.getCalendarEventsByFarm(farmId);
+        res.json(events);
+      } catch (error) {
+        console.error("Erro ao buscar eventos do calendário:", error);
+        res.status(500).json({ message: "Failed to fetch calendar events" });
+      }
+    }
+  );
+
+  app.post("/api/farms/:farmId/calendar-events", 
+    checkModuleAccess(SystemModule.CROPS, AccessLevel.MANAGE), 
+    async (req, res) => {
+      try {
+        const farmId = parseInt(req.params.farmId, 10);
+        const eventData = {
+          ...req.body,
+          farmId: farmId,
+          date: new Date(req.body.date)
+        };
+        const newEvent = await storage.createCalendarEvent(eventData);
+        res.status(201).json(newEvent);
+      } catch (error) {
+        console.error("Erro ao criar evento do calendário:", error);
+        res.status(500).json({ message: "Failed to create calendar event" });
+      }
+    }
+  );
+
+  app.patch("/api/farms/:farmId/calendar-events/:eventId", 
+    checkModuleAccess(SystemModule.CROPS, AccessLevel.MANAGE), 
+    async (req, res) => {
+      try {
+        const eventId = parseInt(req.params.eventId, 10);
+        const updateData = {
+          ...req.body,
+          date: req.body.date ? new Date(req.body.date) : undefined
+        };
+        const updatedEvent = await storage.updateCalendarEvent(eventId, updateData);
+        res.json(updatedEvent);
+      } catch (error) {
+        console.error("Erro ao atualizar evento do calendário:", error);
+        res.status(500).json({ message: "Failed to update calendar event" });
+      }
+    }
+  );
+
+  app.delete("/api/farms/:farmId/calendar-events/:eventId", 
+    checkModuleAccess(SystemModule.CROPS, AccessLevel.MANAGE), 
+    async (req, res) => {
+      try {
+        const eventId = parseInt(req.params.eventId, 10);
+        await storage.deleteCalendarEvent(eventId);
+        res.status(204).send();
+      } catch (error) {
+        console.error("Erro ao deletar evento do calendário:", error);
+        res.status(500).json({ message: "Failed to delete calendar event" });
+      }
+    }
+  );
+
   // Task routes
   app.get("/api/farms/:farmId/tasks", 
     checkModuleAccess(SystemModule.TASKS, AccessLevel.READ_ONLY), 

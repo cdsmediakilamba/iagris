@@ -81,7 +81,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import CropsCalendar from '@/components/calendar/CropsCalendar';
+import { SimpleCropsCalendar } from '@/components/calendar/SimpleCropsCalendar';
 
 // Tipos básicos para o plantação
 interface Crop {
@@ -166,8 +166,26 @@ export default function CropsPage() {
     queryFn: async () => {
       if (!selectedFarmId) return [];
       const result = await apiRequest(`/api/farms/${selectedFarmId}/crops`);
-      console.log("Crops fetched:", result);
-      return result;
+      console.log("Crops data received:", result);
+      
+      // Verificar se result é um array de crops válido
+      if (!Array.isArray(result)) {
+        console.log("Crops data is not an array:", result);
+        return [];
+      }
+      
+      // Filtrar apenas objetos que têm as propriedades de crop
+      const validCrops = result.filter(item => 
+        item && 
+        typeof item === 'object' && 
+        'name' in item && 
+        'sector' in item &&
+        'area' in item &&
+        'status' in item
+      );
+      
+      console.log("Valid crops after filtering:", validCrops);
+      return validCrops;
     },
     enabled: !!selectedFarmId,
   });
@@ -392,9 +410,21 @@ export default function CropsPage() {
   
   // Extrair setores únicos para filtro
   const getUniqueSectors = () => {
-    if (!crops) return [];
-    const sectors = new Set(crops.map(crop => crop.sector).filter(sector => sector && sector.trim() !== ''));
-    return Array.from(sectors);
+    if (!crops || !Array.isArray(crops)) return [];
+    
+    const sectors = crops
+      .map(crop => crop.sector)
+      .filter(sector => 
+        sector && 
+        typeof sector === 'string' && 
+        sector.trim() !== '' && 
+        sector.trim().length > 0
+      )
+      .map(sector => sector.trim()); // Fazer trim de todos os setores
+    
+    const uniqueSectors = Array.from(new Set(sectors));
+    console.log("Unique sectors found:", uniqueSectors);
+    return uniqueSectors;
   };
   
   if (loadingFarms || !farms) {
@@ -885,7 +915,7 @@ export default function CropsPage() {
 
         <TabsContent value="calendar" className="space-y-6">
           {selectedFarmId && crops && Array.isArray(crops) && crops.length >= 0 ? (
-            <CropsCalendar farmId={selectedFarmId} crops={crops} />
+            <SimpleCropsCalendar selectedFarmId={selectedFarmId} />
           ) : (
             <div className="text-center py-10">
               <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-4" />
