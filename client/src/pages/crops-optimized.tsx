@@ -132,12 +132,18 @@ export default function CropsOptimizedPage() {
     enabled: !!selectedFarmId,
   });
   
-  // Carregar custos das plantações (simulado por enquanto)
+  // Carregar custos das plantações
   const { data: cropCosts } = useQuery<CropCost[]>({
     queryKey: ['/api/farms', selectedFarmId, 'crop-costs'],
     queryFn: async () => {
-      // Por enquanto retornando array vazio, será implementado depois
-      return [];
+      if (!selectedFarmId) return [];
+      try {
+        const result = await apiRequest(`/api/farms/${selectedFarmId}/crop-costs`);
+        return Array.isArray(result) ? result : [];
+      } catch (error) {
+        console.error('Erro ao buscar custos das plantações:', error);
+        return [];
+      }
     },
     enabled: !!selectedFarmId,
   });

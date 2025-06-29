@@ -900,7 +900,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const costData = {
           cropId: cropId,
           description: req.body.description,
-          amount: amount,
+          amount: amount.toString(),
           date: new Date(req.body.date),
           category: req.body.category,
           farmId: crop.farmId,
