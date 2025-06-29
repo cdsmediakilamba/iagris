@@ -407,17 +407,31 @@ export default function TemporaryEmployees() {
                         <FormItem>
                           <FormLabel>{t('temporaryEmployees.photo')} {t('temporaryEmployees.optional')}</FormLabel>
                           <FormControl>
-                            <Input 
-                              type="file" 
-                              accept="image/*"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                  // In a real app, you'd upload the file and get a URL
-                                  field.onChange(`/photos/${file.name}`);
-                                }
-                              }}
-                            />
+                            <div className="space-y-3">
+                              <Input 
+                                placeholder="URL da foto (ex: /photos/nome-arquivo.jpg)"
+                                {...field}
+                                value={field.value || ''}
+                              />
+                              {field.value && (
+                                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                                  <Avatar className="h-16 w-16">
+                                    <AvatarImage 
+                                      src={getOptimizedPhotoUrl(field.value)} 
+                                      alt="Prévia da foto"
+                                      className="object-cover w-full h-full"
+                                    />
+                                    <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">
+                                      FOTO
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="text-sm text-gray-600">
+                                    <p className="font-medium">Prévia da foto:</p>
+                                    <p className="truncate max-w-48">{field.value}</p>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -492,20 +506,25 @@ export default function TemporaryEmployees() {
                   
                   <CardHeader className="pb-3">
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-12 w-12 ring-2 ring-gray-200 ring-offset-1">
-                        <AvatarImage 
-                          src={getOptimizedPhotoUrl(employee.photo)} 
-                          alt={`${employee.name} photo`}
-                          className="object-cover w-full h-full transition-opacity duration-200"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                          }}
-                          loading="lazy"
-                        />
-                        <AvatarFallback className="bg-gradient-to-br from-blue-100 to-blue-200 text-blue-700 font-semibold text-sm">
-                          {getEmployeeInitials(employee.name)}
-                        </AvatarFallback>
-                      </Avatar>
+                      <div className="relative">
+                        <Avatar className="h-12 w-12 ring-2 ring-gray-200 ring-offset-1">
+                          <AvatarImage 
+                            src={getOptimizedPhotoUrl(employee.photo)} 
+                            alt={`${employee.name} photo`}
+                            className="object-cover w-full h-full transition-opacity duration-200"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                            loading="lazy"
+                          />
+                          <AvatarFallback className="bg-gradient-to-br from-blue-100 to-blue-200 text-blue-700 font-semibold text-sm">
+                            {getEmployeeInitials(employee.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        {employee.photo && (
+                          <div className="absolute -top-1 -right-1 h-3 w-3 bg-green-500 rounded-full border-2 border-white" title="Foto disponível" />
+                        )}
+                      </div>
                       <div className="flex-1">
                         <CardTitle className="text-lg flex items-center gap-2">
                           {employee.name}
