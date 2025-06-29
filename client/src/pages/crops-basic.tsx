@@ -393,7 +393,7 @@ export default function CropsPage() {
   // Extrair setores únicos para filtro
   const getUniqueSectors = () => {
     if (!crops) return [];
-    const sectors = new Set(crops.map(crop => crop.sector));
+    const sectors = new Set(crops.map(crop => crop.sector).filter(sector => sector && sector.trim() !== ''));
     return Array.from(sectors);
   };
   
