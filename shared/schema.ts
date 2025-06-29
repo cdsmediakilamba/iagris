@@ -326,6 +326,36 @@ export const removedAnimals = pgTable("removed_animals", {
   createdAt: timestamp("created_at").defaultNow(), // Data de criação do registro de remoção
 });
 
+// Define blood types for temporary employees
+export enum BloodType {
+  A_POSITIVE = "A+",
+  A_NEGATIVE = "A-",
+  B_POSITIVE = "B+",
+  B_NEGATIVE = "B-",
+  AB_POSITIVE = "AB+",
+  AB_NEGATIVE = "AB-",
+  O_POSITIVE = "O+",
+  O_NEGATIVE = "O-"
+}
+
+// Temporary Employees table schema - Funcionários temporários
+export const temporaryEmployees = pgTable("temporary_employees", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(), // Nome
+  contact: text("contact").notNull(), // Contacto
+  birthDate: date("birth_date").notNull(), // Data de nascimento
+  workSector: text("work_sector").notNull(), // Setor de trabalho
+  startDate: date("start_date").notNull(), // Data início trabalho
+  endDate: date("end_date").notNull(), // Data término trabalho
+  photo: text("photo"), // Foto (caminho/URL da imagem)
+  nationality: text("nationality").notNull(), // Nacionalidade
+  preExistingDiseases: text("pre_existing_diseases"), // Doenças pré-existentes (opcional)
+  bloodType: text("blood_type"), // Tipo sanguíneo (opcional)
+  farmId: integer("farm_id").notNull(), // Fazenda relacionada
+  createdBy: integer("created_by").notNull(), // Usuário que cadastrou
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Insert schemas using drizzle-zod
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -400,6 +430,11 @@ export const insertRemovedAnimalSchema = createInsertSchema(removedAnimals).omit
   createdAt: true,
 });
 
+export const insertTemporaryEmployeeSchema = createInsertSchema(temporaryEmployees).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Export types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -442,3 +477,6 @@ export type Cost = typeof costs.$inferSelect;
 
 export type InsertRemovedAnimal = z.infer<typeof insertRemovedAnimalSchema>;
 export type RemovedAnimal = typeof removedAnimals.$inferSelect;
+
+export type InsertTemporaryEmployee = z.infer<typeof insertTemporaryEmployeeSchema>;
+export type TemporaryEmployee = typeof temporaryEmployees.$inferSelect;

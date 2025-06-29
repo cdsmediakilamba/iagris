@@ -2198,6 +2198,237 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
+  // ======================
+  // TEMPORARY EMPLOYEES ROUTES
+  // ======================
+
+  // Get all temporary employees (for super admin) or by farm
+  app.get("/api/temporary-employees", async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      const user = req.user;
+      const farmId = req.query.farmId ? parseInt(req.query.farmId as string) : null;
+
+      // Only Super Admin and Farm Admin can access temporary employees
+      if (user.role !== UserRole.SUPER_ADMIN && user.role !== UserRole.FARM_ADMIN) {
+        return res.status(403).json({ message: "You don't have permission to view temporary employees" });
+      }
+
+      let employees;
+
+      if (user.role === UserRole.SUPER_ADMIN) {
+        if (farmId) {
+          employees = await storage.getTemporaryEmployeesByFarm(farmId);
+        } else {
+          employees = await storage.getAllTemporaryEmployees();
+        }
+      } else {
+        // Farm admin - only their farm
+        const userFarms = await storage.getUserFarms(user.id);
+        if (userFarms.length === 0) {
+          return res.status(403).json({ message: "No farms assigned" });
+        }
+        
+        const targetFarmId = farmId || userFarms[0].farmId;
+        const hasAccess = userFarms.some(uf => uf.farmId === targetFarmId);
+        
+        if (!hasAccess) {
+          return res.status(403).json({ message: "You don't have access to this farm" });
+        }
+        
+        employees = await storage.getTemporaryEmployeesByFarm(targetFarmId);
+      }
+
+      res.json(employees);
+    } catch (error) {
+      console.error("Error fetching temporary employees:", error);
+      res.status(500).json({ message: "Failed to fetch temporary employees" });
+    }
+  });
+
+  // Get a specific temporary employee
+  app.get("/api/temporary-employees/:id", async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      const user = req.user;
+      const employeeId = parseInt(req.params.id);
+
+      // Only Super Admin and Farm Admin can access
+      if (user.role !== UserRole.SUPER_ADMIN && user.role !== UserRole.FARM_ADMIN) {
+        return res.status(403).json({ message: "You don't have permission to view temporary employees" });
+      }
+
+      const employee = await storage.getTemporaryEmployee(employeeId);
+      
+      if (!employee) {
+        return res.status(404).json({ message: "Employee not found" });
+      }
+
+      // Check farm access for farm admin
+      if (user.role === UserRole.FARM_ADMIN) {
+        if (!await hasAccessToFarm(user, employee.farmId)) {
+          return res.status(403).json({ message: "You don't have access to this employee" });
+        }
+      }
+
+      res.json(employee);
+    } catch (error) {
+      console.error("Error fetching temporary employee:", error);
+      res.status(500).json({ message: "Failed to fetch temporary employee" });
+    }
+  });
+
+  // Create a new temporary employee
+  app.post("/api/temporary-employees", async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      const user = req.user;
+
+      // Only Super Admin and Farm Admin can create
+      if (user.role !== UserRole.SUPER_ADMIN && user.role !== UserRole.FARM_ADMIN) {
+        return res.status(403).json({ message: "You don't have permission to create temporary employees" });
+      }
+
+      const employeeData = {
+        ...req.body,
+        createdBy: user.id
+      };
+
+      // Check farm access for farm admin
+      if (user.role === UserRole.FARM_ADMIN) {
+        if (!await hasAccessToFarm(user, employeeData.farmId)) {
+          return res.status(403).json({ message: "You don't have access to this farm" });
+        }
+      }
+
+      const employee = await storage.createTemporaryEmployee(employeeData);
+      res.status(201).json(employee);
+    } catch (error) {
+      console.error("Error creating temporary employee:", error);
+      res.status(500).json({ message: "Failed to create temporary employee" });
+    }
+  });
+
+  // Update a temporary employee
+  app.patch("/api/temporary-employees/:id", async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      const user = req.user;
+      const employeeId = parseInt(req.params.id);
+
+      // Only Super Admin and Farm Admin can update
+      if (user.role !== UserRole.SUPER_ADMIN && user.role !== UserRole.FARM_ADMIN) {
+        return res.status(403).json({ message: "You don't have permission to update temporary employees" });
+      }
+
+      const existingEmployee = await storage.getTemporaryEmployee(employeeId);
+      
+      if (!existingEmployee) {
+        return res.status(404).json({ message: "Employee not found" });
+      }
+
+      // Check farm access for farm admin
+      if (user.role === UserRole.FARM_ADMIN) {
+        if (!await hasAccessToFarm(user, existingEmployee.farmId)) {
+          return res.status(403).json({ message: "You don't have access to this employee" });
+        }
+      }
+
+      const employee = await storage.updateTemporaryEmployee(employeeId, req.body);
+      
+      if (!employee) {
+        return res.status(404).json({ message: "Employee not found" });
+      }
+
+      res.json(employee);
+    } catch (error) {
+      console.error("Error updating temporary employee:", error);
+      res.status(500).json({ message: "Failed to update temporary employee" });
+    }
+  });
+
+  // Delete a temporary employee
+  app.delete("/api/temporary-employees/:id", async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      const user = req.user;
+      const employeeId = parseInt(req.params.id);
+
+      // Only Super Admin and Farm Admin can delete
+      if (user.role !== UserRole.SUPER_ADMIN && user.role !== UserRole.FARM_ADMIN) {
+        return res.status(403).json({ message: "You don't have permission to delete temporary employees" });
+      }
+
+      const existingEmployee = await storage.getTemporaryEmployee(employeeId);
+      
+      if (!existingEmployee) {
+        return res.status(404).json({ message: "Employee not found" });
+      }
+
+      // Check farm access for farm admin
+      if (user.role === UserRole.FARM_ADMIN) {
+        if (!await hasAccessToFarm(user, existingEmployee.farmId)) {
+          return res.status(403).json({ message: "You don't have access to this employee" });
+        }
+      }
+
+      const success = await storage.deleteTemporaryEmployee(employeeId);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Employee not found" });
+      }
+
+      res.json({ message: "Employee deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting temporary employee:", error);
+      res.status(500).json({ message: "Failed to delete temporary employee" });
+    }
+  });
+
+  // Get employees with expiring contracts
+  app.get("/api/temporary-employees/expiring/:farmId", async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      const user = req.user;
+      const farmId = parseInt(req.params.farmId);
+      const daysThreshold = req.query.days ? parseInt(req.query.days as string) : 30;
+
+      // Only Super Admin and Farm Admin can access
+      if (user.role !== UserRole.SUPER_ADMIN && user.role !== UserRole.FARM_ADMIN) {
+        return res.status(403).json({ message: "You don't have permission to view temporary employees" });
+      }
+
+      // Check farm access
+      if (!await hasAccessToFarm(user, farmId)) {
+        return res.status(403).json({ message: "You don't have access to this farm" });
+      }
+
+      const expiringEmployees = await storage.getExpiringContracts(farmId, daysThreshold);
+      res.json(expiringEmployees);
+    } catch (error) {
+      console.error("Error fetching expiring contracts:", error);
+      res.status(500).json({ message: "Failed to fetch expiring contracts" });
+    }
+  });
+
   // Create HTTP server
   const httpServer = createServer(app);
   return httpServer;

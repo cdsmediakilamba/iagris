@@ -17,6 +17,7 @@ import InventoryTransactions from "@/pages/inventory-transactions";
 import Goals from "@/pages/goals";
 import Financial from "@/pages/financial";
 import Employees from "@/pages/employees";
+import TemporaryEmployees from "@/pages/temporary-employees";
 import Settings from "@/pages/settings";
 import Admin from "@/pages/admin";
 import Calendar from "@/pages/calendar";
@@ -53,6 +54,11 @@ function Router() {
         path="/employees" 
         component={Employees} 
         allowedRoles={[UserRole.SUPER_ADMIN, UserRole.FARM_ADMIN, UserRole.MANAGER]} 
+      />
+      <ProtectedRoute 
+        path="/temporary-employees" 
+        component={TemporaryEmployees} 
+        allowedRoles={[UserRole.SUPER_ADMIN, UserRole.FARM_ADMIN]} 
       />
       <ProtectedRoute path="/reports" component={Reports} />
       <ProtectedRoute path="/settings" component={Settings} />

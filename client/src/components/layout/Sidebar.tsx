@@ -4,6 +4,7 @@ import { useLocation } from 'wouter';
 import { UserRole } from '@shared/schema';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
+import { useExpiringContracts } from '@/hooks/use-temporary-employees';
 import {
   Calendar,
   LayoutDashboard,
@@ -19,7 +20,9 @@ import {
   WifiOff,
   Target,
   BarChart3,
-  Package
+  Package,
+  UserCheck,
+  AlertTriangle
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -30,9 +33,17 @@ export default function Sidebar({ isOpen }: SidebarProps) {
   const { t } = useLanguage();
   const [location, setLocation] = useLocation();
   const { user } = useAuth();
+  
+  // Get the first farm ID if user is super admin, otherwise use their farm ID
+  const farmId = user?.role === UserRole.SUPER_ADMIN ? 6 : (user?.farmId ?? undefined); // Using default farm ID 6 for now
+  const { count: expiringCount } = useExpiringContracts(farmId);
 
   const isAdmin = user?.role === UserRole.SUPER_ADMIN;
+  const isFarmAdmin = user?.role === UserRole.FARM_ADMIN;
   const isManager = user?.role === UserRole.MANAGER || isAdmin;
+  
+  // Only Super Admin and Farm Admin can access temporary employees
+  const canAccessTempEmployees = isAdmin || isFarmAdmin;
 
   const sidebarItems = [
     {
@@ -92,6 +103,14 @@ export default function Sidebar({ isOpen }: SidebarProps) {
       show: isManager,
     },
     {
+      title: t('common.temporaryEmployees'),
+      icon: <UserCheck className="mr-4 h-5 w-5" />,
+      path: '/temporary-employees',
+      active: location === '/temporary-employees',
+      show: canAccessTempEmployees,
+      badge: expiringCount > 0 ? expiringCount : undefined,
+    },
+    {
       title: t('common.finance'),
       icon: <DollarSign className="mr-4 h-5 w-5" />,
       path: '/financial',
@@ -137,7 +156,7 @@ export default function Sidebar({ isOpen }: SidebarProps) {
         setLocation(item.path);
       }}
       className={cn(
-        "flex items-center px-4 py-3 rounded-md mb-1",
+        "flex items-center px-4 py-3 rounded-md mb-1 relative",
         item.active 
           ? "bg-primary border-l-4 border-primary pl-3" 
           : "text-gray-900 hover:bg-gray-100"
@@ -147,11 +166,16 @@ export default function Sidebar({ isOpen }: SidebarProps) {
         {item.icon}
       </div>
       <span className={cn(
-        "text-sm",
+        "text-sm flex-1",
         item.active ? "text-white font-medium" : "text-gray-900"
       )}>
         {item.title}
       </span>
+      {(item as any).badge && (
+        <span className="ml-2 bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] h-5 flex items-center justify-center">
+          {(item as any).badge}
+        </span>
+      )}
     </a>
   );
 

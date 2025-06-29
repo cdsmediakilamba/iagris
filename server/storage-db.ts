@@ -1,12 +1,13 @@
 import {
   users, farms, animals, species, crops, inventory, tasks, goals, userFarms, userPermissions, 
-  animalVaccinations, inventoryTransactions, removedAnimals, costs,
+  animalVaccinations, inventoryTransactions, removedAnimals, costs, temporaryEmployees,
   type InsertUser, type InsertFarm, type InsertAnimal, type InsertCrop, 
   type InsertInventory, type InsertTask, type InsertGoal, type User, type Farm, 
   type Animal, type Crop, type Inventory, type Task, type Goal, type Species,
   type AnimalVaccination, type InsertAnimalVaccination, type UserFarm, type InsertUserFarm,
   type UserPermission, type InsertUserPermission, type InventoryTransaction, type InsertInventoryTransaction,
-  type RemovedAnimal, type InsertRemovedAnimal, type Cost, type InsertCost, type InsertSpecies
+  type RemovedAnimal, type InsertRemovedAnimal, type Cost, type InsertCost, type InsertSpecies,
+  type TemporaryEmployee, type InsertTemporaryEmployee
 } from "@shared/schema";
 import { db } from "./db";
 import { inArray } from "drizzle-orm";
@@ -1171,5 +1172,73 @@ export class DatabaseStorage implements IStorage {
       .where(eq(removedAnimals.id, id));
 
     return removedAnimal || undefined;
+  }
+
+  // Temporary Employee methods
+  async getTemporaryEmployee(id: number): Promise<TemporaryEmployee | undefined> {
+    const [employee] = await db
+      .select()
+      .from(temporaryEmployees)
+      .where(eq(temporaryEmployees.id, id));
+
+    return employee || undefined;
+  }
+
+  async getTemporaryEmployeesByFarm(farmId: number): Promise<TemporaryEmployee[]> {
+    return await db
+      .select()
+      .from(temporaryEmployees)
+      .where(eq(temporaryEmployees.farmId, farmId))
+      .orderBy(desc(temporaryEmployees.endDate));
+  }
+
+  async getAllTemporaryEmployees(): Promise<TemporaryEmployee[]> {
+    return await db
+      .select()
+      .from(temporaryEmployees)
+      .orderBy(desc(temporaryEmployees.endDate));
+  }
+
+  async createTemporaryEmployee(employeeData: InsertTemporaryEmployee): Promise<TemporaryEmployee> {
+    const [employee] = await db
+      .insert(temporaryEmployees)
+      .values(employeeData)
+      .returning();
+
+    return employee;
+  }
+
+  async updateTemporaryEmployee(id: number, employeeData: Partial<TemporaryEmployee>): Promise<TemporaryEmployee | undefined> {
+    const [employee] = await db
+      .update(temporaryEmployees)
+      .set(employeeData)
+      .where(eq(temporaryEmployees.id, id))
+      .returning();
+
+    return employee || undefined;
+  }
+
+  async deleteTemporaryEmployee(id: number): Promise<boolean> {
+    const result = await db
+      .delete(temporaryEmployees)
+      .where(eq(temporaryEmployees.id, id));
+
+    return result.rowCount! > 0;
+  }
+
+  async getExpiringContracts(farmId: number, daysThreshold: number = 30): Promise<TemporaryEmployee[]> {
+    const today = new Date();
+    const thresholdDate = new Date();
+    thresholdDate.setDate(today.getDate() + daysThreshold);
+
+    return await db
+      .select()
+      .from(temporaryEmployees)
+      .where(and(
+        eq(temporaryEmployees.farmId, farmId),
+        gte(temporaryEmployees.endDate, today.toISOString().split('T')[0]),
+        lte(temporaryEmployees.endDate, thresholdDate.toISOString().split('T')[0])
+      ))
+      .orderBy(asc(temporaryEmployees.endDate));
   }
 }

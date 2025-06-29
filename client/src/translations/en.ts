@@ -85,6 +85,7 @@ export const en = {
     crops: 'Crops',
     inventory: 'Supplies & Resources',
     employees: 'Employees',
+    temporaryEmployees: 'Temp. Employees',
     finance: 'Finance',
     reports: 'Reports',
     admin: 'Administration',
@@ -661,5 +662,73 @@ export const en = {
     returnHome: 'Return to home',
     resourceNotFound: 'The requested resource was not found',
     contactSupport: 'Contact support'
+  },
+  temporaryEmployees: {
+    title: 'Temporary Employees',
+    subtitle: 'Temporary employees management',
+    register: 'Register',
+    add: 'Add Temporary Employee',
+    edit: 'Edit Temporary Employee',
+    list: 'Temporary Employees List',
+    name: 'Name',
+    contact: 'Contact',
+    birthDate: 'Birth Date',
+    workSector: 'Work Sector',
+    startDate: 'Start Date',
+    endDate: 'End Date',
+    photo: 'Photo',
+    nationality: 'Nationality',
+    preExistingDiseases: 'Pre-existing Diseases',
+    bloodType: 'Blood Type',
+    noEmployees: 'No temporary employees registered',
+    uploadPhoto: 'Upload Photo',
+    selectFile: 'Select File',
+    optional: '(Optional)',
+    contractExpiring: 'Contract expiring soon',
+    daysRemaining: '{days} days remaining',
+    countries: {
+      angola: 'Angola',
+      portugal: 'Portugal',
+      brazil: 'Brazil',
+      mozambique: 'Mozambique',
+      capeverde: 'Cape Verde',
+      guineabissau: 'Guinea-Bissau',
+      saotome: 'São Tomé and Príncipe',
+      timor: 'East Timor',
+      other: 'Other'
+    },
+    bloodTypes: {
+      aPositive: 'A+',
+      aNegative: 'A-',
+      bPositive: 'B+',
+      bNegative: 'B-',
+      abPositive: 'AB+',
+      abNegative: 'AB-',
+      oPositive: 'O+',
+      oNegative: 'O-'
+    },
+    placeholders: {
+      name: 'Enter full name',
+      contact: 'Phone or email',
+      workSector: 'Ex: Agriculture, Livestock, Maintenance',
+      diseases: 'Describe pre-existing diseases if any'
+    },
+    validation: {
+      nameRequired: 'Name is required',
+      contactRequired: 'Contact is required',
+      birthDateRequired: 'Birth date is required',
+      workSectorRequired: 'Work sector is required',
+      startDateRequired: 'Start date is required',
+      endDateRequired: 'End date is required',
+      nationalityRequired: 'Nationality is required',
+      endDateAfterStart: 'End date must be after start date'
+    },
+    notifications: {
+      created: 'Temporary employee registered successfully',
+      updated: 'Temporary employee updated successfully',
+      deleted: 'Temporary employee removed successfully',
+      error: 'Error processing operation'
+    },
+    confirmDelete: 'Are you sure you want to remove this temporary employee?'
   }
 };
