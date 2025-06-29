@@ -20,7 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { AlertTriangle, Plus, Calendar, Phone, MapPin, Droplet, Heart, User, AlertCircle } from 'lucide-react';
+import { AlertTriangle, Plus, Calendar, Phone, MapPin, Droplet, Heart, User, AlertCircle, Upload } from 'lucide-react';
 
 const formSchema = insertTemporaryEmployeeSchema.extend({
   birthDate: z.string().min(1, 'Birth date is required'),
@@ -102,6 +102,7 @@ export default function TemporaryEmployees() {
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<TemporaryEmployee | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Get the appropriate farm ID
   const farmId = user?.role === UserRole.SUPER_ADMIN ? 6 : user?.farmId;
@@ -209,6 +210,66 @@ export default function TemporaryEmployees() {
   const handleDelete = (employee: TemporaryEmployee) => {
     if (confirm(t('temporaryEmployees.confirmDelete'))) {
       deleteMutation.mutate(employee.id);
+    }
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validar tipo de arquivo
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: 'Erro',
+        description: 'Por favor, selecione apenas arquivos de imagem.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Validar tamanho do arquivo (5MB máximo)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: 'Erro',
+        description: 'A imagem deve ter no máximo 5MB.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('photo', file);
+
+      const response = await fetch('/api/upload-photo', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao fazer upload da foto');
+      }
+
+      const result = await response.json();
+      
+      // Atualizar o campo do formulário com o caminho da foto
+      form.setValue('photo', result.photoPath);
+      
+      toast({
+        title: 'Sucesso',
+        description: 'Foto enviada com sucesso!',
+      });
+    } catch (error) {
+      console.error('Erro no upload:', error);
+      toast({
+        title: 'Erro',
+        description: 'Falha ao enviar a foto. Tente novamente.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -408,79 +469,61 @@ export default function TemporaryEmployees() {
                           <FormLabel>{t('temporaryEmployees.photo')} {t('temporaryEmployees.optional')}</FormLabel>
                           <FormControl>
                             <div className="space-y-3">
-                              {/* Opções de fotos disponíveis */}
-                              <div className="grid grid-cols-3 gap-2 p-3 bg-gray-50 rounded-lg">
-                                <p className="col-span-3 text-sm font-medium text-gray-700 mb-2">Fotos disponíveis:</p>
-                                
-                                <div 
-                                  className={`relative cursor-pointer rounded-lg border-2 p-1 ${field.value === '/photos/abraaocostaof~perfil.png' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
-                                  onClick={() => field.onChange('/photos/abraaocostaof~perfil.png')}
-                                >
-                                  <Avatar className="h-12 w-12 mx-auto">
-                                    <AvatarImage 
-                                      src="/photos/abraaocostaof~perfil.png" 
-                                      alt="Foto exemplo 1"
-                                      className="object-cover w-full h-full"
-                                    />
-                                    <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">F1</AvatarFallback>
-                                  </Avatar>
-                                  <p className="text-xs text-center mt-1 truncate">Perfil 1</p>
-                                </div>
-                                
-                                <div 
-                                  className={`relative cursor-pointer rounded-lg border-2 p-1 ${field.value === '/photos/exemplo-funcionario.png' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
-                                  onClick={() => field.onChange('/photos/exemplo-funcionario.png')}
-                                >
-                                  <Avatar className="h-12 w-12 mx-auto">
-                                    <AvatarImage 
-                                      src="/photos/exemplo-funcionario.png" 
-                                      alt="Foto exemplo 2"
-                                      className="object-cover w-full h-full"
-                                    />
-                                    <AvatarFallback className="bg-green-100 text-green-600 text-xs">F2</AvatarFallback>
-                                  </Avatar>
-                                  <p className="text-xs text-center mt-1 truncate">Perfil 2</p>
-                                </div>
-                                
-                                <div 
-                                  className={`relative cursor-pointer rounded-lg border-2 p-1 ${!field.value ? 'border-gray-500 bg-gray-100' : 'border-gray-200 hover:border-gray-300'}`}
-                                  onClick={() => field.onChange('')}
-                                >
-                                  <Avatar className="h-12 w-12 mx-auto">
-                                    <AvatarFallback className="bg-gray-100 text-gray-600 text-xs">
-                                      <User className="h-6 w-6" />
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <p className="text-xs text-center mt-1 truncate">Sem foto</p>
-                                </div>
-                              </div>
-                              
-                              {/* Campo manual para outras URLs */}
-                              <div className="space-y-2">
-                                <label className="text-sm text-gray-600">Ou digite uma URL personalizada:</label>
-                                <Input 
-                                  placeholder="Ex: /photos/minha-foto.jpg"
-                                  value={field.value || ''}
-                                  onChange={(e) => field.onChange(e.target.value)}
+                              {/* Upload de arquivo */}
+                              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-gray-400 transition-colors">
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={handleFileUpload}
+                                  className="hidden"
+                                  id="photo-upload"
                                 />
+                                <label
+                                  htmlFor="photo-upload"
+                                  className="cursor-pointer flex flex-col items-center space-y-2"
+                                >
+                                  <Upload className="h-8 w-8 text-gray-400" />
+                                  <p className="text-sm text-gray-600">
+                                    Clique aqui para selecionar uma foto
+                                  </p>
+                                  <p className="text-xs text-gray-500">
+                                    Formatos: JPG, PNG, GIF (máx. 5MB)
+                                  </p>
+                                </label>
                               </div>
                               
-                              {/* Prévia da foto selecionada */}
+                              {isUploading && (
+                                <div className="flex items-center justify-center p-3 bg-blue-50 rounded-lg">
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                                  <p className="text-sm text-blue-600">Enviando foto...</p>
+                                </div>
+                              )}
+                              
+                              {/* Prévia da foto */}
                               {field.value && (
                                 <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
                                   <Avatar className="h-16 w-16">
                                     <AvatarImage 
                                       src={getOptimizedPhotoUrl(field.value)} 
-                                      alt="Prévia da foto selecionada"
+                                      alt="Foto do funcionário"
                                       className="object-cover w-full h-full"
                                     />
                                     <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">
                                       FOTO
                                     </AvatarFallback>
                                   </Avatar>
-                                  <div className="text-sm text-gray-700">
-                                    <p className="font-medium text-green-700">✓ Foto selecionada:</p>
-                                    <p className="truncate max-w-48">{field.value}</p>
+                                  <div className="flex-1">
+                                    <p className="text-sm font-medium text-green-700">✓ Foto carregada</p>
+                                    <p className="text-xs text-gray-600 truncate">{field.value}</p>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      className="mt-2"
+                                      onClick={() => field.onChange('')}
+                                    >
+                                      Remover foto
+                                    </Button>
                                   </div>
                                 </div>
                               )}

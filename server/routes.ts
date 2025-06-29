@@ -3,6 +3,9 @@ import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
 import { UserRole, SystemModule, AccessLevel } from "@shared/schema";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 
 // Helper function to check if a user has access to a farm
 async function hasAccessToFarm(user: any, farmId: number): Promise<boolean> {
@@ -45,6 +48,41 @@ async function hasAccessToModify(user: any, farmId: number, module: SystemModule
   
   return false;
 }
+
+// Configure multer for file uploads
+const storage_multer = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = './photos';
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    // Generate unique filename with timestamp
+    const timestamp = Date.now();
+    const extension = path.extname(file.originalname);
+    const name = path.basename(file.originalname, extension)
+      .replace(/[^a-zA-Z0-9]/g, '-')
+      .toLowerCase();
+    cb(null, `${name}-${timestamp}${extension}`);
+  }
+});
+
+const upload = multer({ 
+  storage: storage_multer,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept only image files
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'));
+    }
+  }
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes
@@ -268,6 +306,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching farm users:", error);
       res.status(500).json({ message: "Failed to fetch farm users" });
+    }
+  });
+
+  // Photo upload route
+  app.post("/api/upload-photo", checkAuth, upload.single('photo'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "Nenhum arquivo foi enviado" });
+      }
+
+      // Return the photo path relative to the photos directory
+      const photoPath = `/photos/${req.file.filename}`;
+      
+      res.json({ 
+        message: "Foto enviada com sucesso",
+        photoPath: photoPath,
+        filename: req.file.filename
+      });
+    } catch (error) {
+      console.error("Erro no upload da foto:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
 
