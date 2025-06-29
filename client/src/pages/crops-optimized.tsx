@@ -16,7 +16,6 @@ import {
   Plus, 
   Leaf, 
   DollarSign, 
-  Eye, 
   Search, 
   ChevronDown, 
   Filter,
@@ -562,23 +561,11 @@ export default function CropsOptimizedPage() {
                       </div>
                     </div>
                     
-                    {/* Botões de ação */}
-                    <div className="flex gap-2 pt-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="flex-1"
-                        onClick={() => {
-                          setSelectedCrop(crop);
-                          setIsViewDetailsDialogOpen(true);
-                        }}
-                      >
-                        <Eye className="h-4 w-4 mr-1" />
-                        Ver detalhes
-                      </Button>
+                    {/* Botão de ação */}
+                    <div className="pt-2">
                       <Button 
                         size="sm" 
-                        className="flex-1"
+                        className="w-full"
                         onClick={() => {
                           setSelectedCrop(crop);
                           setIsAddCostDialogOpen(true);
