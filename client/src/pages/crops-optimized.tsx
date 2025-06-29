@@ -75,6 +75,7 @@ export default function CropsOptimizedPage() {
   const [selectedFarmId, setSelectedFarmId] = useState<number | null>(null);
   const [isAddCropDialogOpen, setIsAddCropDialogOpen] = useState(false);
   const [isAddCostDialogOpen, setIsAddCostDialogOpen] = useState(false);
+  const [isViewDetailsDialogOpen, setIsViewDetailsDialogOpen] = useState(false);
   const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] = useState(false);
   const [selectedCrop, setSelectedCrop] = useState<Crop | null>(null);
   
@@ -560,11 +561,23 @@ export default function CropsOptimizedPage() {
                       </div>
                     </div>
                     
-                    {/* Botão de ação */}
-                    <div className="pt-2">
+                    {/* Botões de ação */}
+                    <div className="pt-2 flex gap-2">
                       <Button 
                         size="sm" 
-                        className="w-full"
+                        variant="outline"
+                        className="flex-1"
+                        onClick={() => {
+                          setSelectedCrop(crop);
+                          setIsViewDetailsDialogOpen(true);
+                        }}
+                      >
+                        <Leaf className="h-4 w-4 mr-1" />
+                        Ver detalhes
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        className="flex-1"
                         onClick={() => {
                           setSelectedCrop(crop);
                           setIsAddCostDialogOpen(true);
@@ -775,7 +788,219 @@ export default function CropsOptimizedPage() {
           </form>
         </DialogContent>
       </Dialog>
-      
+
+      {/* Modal de detalhes da plantação */}
+      <Dialog open={isViewDetailsDialogOpen} onOpenChange={setIsViewDetailsDialogOpen}>
+        <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Leaf className="h-5 w-5 text-green-600" />
+              Detalhes da Plantação
+            </DialogTitle>
+            <DialogDescription>
+              {selectedCrop && `Informações completas sobre: ${selectedCrop.name}`}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedCrop && (
+            <div className="space-y-6">
+              {/* Informações básicas */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-medium text-gray-600">
+                      Informações Básicas
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-500">Nome:</span>
+                      <span className="text-sm font-medium">{selectedCrop.name}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-500">Setor:</span>
+                      <span className="text-sm font-medium">{selectedCrop.sector}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-500">Área:</span>
+                      <span className="text-sm font-medium">{selectedCrop.area} m²</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-500">Status:</span>
+                      <Badge className={
+                        CROP_STATUSES.find(s => s.value === selectedCrop.status)?.color || 
+                        "bg-gray-100 text-gray-800 border-gray-200"
+                      }>
+                        {CROP_STATUSES.find(s => s.value === selectedCrop.status)?.label || selectedCrop.status}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-medium text-gray-600">
+                      Cronograma
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-500">Data de Plantio:</span>
+                      <span className="text-sm font-medium">
+                        {selectedCrop.plantingDate 
+                          ? new Date(selectedCrop.plantingDate).toLocaleDateString('pt-BR')
+                          : 'Não informado'
+                        }
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-500">Colheita Esperada:</span>
+                      <span className="text-sm font-medium">
+                        {selectedCrop.expectedHarvestDate 
+                          ? new Date(selectedCrop.expectedHarvestDate).toLocaleDateString('pt-BR')
+                          : 'Não informado'
+                        }
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-500">Criado em:</span>
+                      <span className="text-sm font-medium">
+                        {new Date(selectedCrop.createdAt).toLocaleDateString('pt-BR')}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Resumo financeiro */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                    <DollarSign className="h-4 w-4" />
+                    Resumo Financeiro
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {selectedFarmId && (
+                    <div className="space-y-4">
+                      {(() => {
+                        const selectedCropCosts = cropCosts?.filter(cost => cost.cropId === selectedCrop.id) || [];
+                        const totalCost = selectedCropCosts.reduce((sum, cost) => sum + parseFloat(cost.amount.toString()), 0);
+                        const costsByCategory = selectedCropCosts.reduce((acc, cost) => {
+                          acc[cost.category] = (acc[cost.category] || 0) + parseFloat(cost.amount.toString());
+                          return acc;
+                        }, {} as Record<string, number>);
+
+                        return (
+                          <>
+                            <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                              <span className="text-sm font-medium text-green-800">Total Investido:</span>
+                              <span className="text-lg font-bold text-green-900">
+                                Kz {totalCost.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                              </span>
+                            </div>
+                            
+                            {Object.keys(costsByCategory).length > 0 && (
+                              <div className="space-y-2">
+                                <h4 className="text-sm font-medium text-gray-700">Por Categoria:</h4>
+                                {Object.entries(costsByCategory).map(([category, amount]) => (
+                                  <div key={category} className="flex justify-between text-sm">
+                                    <span className="text-gray-600 capitalize">
+                                      {category === 'seeds' ? 'Sementes' :
+                                       category === 'fertilizer' ? 'Fertilizantes' :
+                                       category === 'pesticides' ? 'Pesticidas' :
+                                       category === 'labor' ? 'Mão de obra' :
+                                       category === 'equipment' ? 'Equipamentos' :
+                                       category === 'other' ? 'Outros' : category}:
+                                    </span>
+                                    <span className="font-medium">
+                                      Kz {amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            
+                            <div className="text-xs text-gray-500 mt-2">
+                              {selectedCropCosts.length} lançamento{selectedCropCosts.length !== 1 ? 's' : ''} de custo
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Lista de custos */}
+              {selectedFarmId && (() => {
+                const selectedCropCosts = cropCosts?.filter(cost => cost.cropId === selectedCrop.id) || [];
+                return selectedCropCosts.length > 0 && (
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-medium text-gray-600">
+                        Histórico de Custos
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3 max-h-60 overflow-y-auto">
+                        {selectedCropCosts
+                          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                          .map((cost) => (
+                          <div key={cost.id} className="flex justify-between items-start p-3 bg-gray-50 rounded-lg">
+                            <div className="flex-1">
+                              <div className="font-medium text-sm">{cost.description}</div>
+                              <div className="text-xs text-gray-500 mt-1">
+                                {new Date(cost.date).toLocaleDateString('pt-BR')}
+                                {cost.notes && (
+                                  <span className="ml-2 text-gray-400">• {cost.notes}</span>
+                                )}
+                              </div>
+                              <Badge variant="outline" className="mt-1 text-xs">
+                                {cost.category === 'seeds' ? 'Sementes' :
+                                 cost.category === 'fertilizer' ? 'Fertilizantes' :
+                                 cost.category === 'pesticides' ? 'Pesticidas' :
+                                 cost.category === 'labor' ? 'Mão de obra' :
+                                 cost.category === 'equipment' ? 'Equipamentos' :
+                                 cost.category === 'other' ? 'Outros' : cost.category}
+                              </Badge>
+                            </div>
+                            <div className="text-right">
+                              <div className="font-bold text-sm">
+                                Kz {parseFloat(cost.amount.toString()).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })()}
+
+              {/* Botões de ação */}
+              <div className="flex gap-2 pt-4">
+                <Button 
+                  className="flex-1"
+                  onClick={() => {
+                    setIsViewDetailsDialogOpen(false);
+                    setIsAddCostDialogOpen(true);
+                  }}
+                >
+                  <DollarSign className="h-4 w-4 mr-2" />
+                  Adicionar Custo
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsViewDetailsDialogOpen(false)}
+                >
+                  Fechar
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
     </DashboardLayout>
   );
