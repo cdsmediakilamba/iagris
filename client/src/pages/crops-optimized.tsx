@@ -305,7 +305,10 @@ export default function CropsOptimizedPage() {
   };
   
   const getTotalCropCost = (cropId: number) => {
-    return getCropCosts(cropId).reduce((total, cost) => total + cost.amount, 0);
+    return getCropCosts(cropId).reduce((total, cost) => {
+      const amount = typeof cost.amount === 'string' ? parseFloat(cost.amount) : cost.amount;
+      return total + (isNaN(amount) ? 0 : amount);
+    }, 0);
   };
   
   // Filtrar e ordenar plantações
@@ -551,7 +554,7 @@ export default function CropsOptimizedPage() {
                         <span className="text-sm font-medium">Custos totais:</span>
                       </div>
                       <div className="font-semibold text-amber-600">
-                        Kz {totalCost.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                        Kz {(totalCost || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                       </div>
                     </div>
                     
