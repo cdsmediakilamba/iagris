@@ -551,7 +551,7 @@ export default function CropsOptimizedPage() {
                         <span className="text-sm font-medium">Custos totais:</span>
                       </div>
                       <div className="font-semibold text-amber-600">
-                        Kz {totalCost.toLocaleString()}
+                        Kz {totalCost.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                       </div>
                     </div>
                     
