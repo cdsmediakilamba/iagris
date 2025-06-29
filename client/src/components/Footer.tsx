@@ -6,7 +6,7 @@ export default function Footer() {
   return (
     <footer className="bg-gray-100 border-t py-4 px-6 mt-auto">
       <div className="text-center text-sm text-gray-600">
-        © 2025 {t('common.allRightsReserved')}
+        © 2025 {t('common.allRightsReserved')} CDs Média
       </div>
     </footer>
   );
