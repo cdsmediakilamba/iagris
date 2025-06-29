@@ -60,6 +60,41 @@ const bloodTypes = [
   BloodType.O_NEGATIVE,
 ];
 
+// Photo optimization and fallback handling
+const getOptimizedPhotoUrl = (photoUrl: string | null | undefined): string | undefined => {
+  if (!photoUrl) return undefined;
+  
+  // If it's already a URL, return as is
+  if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
+    return photoUrl;
+  }
+  
+  // If it's a relative path, ensure it starts with /
+  const normalizedPath = photoUrl.startsWith('/') ? photoUrl : `/${photoUrl}`;
+  
+  return normalizedPath;
+};
+
+const getEmployeeInitials = (name: string | null | undefined): string => {
+  if (!name) return '?';
+  return name.split(' ')
+    .filter(n => n.length > 0)
+    .map(n => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2); // Limit to 2 characters
+};
+
+const getCountryFlag = (countryCode: string | null) => {
+  const country = countries.find(c => c.value === countryCode);
+  return country?.flag || '🌍';
+};
+
+const getCountryName = (countryCode: string | null) => {
+  const country = countries.find(c => c.value === countryCode);
+  return country?.label || 'Unknown';
+};
+
 export default function TemporaryEmployees() {
   const { t } = useLanguage();
   const { user } = useAuth();
@@ -184,15 +219,7 @@ export default function TemporaryEmployees() {
     return { status: 'active', days };
   };
 
-  const getCountryFlag = (nationality: string) => {
-    const country = countries.find(c => c.value === nationality);
-    return country?.flag || '🌍';
-  };
 
-  const getCountryName = (nationality: string) => {
-    const country = countries.find(c => c.value === nationality);
-    return country?.label || nationality;
-  };
 
   return (
     <DashboardLayout>
@@ -465,10 +492,18 @@ export default function TemporaryEmployees() {
                   
                   <CardHeader className="pb-3">
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-12 w-12">
-                        <AvatarImage src={employee.photo || undefined} />
-                        <AvatarFallback>
-                          {employee.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                      <Avatar className="h-12 w-12 ring-2 ring-gray-200 ring-offset-1">
+                        <AvatarImage 
+                          src={getOptimizedPhotoUrl(employee.photo)} 
+                          alt={`${employee.name} photo`}
+                          className="object-cover w-full h-full transition-opacity duration-200"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                          loading="lazy"
+                        />
+                        <AvatarFallback className="bg-gradient-to-br from-blue-100 to-blue-200 text-blue-700 font-semibold text-sm">
+                          {getEmployeeInitials(employee.name)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
