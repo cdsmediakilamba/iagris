@@ -35,7 +35,8 @@ import {
   Edit,
   Info,
   AlertCircle,
-  CheckCircle2
+  CheckCircle2,
+  Plus
 } from 'lucide-react';
 import {
   Select,
@@ -131,6 +132,10 @@ export default function CropsPage() {
   const [sortField, setSortField] = useState<string>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [selectedCrop, setSelectedCrop] = useState<Crop | null>(null);
+  const [isAddCropDialogOpen, setIsAddCropDialogOpen] = useState(false);
+  const [plantingDate, setPlantingDate] = useState('');
+  const [expectedHarvestDate, setExpectedHarvestDate] = useState('');
+  const [status, setStatus] = useState('growing');
   
   // Estado para os filtros
   const [filters, setFilters] = useState<FilterOptions>({
@@ -185,6 +190,10 @@ export default function CropsPage() {
       setName('');
       setSector('');
       setArea(0);
+      setPlantingDate('');
+      setExpectedHarvestDate('');
+      setStatus('growing');
+      setIsAddCropDialogOpen(false);
       
       // Atualizar a lista de plantações
       refetchCrops();
@@ -236,7 +245,7 @@ export default function CropsPage() {
     }
   });
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleCreateCrop = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!name || !sector || area <= 0) {
@@ -255,7 +264,9 @@ export default function CropsPage() {
       name,
       sector,
       area: areaValue,
-      status: "growing",
+      status,
+      plantingDate: plantingDate ? new Date(plantingDate) : null,
+      expectedHarvestDate: expectedHarvestDate ? new Date(expectedHarvestDate) : null,
       farmId: selectedFarmId
     };
     
@@ -474,62 +485,107 @@ export default function CropsPage() {
           </AlertDescription>
         </Alert>
       )}
-      
-      {/* Formulário simples */}
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle>{t('crops.addNewCrop')}</CardTitle>
-          <CardDescription>
-            {t('crops.addNewCropDescription')}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">{t('crops.cropName')}</label>
-              <Input 
-                value={name} 
-                onChange={(e) => setName(e.target.value)}
-                placeholder={t('crops.cropNamePlaceholder')}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium">{t('crops.sector')}</label>
-              <Input 
-                value={sector} 
-                onChange={(e) => setSector(e.target.value)}
-                placeholder={t('crops.sectorPlaceholder')}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium">{t('crops.area')}</label>
-              <Input 
-                type="number" 
-                value={area === 0 ? '' : area} 
-                onChange={(e) => setArea(Number(e.target.value))}
-                placeholder={t('crops.areaPlaceholder')}
-              />
-            </div>
-            
-            <Button 
-              type="submit" 
-              className="w-full" 
-              disabled={createCrop.isPending}
-            >
-              {createCrop.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {t('crops.processing')}
-                </>
-              ) : (
-                t('crops.addCrop')
-              )}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+
+      {/* Botão para adicionar plantação */}
+      {selectedFarmId && (
+        <div className="mb-6">
+          <Dialog open={isAddCropDialogOpen} onOpenChange={setIsAddCropDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Adicionar Plantação
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>{t('crops.addNewCrop')}</DialogTitle>
+                <DialogDescription>
+                  {t('crops.addNewCropDescription')}
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleCreateCrop} className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">{t('crops.cropName')}</label>
+                  <Input 
+                    value={name} 
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder={t('crops.cropNamePlaceholder')}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">{t('crops.sector')}</label>
+                  <Input 
+                    value={sector} 
+                    onChange={(e) => setSector(e.target.value)}
+                    placeholder={t('crops.sectorPlaceholder')}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">{t('crops.area')} (m²)</label>
+                  <Input 
+                    type="number" 
+                    value={area} 
+                    onChange={(e) => setArea(e.target.value)}
+                    placeholder={t('crops.areaPlaceholder')}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">{t('crops.plantingDate')}</label>
+                  <Input 
+                    type="date" 
+                    value={plantingDate} 
+                    onChange={(e) => setPlantingDate(e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">{t('crops.expectedHarvestDate')}</label>
+                  <Input 
+                    type="date" 
+                    value={expectedHarvestDate} 
+                    onChange={(e) => setExpectedHarvestDate(e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">{t('crops.status')}</label>
+                  <Select value={status} onValueChange={setStatus}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t('crops.selectStatus')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="growing">{t('crops.growing')}</SelectItem>
+                      <SelectItem value="harvested">{t('crops.harvested')}</SelectItem>
+                      <SelectItem value="waiting">{t('crops.waiting')}</SelectItem>
+                      <SelectItem value="finished">{t('crops.finished')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <DialogFooter>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setIsAddCropDialogOpen(false)}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    disabled={createCrop.isPending || !selectedFarmId}
+                  >
+                    {createCrop.isPending ? 'Criando...' : t('crops.createCrop')}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
+      )}
+
       
       {/* Filtros avançados */}
       <Card className="mb-6">
