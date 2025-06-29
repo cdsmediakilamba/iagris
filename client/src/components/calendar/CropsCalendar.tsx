@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar } from 'react-day-picker';
+import { DayPicker } from 'react-day-picker';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -303,7 +303,7 @@ export default function CropsCalendar({ farmId, crops }: CropsCalendarProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Calendar
+            <DayPicker
               mode="single"
               selected={selectedDate}
               onSelect={handleDateSelect}

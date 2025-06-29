@@ -80,6 +80,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import CropsCalendar from '@/components/calendar/CropsCalendar';
 
 // Tipos básicos para o plantação
 interface Crop {
@@ -401,8 +402,25 @@ export default function CropsPage() {
   
   return (
     <DashboardLayout>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-medium">{t('crops.title')}</h1>
+      <div className="mb-6">
+        <h1 className="text-2xl font-medium text-gray-900 mb-4">{t('crops.title')}</h1>
+      </div>
+
+      <Tabs defaultValue="crops" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 max-w-md">
+          <TabsTrigger value="crops" className="flex items-center gap-2">
+            <Leaf className="h-4 w-4" />
+            Culturas
+          </TabsTrigger>
+          <TabsTrigger value="calendar" className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            Calendário
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="crops" className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div></div>
         
         {/* Seletor de fazenda */}
         <div className="flex items-center gap-4">
@@ -807,6 +825,27 @@ export default function CropsPage() {
           </DialogContent>
         </Dialog>
       )}
+        </TabsContent>
+
+        <TabsContent value="calendar" className="space-y-6">
+          {selectedFarmId && crops && Array.isArray(crops) && crops.length >= 0 ? (
+            <CropsCalendar farmId={selectedFarmId} crops={crops} />
+          ) : (
+            <div className="text-center py-10">
+              <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-1">
+                {t('calendar.loading') || 'Carregando calendário...'}
+              </h3>
+              <p className="text-gray-500">
+                {selectedFarmId 
+                  ? (t('calendar.loadingEvents') || 'Aguarde enquanto carregamos os eventos do calendário') 
+                  : (t('calendar.selectFarm') || 'Selecione uma fazenda para ver o calendário')
+                }
+              </p>
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
     </DashboardLayout>
   );
 }
