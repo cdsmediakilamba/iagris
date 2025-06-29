@@ -76,7 +76,6 @@ export default function CropsOptimizedPage() {
   const [isAddCropDialogOpen, setIsAddCropDialogOpen] = useState(false);
   const [isAddCostDialogOpen, setIsAddCostDialogOpen] = useState(false);
   const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] = useState(false);
-  const [isViewDetailsDialogOpen, setIsViewDetailsDialogOpen] = useState(false);
   const [selectedCrop, setSelectedCrop] = useState<Crop | null>(null);
   
   // Estados do formulário de plantação
