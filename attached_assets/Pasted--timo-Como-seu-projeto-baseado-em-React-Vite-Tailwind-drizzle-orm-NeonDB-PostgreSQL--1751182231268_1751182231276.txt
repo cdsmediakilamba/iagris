@@ -1,0 +1,127 @@
+Ótimo! Como seu projeto é baseado em **React + Vite + Tailwind + drizzle-orm + NeonDB (PostgreSQL)**, aqui está um **plano de implementação prático** para a página "Solicitações de Compras" totalmente integrado ao seu stack. Isso inclui estrutura do backend, frontend e banco de dados.
+
+---
+
+## ✅ 1. Banco de Dados (PostgreSQL com Drizzle ORM)
+
+### Tabela: `solicitacoes`
+
+```ts
+// db/schema/solicitacoes.ts
+import { pgTable, text, date, boolean, uuid } from "drizzle-orm/pg-core";
+
+export const solicitacoes = pgTable("solicitacoes", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  produto: text("produto").notNull(),
+  quantidade: text("quantidade").notNull(),
+  observacao: text("observacao"),
+  responsavel: text("responsavel").notNull(),
+  data: date("data").notNull(),
+  andamento: text("andamento"),
+  finalizadoPor: text("finalizado_por"),
+  status: text("status").default("nova"), // nova | andamento | finalizada
+  urgente: boolean("urgente").default(false),
+  dataCriacao: date("data_criacao").defaultNow(),
+});
+```
+
+---
+
+## ✅ 2. Backend com Express + drizzle-orm
+
+### Rota: `POST /api/solicitacoes`
+
+* Cria nova solicitação
+
+### Rota: `GET /api/solicitacoes`
+
+* Lista solicitações com filtros e paginação
+
+### Rota: `PATCH /api/solicitacoes/:id`
+
+* Edita status, andamento, finalização, etc.
+
+### Middleware:
+
+* Verifica se o usuário é `superadmin` ou `admin_fazenda`
+
+---
+
+## ✅ 3. Frontend React (com Tailwind + React Query + Radix)
+
+### Menu lateral (Sidebar)
+
+```tsx
+// components/Sidebar.tsx
+<Link href="/solicitacoes" className="relative">
+  Solicitações de Compras
+  {temSolicitacoesUrgentes && <span className="absolute top-0 right-0 text-red-500">⚠️</span>}
+</Link>
+```
+
+---
+
+### Página `/solicitacoes`
+
+#### ✅ Componente de Formulário
+
+Usando `react-hook-form`, `zod`, `@radix-ui/dialog`:
+
+* Produto, Quantidade, Observação, Responsável, Data (com máscara)
+* Checkbox “Urgente”
+* Botão “Cadastrar” → cria nova solicitação via React Query Mutation
+
+#### ✅ Lista de Cards
+
+Cada solicitação exibe:
+
+* Produto, Quantidade, Responsável
+* Status (`Nova`, `Em Andamento`, `Finalizada`)
+* Ícones de ações: ✏️ Editar | 🔄 Andamento | ✅ Finalizar
+* ⚠️ Se urgente
+
+#### ✅ Modal "Andamento"
+
+* Campo de texto
+* Atualiza campo `andamento` e `status = andamento`
+
+#### ✅ Modal "Finalizar"
+
+* Campo de texto (`finalizadoPor`)
+* Atualiza status para `finalizada` + `inativa`
+
+#### ✅ Modal "Editar após finalizado"
+
+* Solicita senha `620048` antes de permitir edição
+
+```ts
+if (status === 'finalizada' && senha !== '620048') {
+  return alert('Edição bloqueada. Solicitação finalizada.');
+}
+```
+
+---
+
+### ✅ Filtros e Paginação
+
+#### Filtros:
+
+* Produto (input texto)
+* Responsável (input)
+* Status (dropdown)
+* Urgente (checkbox)
+* Data (intervalo)
+
+#### Paginação:
+
+* React Query + parâmetros de página (`page`, `limit`)
+* Botões: Anterior / Próxima
+
+---
+
+### 🔐 Controle de Acesso
+
+* Página e rotas protegidas com middleware de sessão
+* Somente `admin_fazenda` e `superadmin` têm acesso
+
+---
