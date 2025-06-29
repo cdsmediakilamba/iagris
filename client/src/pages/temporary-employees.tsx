@@ -408,25 +408,78 @@ export default function TemporaryEmployees() {
                           <FormLabel>{t('temporaryEmployees.photo')} {t('temporaryEmployees.optional')}</FormLabel>
                           <FormControl>
                             <div className="space-y-3">
-                              <Input 
-                                placeholder="URL da foto (ex: /photos/nome-arquivo.jpg)"
-                                {...field}
-                                value={field.value || ''}
-                              />
+                              {/* Opções de fotos disponíveis */}
+                              <div className="grid grid-cols-3 gap-2 p-3 bg-gray-50 rounded-lg">
+                                <p className="col-span-3 text-sm font-medium text-gray-700 mb-2">Fotos disponíveis:</p>
+                                
+                                <div 
+                                  className={`relative cursor-pointer rounded-lg border-2 p-1 ${field.value === '/photos/abraaocostaof~perfil.png' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
+                                  onClick={() => field.onChange('/photos/abraaocostaof~perfil.png')}
+                                >
+                                  <Avatar className="h-12 w-12 mx-auto">
+                                    <AvatarImage 
+                                      src="/photos/abraaocostaof~perfil.png" 
+                                      alt="Foto exemplo 1"
+                                      className="object-cover w-full h-full"
+                                    />
+                                    <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">F1</AvatarFallback>
+                                  </Avatar>
+                                  <p className="text-xs text-center mt-1 truncate">Perfil 1</p>
+                                </div>
+                                
+                                <div 
+                                  className={`relative cursor-pointer rounded-lg border-2 p-1 ${field.value === '/photos/exemplo-funcionario.png' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
+                                  onClick={() => field.onChange('/photos/exemplo-funcionario.png')}
+                                >
+                                  <Avatar className="h-12 w-12 mx-auto">
+                                    <AvatarImage 
+                                      src="/photos/exemplo-funcionario.png" 
+                                      alt="Foto exemplo 2"
+                                      className="object-cover w-full h-full"
+                                    />
+                                    <AvatarFallback className="bg-green-100 text-green-600 text-xs">F2</AvatarFallback>
+                                  </Avatar>
+                                  <p className="text-xs text-center mt-1 truncate">Perfil 2</p>
+                                </div>
+                                
+                                <div 
+                                  className={`relative cursor-pointer rounded-lg border-2 p-1 ${!field.value ? 'border-gray-500 bg-gray-100' : 'border-gray-200 hover:border-gray-300'}`}
+                                  onClick={() => field.onChange('')}
+                                >
+                                  <Avatar className="h-12 w-12 mx-auto">
+                                    <AvatarFallback className="bg-gray-100 text-gray-600 text-xs">
+                                      <User className="h-6 w-6" />
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <p className="text-xs text-center mt-1 truncate">Sem foto</p>
+                                </div>
+                              </div>
+                              
+                              {/* Campo manual para outras URLs */}
+                              <div className="space-y-2">
+                                <label className="text-sm text-gray-600">Ou digite uma URL personalizada:</label>
+                                <Input 
+                                  placeholder="Ex: /photos/minha-foto.jpg"
+                                  value={field.value || ''}
+                                  onChange={(e) => field.onChange(e.target.value)}
+                                />
+                              </div>
+                              
+                              {/* Prévia da foto selecionada */}
                               {field.value && (
-                                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                                <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
                                   <Avatar className="h-16 w-16">
                                     <AvatarImage 
                                       src={getOptimizedPhotoUrl(field.value)} 
-                                      alt="Prévia da foto"
+                                      alt="Prévia da foto selecionada"
                                       className="object-cover w-full h-full"
                                     />
                                     <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">
                                       FOTO
                                     </AvatarFallback>
                                   </Avatar>
-                                  <div className="text-sm text-gray-600">
-                                    <p className="font-medium">Prévia da foto:</p>
+                                  <div className="text-sm text-gray-700">
+                                    <p className="font-medium text-green-700">✓ Foto selecionada:</p>
                                     <p className="truncate max-w-48">{field.value}</p>
                                   </div>
                                 </div>

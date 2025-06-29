@@ -115,6 +115,7 @@ export const pt = {
     backToDashboard: 'Voltar para o Dashboard',
     costs: 'Custos',
     create: 'Criar',
+    update: 'Atualizar',
     new: 'novo',
     save: 'Salvar',
     cancel: 'Cancelar',
