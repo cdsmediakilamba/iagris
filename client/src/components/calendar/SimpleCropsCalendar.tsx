@@ -5,7 +5,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { CalendarDays, Plus, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CalendarDays, Plus, Edit, Trash2, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { format, getDaysInMonth, startOfMonth, getDay } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { useLanguage } from '@/context/LanguageContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -39,6 +41,8 @@ export function SimpleCropsCalendar({ selectedFarmId }: SimpleCropsCalendarProps
     eventType: 'general'
   });
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
+  const [isEventsListDialogOpen, setIsEventsListDialogOpen] = useState(false);
+  const [selectedDateEvents, setSelectedDateEvents] = useState<CalendarEvent[]>([]);
 
   // Carregar eventos do calendário
   const { data: events = [], refetch: refetchEvents } = useQuery<CalendarEvent[]>({
@@ -200,6 +204,16 @@ export function SimpleCropsCalendar({ selectedFarmId }: SimpleCropsCalendarProps
     setIsEventDialogOpen(true);
   };
 
+  // Mostrar todos os eventos de uma data
+  const handleShowAllEvents = (dateStr: string) => {
+    const eventsForDate = events.filter(event => {
+      const eventDate = format(new Date(event.date), 'yyyy-MM-dd');
+      return eventDate === dateStr;
+    });
+    setSelectedDateEvents(eventsForDate);
+    setIsEventsListDialogOpen(true);
+  };
+
   // Submeter formulário
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -318,7 +332,13 @@ export function SimpleCropsCalendar({ selectedFarmId }: SimpleCropsCalendarProps
                           </div>
                         ))}
                         {eventsForDate.length > 2 && (
-                          <div className="text-xs text-gray-500">
+                          <div 
+                            className="text-xs text-blue-600 cursor-pointer hover:text-blue-800 hover:underline"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleShowAllEvents(format(new Date(currentDate.getFullYear(), currentDate.getMonth(), date), 'yyyy-MM-dd'));
+                            }}
+                          >
                             +{eventsForDate.length - 2} mais
                           </div>
                         )}
@@ -407,6 +427,61 @@ export function SimpleCropsCalendar({ selectedFarmId }: SimpleCropsCalendarProps
                 </div>
               </div>
             </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Dialog para listar todos os eventos de uma data */}
+        <Dialog open={isEventsListDialogOpen} onOpenChange={setIsEventsListDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>
+                Eventos de {selectedDateEvents.length > 0 ? 
+                  format(new Date(selectedDateEvents[0].date), 'dd/MM/yyyy', { locale: ptBR }) : 
+                  'Data selecionada'
+                }
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {selectedDateEvents.map(event => (
+                <div 
+                  key={event.id}
+                  className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+                  onClick={() => {
+                    setIsEventsListDialogOpen(false);
+                    handleEditEvent(event);
+                  }}
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900">{event.title}</h4>
+                      {event.description && (
+                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">{event.description}</p>
+                      )}
+                    </div>
+                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                      {t(`calendar.eventTypes.${event.eventType}`) || event.eventType}
+                    </span>
+                  </div>
+                </div>
+              ))}
+              
+              {selectedDateEvents.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <Calendar className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+                  <p>{t('calendar.noEvents')}</p>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex justify-end">
+              <Button 
+                variant="outline" 
+                onClick={() => setIsEventsListDialogOpen(false)}
+              >
+                Fechar
+              </Button>
+            </div>
           </DialogContent>
         </Dialog>
       </CardContent>
