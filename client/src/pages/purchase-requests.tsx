@@ -66,6 +66,11 @@ export default function PurchaseRequests() {
     enabled: !!selectedFarmId,
   });
 
+  // Debug logging
+  console.log("Selected Farm ID:", selectedFarmId);
+  console.log("Requests Data:", requests);
+  console.log("Is Loading:", isLoading);
+
   // Mutations
   const createMutation = useMutation({
     mutationFn: (data: PurchaseRequestFormData) =>
