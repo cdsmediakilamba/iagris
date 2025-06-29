@@ -55,7 +55,10 @@ import {
   PlusCircle,
   Leaf,
   Loader2,
+  Calendar,
 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import CropsCalendar from '@/components/calendar/CropsCalendar';
 
 export default function Crops() {
   const { t, language } = useLanguage();
@@ -181,19 +184,33 @@ export default function Crops() {
     <DashboardLayout>
       <div className="mb-6">
         <h1 className="text-2xl font-medium text-gray-900 mb-4">{t('crops.title')}</h1>
-        
-        <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-          {/* Search and farm select */}
-          <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder={t('common.search')}
-                className="pl-8"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
+      </div>
+
+      <Tabs defaultValue="crops" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 max-w-md">
+          <TabsTrigger value="crops" className="flex items-center gap-2">
+            <Leaf className="h-4 w-4" />
+            Culturas
+          </TabsTrigger>
+          <TabsTrigger value="calendar" className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            Calendário
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="crops" className="space-y-6">
+          <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+            {/* Search and farm select */}
+            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder={t('common.search')}
+                  className="pl-8"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
             
             {farms && farms.length > 0 && (
               <Select
@@ -384,6 +401,14 @@ export default function Crops() {
           )}
         </CardContent>
       </Card>
+        </TabsContent>
+
+        <TabsContent value="calendar" className="space-y-6">
+          {selectedFarmId && crops && (
+            <CropsCalendar farmId={selectedFarmId} crops={crops} />
+          )}
+        </TabsContent>
+      </Tabs>
     </DashboardLayout>
   );
 }

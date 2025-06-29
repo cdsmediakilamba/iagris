@@ -2656,6 +2656,128 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Calendar Events routes
+  // Get events for a farm
+  app.get("/api/farms/:farmId/calendar-events", 
+    checkModuleAccess(SystemModule.CROPS, AccessLevel.READ_ONLY),
+    async (req, res) => {
+      try {
+        const farmId = parseInt(req.params.farmId, 10);
+        const { startDate, endDate, cropId } = req.query;
+        
+        let events;
+        
+        if (startDate && endDate) {
+          // Get events for date range
+          events = await storage.getCalendarEventsByDateRange(
+            farmId, 
+            new Date(startDate as string), 
+            new Date(endDate as string)
+          );
+        } else if (cropId) {
+          // Get events for specific crop
+          events = await storage.getCalendarEventsByCrop(farmId, parseInt(cropId as string));
+        } else {
+          // Get all events for farm
+          events = await storage.getCalendarEventsByFarm(farmId);
+        }
+        
+        res.json(events);
+      } catch (error) {
+        console.error("Error fetching calendar events:", error);
+        res.status(500).json({ message: "Failed to fetch calendar events" });
+      }
+    }
+  );
+
+  // Create calendar event
+  app.post("/api/farms/:farmId/calendar-events", 
+    checkModuleAccess(SystemModule.CROPS, AccessLevel.FULL),
+    async (req, res) => {
+      try {
+        const farmId = parseInt(req.params.farmId, 10);
+        const user = req.user!;
+        
+        const eventData = {
+          ...req.body,
+          farmId: farmId,
+          createdBy: user.id,
+          date: new Date(req.body.date)
+        };
+        
+        const event = await storage.createCalendarEvent(eventData);
+        res.status(201).json(event);
+      } catch (error) {
+        console.error("Error creating calendar event:", error);
+        res.status(500).json({ message: "Failed to create calendar event" });
+      }
+    }
+  );
+
+  // Update calendar event
+  app.patch("/api/calendar-events/:eventId", 
+    checkModuleAccess(SystemModule.CROPS, AccessLevel.FULL),
+    async (req, res) => {
+      try {
+        const eventId = parseInt(req.params.eventId, 10);
+        
+        // Verificar se o evento existe e se o usuário tem permissão
+        const existingEvent = await storage.getCalendarEvent(eventId);
+        if (!existingEvent) {
+          return res.status(404).json({ message: "Event not found" });
+        }
+        
+        // Verificar acesso à fazenda
+        if (!await hasAccessToFarm(req.user, existingEvent.farmId)) {
+          return res.status(403).json({ message: "You don't have access to this farm" });
+        }
+        
+        const updateData = { ...req.body };
+        if (req.body.date) {
+          updateData.date = new Date(req.body.date);
+        }
+        
+        const updatedEvent = await storage.updateCalendarEvent(eventId, updateData);
+        res.json(updatedEvent);
+      } catch (error) {
+        console.error("Error updating calendar event:", error);
+        res.status(500).json({ message: "Failed to update calendar event" });
+      }
+    }
+  );
+
+  // Delete calendar event
+  app.delete("/api/calendar-events/:eventId", 
+    checkModuleAccess(SystemModule.CROPS, AccessLevel.FULL),
+    async (req, res) => {
+      try {
+        const eventId = parseInt(req.params.eventId, 10);
+        
+        // Verificar se o evento existe e se o usuário tem permissão
+        const existingEvent = await storage.getCalendarEvent(eventId);
+        if (!existingEvent) {
+          return res.status(404).json({ message: "Event not found" });
+        }
+        
+        // Verificar acesso à fazenda
+        if (!await hasAccessToFarm(req.user, existingEvent.farmId)) {
+          return res.status(403).json({ message: "You don't have access to this farm" });
+        }
+        
+        const deleted = await storage.deleteCalendarEvent(eventId);
+        
+        if (!deleted) {
+          return res.status(404).json({ message: "Event not found" });
+        }
+        
+        res.json({ message: "Event deleted successfully" });
+      } catch (error) {
+        console.error("Error deleting calendar event:", error);
+        res.status(500).json({ message: "Failed to delete calendar event" });
+      }
+    }
+  );
+
   // Create HTTP server
   const httpServer = createServer(app);
   return httpServer;

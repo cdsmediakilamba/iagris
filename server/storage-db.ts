@@ -1,13 +1,14 @@
 import {
   users, farms, animals, species, crops, inventory, tasks, goals, userFarms, userPermissions, 
-  animalVaccinations, inventoryTransactions, removedAnimals, costs, temporaryEmployees, purchaseRequests,
+  animalVaccinations, inventoryTransactions, removedAnimals, costs, temporaryEmployees, purchaseRequests, calendarEvents,
   type InsertUser, type InsertFarm, type InsertAnimal, type InsertCrop, 
   type InsertInventory, type InsertTask, type InsertGoal, type User, type Farm, 
   type Animal, type Crop, type Inventory, type Task, type Goal, type Species,
   type AnimalVaccination, type InsertAnimalVaccination, type UserFarm, type InsertUserFarm,
   type UserPermission, type InsertUserPermission, type InventoryTransaction, type InsertInventoryTransaction,
   type RemovedAnimal, type InsertRemovedAnimal, type Cost, type InsertCost, type InsertSpecies,
-  type TemporaryEmployee, type InsertTemporaryEmployee, type PurchaseRequest, type InsertPurchaseRequest
+  type TemporaryEmployee, type InsertTemporaryEmployee, type PurchaseRequest, type InsertPurchaseRequest,
+  type CalendarEvent, type InsertCalendarEvent
 } from "@shared/schema";
 import { db } from "./db";
 import { inArray } from "drizzle-orm";
@@ -1303,5 +1304,69 @@ export class DatabaseStorage implements IStorage {
         eq(purchaseRequests.urgente, true)
       ))
       .orderBy(desc(purchaseRequests.createdAt));
+  }
+
+  // Calendar Events operations
+  async getCalendarEvent(id: number): Promise<CalendarEvent | undefined> {
+    const [event] = await db
+      .select()
+      .from(calendarEvents)
+      .where(eq(calendarEvents.id, id));
+    return event || undefined;
+  }
+
+  async getCalendarEventsByFarm(farmId: number): Promise<CalendarEvent[]> {
+    return await db
+      .select()
+      .from(calendarEvents)
+      .where(eq(calendarEvents.farmId, farmId))
+      .orderBy(asc(calendarEvents.date));
+  }
+
+  async getCalendarEventsByDateRange(farmId: number, startDate: Date, endDate: Date): Promise<CalendarEvent[]> {
+    return await db
+      .select()
+      .from(calendarEvents)
+      .where(and(
+        eq(calendarEvents.farmId, farmId),
+        gte(calendarEvents.date, startDate),
+        lte(calendarEvents.date, endDate)
+      ))
+      .orderBy(asc(calendarEvents.date));
+  }
+
+  async getCalendarEventsByCrop(farmId: number, cropId: number): Promise<CalendarEvent[]> {
+    return await db
+      .select()
+      .from(calendarEvents)
+      .where(and(
+        eq(calendarEvents.farmId, farmId),
+        eq(calendarEvents.cropId, cropId)
+      ))
+      .orderBy(asc(calendarEvents.date));
+  }
+
+  async createCalendarEvent(eventData: InsertCalendarEvent): Promise<CalendarEvent> {
+    const [event] = await db
+      .insert(calendarEvents)
+      .values(eventData)
+      .returning();
+    return event;
+  }
+
+  async updateCalendarEvent(id: number, eventData: Partial<CalendarEvent>): Promise<CalendarEvent | undefined> {
+    const [updatedEvent] = await db
+      .update(calendarEvents)
+      .set(eventData)
+      .where(eq(calendarEvents.id, id))
+      .returning();
+    return updatedEvent || undefined;
+  }
+
+  async deleteCalendarEvent(id: number): Promise<boolean> {
+    const result = await db
+      .delete(calendarEvents)
+      .where(eq(calendarEvents.id, id));
+    return result.rowCount! > 0;
   }
 }

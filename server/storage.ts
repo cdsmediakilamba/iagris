@@ -140,6 +140,15 @@ export interface IStorage {
   getRemovedAnimalsByReason(farmId: number, reason: string): Promise<RemovedAnimal[]>;
   getRemovedAnimal(id: number): Promise<RemovedAnimal | undefined>;
   
+  // Calendar Events operations
+  getCalendarEvent(id: number): Promise<import("@shared/schema").CalendarEvent | undefined>;
+  getCalendarEventsByFarm(farmId: number): Promise<import("@shared/schema").CalendarEvent[]>;
+  getCalendarEventsByDateRange(farmId: number, startDate: Date, endDate: Date): Promise<import("@shared/schema").CalendarEvent[]>;
+  getCalendarEventsByCrop(farmId: number, cropId: number): Promise<import("@shared/schema").CalendarEvent[]>;
+  createCalendarEvent(event: import("@shared/schema").InsertCalendarEvent): Promise<import("@shared/schema").CalendarEvent>;
+  updateCalendarEvent(id: number, event: Partial<import("@shared/schema").CalendarEvent>): Promise<import("@shared/schema").CalendarEvent | undefined>;
+  deleteCalendarEvent(id: number): Promise<boolean>;
+  
   // Session store
   sessionStore: any; // Using any to avoid type issues with SessionStore
 }

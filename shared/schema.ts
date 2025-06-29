@@ -381,6 +381,19 @@ export const purchaseRequests = pgTable("purchase_requests", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Calendar Events table schema - Eventos do calendário para agricultura
+export const calendarEvents = pgTable("calendar_events", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),                      // Título do evento
+  description: text("description"),                    // Descrição detalhada do evento
+  date: timestamp("date").notNull(),                   // Data do evento
+  farmId: integer("farm_id").notNull(),                // Fazenda relacionada
+  cropId: integer("crop_id"),                          // Cultura relacionada (opcional)
+  eventType: text("event_type").default("general"),    // Tipo de evento (plantio, colheita, irrigação, etc)
+  createdBy: integer("created_by").notNull(),          // Usuário que criou o evento
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Insert schemas using drizzle-zod
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -465,6 +478,11 @@ export const insertPurchaseRequestSchema = createInsertSchema(purchaseRequests).
   createdAt: true,
 });
 
+export const insertCalendarEventSchema = createInsertSchema(calendarEvents).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Export types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -513,3 +531,6 @@ export type TemporaryEmployee = typeof temporaryEmployees.$inferSelect;
 
 export type InsertPurchaseRequest = z.infer<typeof insertPurchaseRequestSchema>;
 export type PurchaseRequest = typeof purchaseRequests.$inferSelect;
+
+export type InsertCalendarEvent = z.infer<typeof insertCalendarEventSchema>;
+export type CalendarEvent = typeof calendarEvents.$inferSelect;

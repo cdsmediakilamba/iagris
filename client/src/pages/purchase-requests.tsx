@@ -76,7 +76,7 @@ export default function PurchaseRequests() {
 
   // Efeito para atualizar o farmId no formulário quando selectedFarmId muda
   useEffect(() => {
-    if (selectedFarmId) {
+    if (selectedFarmId && form) {
       form.setValue("farmId", selectedFarmId);
     }
   }, [selectedFarmId, form]);
