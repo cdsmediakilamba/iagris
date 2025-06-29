@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,22 +45,36 @@ export default function PurchaseRequests() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterUrgent, setFilterUrgent] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedFarmId, setSelectedFarmId] = useState<number | null>(user?.farmId || null);
+
+  // Query para buscar fazendas (para Super Admin)
+  const { data: farms = [] } = useQuery<any[]>({
+    queryKey: ["/api/farms"],
+    enabled: user?.role === "super_admin",
+  });
+
+  // Efeito para definir a primeira fazenda automaticamente para Super Admin
+  useEffect(() => {
+    if (user?.role === "super_admin" && farms.length > 0 && !selectedFarmId) {
+      setSelectedFarmId(farms[0].id);
+    }
+  }, [user?.role, farms, selectedFarmId]);
 
   // Query para buscar solicitações
   const { data: requests = [], isLoading } = useQuery<PurchaseRequest[]>({
-    queryKey: ["/api/farms", user?.farmId, "purchase-requests"],
-    enabled: !!user?.farmId,
+    queryKey: ["/api/farms", selectedFarmId, "purchase-requests"],
+    enabled: !!selectedFarmId,
   });
 
   // Mutations
   const createMutation = useMutation({
     mutationFn: (data: PurchaseRequestFormData) =>
-      apiRequest(`/api/farms/${user?.farmId}/purchase-requests`, {
+      apiRequest(`/api/farms/${selectedFarmId}/purchase-requests`, {
         method: "POST",
         data: data,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/farms", user?.farmId, "purchase-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/farms", selectedFarmId, "purchase-requests"] });
       setIsCreateDialogOpen(false);
       toast({ title: "Solicitação criada com sucesso!" });
     },
@@ -76,7 +90,7 @@ export default function PurchaseRequests() {
         data: data,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/farms", user?.farmId, "purchase-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/farms", selectedFarmId, "purchase-requests"] });
       setIsEditDialogOpen(false);
       setIsAndamentoDialogOpen(false);
       setIsFinalizarDialogOpen(false);
@@ -93,7 +107,7 @@ export default function PurchaseRequests() {
         method: "DELETE",
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/farms", user?.farmId, "purchase-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/farms", selectedFarmId, "purchase-requests"] });
       toast({ title: "Solicitação excluída com sucesso!" });
     },
     onError: () => {
@@ -321,6 +335,29 @@ export default function PurchaseRequests() {
             </DialogContent>
           </Dialog>
         </div>
+
+        {/* Seletor de Fazenda (para Super Admin) */}
+        {user?.role === "super_admin" && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Selecionar Fazenda</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Select value={selectedFarmId?.toString()} onValueChange={(value) => setSelectedFarmId(Number(value))}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecione uma fazenda" />
+                </SelectTrigger>
+                <SelectContent>
+                  {farms.map((farm: any) => (
+                    <SelectItem key={farm.id} value={farm.id.toString()}>
+                      {farm.name} - {farm.location}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Filtros */}
         <Card className="mb-6">
