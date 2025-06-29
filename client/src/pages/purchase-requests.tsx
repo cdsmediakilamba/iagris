@@ -104,6 +104,12 @@ export default function PurchaseRequests() {
     onSuccess: (newRequest) => {
       queryClient.invalidateQueries({ queryKey: [`/api/farms/${selectedFarmId}/purchase-requests`] });
       queryClient.invalidateQueries({ queryKey: [`/api/farms/${newRequest.farmId}/purchase-requests`] });
+      
+      // Automaticamente mudar para a fazenda da nova solicitação se for diferente
+      if (newRequest.farmId !== selectedFarmId) {
+        setSelectedFarmId(newRequest.farmId);
+      }
+      
       setIsCreateDialogOpen(false);
       form.reset({
         produto: "",
@@ -457,8 +463,13 @@ export default function PurchaseRequests() {
             <div>Carregando...</div>
           ) : filteredRequests.length === 0 ? (
             <Card>
-              <CardContent className="flex items-center justify-center py-8">
-                <p className="text-muted-foreground">Nenhuma solicitação encontrada</p>
+              <CardContent className="flex flex-col items-center justify-center py-8 text-center">
+                <p className="text-muted-foreground mb-2">Nenhuma solicitação encontrada</p>
+                {user?.role === "super_admin" && (
+                  <p className="text-sm text-muted-foreground">
+                    Verifique se você selecionou a fazenda correta acima
+                  </p>
+                )}
               </CardContent>
             </Card>
           ) : (
