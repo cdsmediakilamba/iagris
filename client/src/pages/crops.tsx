@@ -404,8 +404,21 @@ export default function Crops() {
         </TabsContent>
 
         <TabsContent value="calendar" className="space-y-6">
-          {selectedFarmId && crops && (
+          {selectedFarmId && Array.isArray(crops) && crops.length >= 0 ? (
             <CropsCalendar farmId={selectedFarmId} crops={crops} />
+          ) : (
+            <div className="text-center py-10">
+              <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-1">
+                {t('calendar.loading') || 'Carregando calendário...'}
+              </h3>
+              <p className="text-gray-500">
+                {selectedFarmId 
+                  ? (t('calendar.loadingEvents') || 'Aguarde enquanto carregamos os eventos do calendário') 
+                  : (t('calendar.selectFarm') || 'Selecione uma fazenda para ver o calendário')
+                }
+              </p>
+            </div>
           )}
         </TabsContent>
       </Tabs>
