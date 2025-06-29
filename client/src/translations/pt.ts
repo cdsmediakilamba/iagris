@@ -185,6 +185,8 @@ export const pt = {
     viewProfile: 'Ver Perfil',
     location: 'Localização',
     observations: 'Observações',
+    accessDenied: 'Acesso Negado',
+    insufficientPermissions: 'Não tem permissões suficientes para aceder a esta página. Apenas Super Admin e Administradores de Fazenda podem gerir funcionários temporários.',
   },
   validation: {
     required: 'Este campo é obrigatório',
@@ -829,7 +831,16 @@ export const pt = {
       name: 'Digite o nome completo',
       contact: 'Telefone ou email',
       workSector: 'Ex: Agricultura, Pecuária, Manutenção',
-      diseases: 'Descreva doenças pré-existentes se houver'
+      diseases: 'Descreva doenças pré-existentes se houver',
+      nationality: 'Selecione a nacionalidade',
+      bloodType: 'Selecione o tipo sanguíneo'
+    },
+    photoUpload: {
+      selectFile: 'Clique aqui para selecionar uma foto',
+      formats: 'Formatos: JPG, PNG, GIF (máx. 5MB)',
+      uploading: 'Enviando foto...',
+      loaded: '✓ Foto carregada',
+      remove: 'Remover foto'
     },
     validation: {
       nameRequired: 'Nome é obrigatório',

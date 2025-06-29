@@ -104,6 +104,29 @@ export default function TemporaryEmployees() {
   const [editingEmployee, setEditingEmployee] = useState<TemporaryEmployee | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
+  // Verificar se o usuário tem acesso (apenas Super Admin e Farm Admin)
+  if (!user || (user.role !== 'super_admin' && user.role !== 'farm_admin')) {
+    return (
+      <DashboardLayout>
+        <div className="container mx-auto p-6">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center py-8">
+                <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                  {t('common.accessDenied')}
+                </h2>
+                <p className="text-gray-600">
+                  {t('common.insufficientPermissions')}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   // Get the appropriate farm ID
   const farmId = user?.role === UserRole.SUPER_ADMIN ? 6 : user?.farmId;
 
@@ -311,7 +334,7 @@ export default function TemporaryEmployees() {
                   {editingEmployee ? t('temporaryEmployees.edit') : t('temporaryEmployees.add')}
                 </DialogTitle>
                 <DialogDescription>
-                  {editingEmployee ? 'Update employee information' : 'Preencha os dados do funcionário'}
+                  {editingEmployee ? 'Atualize as informações do funcionário' : 'Preencha os dados do funcionário'}
                 </DialogDescription>
               </DialogHeader>
               
@@ -416,7 +439,7 @@ export default function TemporaryEmployees() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select nationality" />
+                              <SelectValue placeholder={t('temporaryEmployees.placeholders.nationality')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -445,7 +468,7 @@ export default function TemporaryEmployees() {
                           <Select onValueChange={field.onChange} defaultValue={field.value || undefined}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Select blood type" />
+                                <SelectValue placeholder={t('temporaryEmployees.placeholders.bloodType')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -484,10 +507,10 @@ export default function TemporaryEmployees() {
                                 >
                                   <Upload className="h-8 w-8 text-gray-400" />
                                   <p className="text-sm text-gray-600">
-                                    Clique aqui para selecionar uma foto
+                                    {t('temporaryEmployees.photoUpload.selectFile')}
                                   </p>
                                   <p className="text-xs text-gray-500">
-                                    Formatos: JPG, PNG, GIF (máx. 5MB)
+                                    {t('temporaryEmployees.photoUpload.formats')}
                                   </p>
                                 </label>
                               </div>
@@ -495,7 +518,7 @@ export default function TemporaryEmployees() {
                               {isUploading && (
                                 <div className="flex items-center justify-center p-3 bg-blue-50 rounded-lg">
                                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-                                  <p className="text-sm text-blue-600">Enviando foto...</p>
+                                  <p className="text-sm text-blue-600">{t('temporaryEmployees.photoUpload.uploading')}</p>
                                 </div>
                               )}
                               
@@ -513,7 +536,7 @@ export default function TemporaryEmployees() {
                                     </AvatarFallback>
                                   </Avatar>
                                   <div className="flex-1">
-                                    <p className="text-sm font-medium text-green-700">✓ Foto carregada</p>
+                                    <p className="text-sm font-medium text-green-700">{t('temporaryEmployees.photoUpload.loaded')}</p>
                                     <p className="text-xs text-gray-600 truncate">{field.value}</p>
                                     <Button
                                       type="button"
@@ -522,7 +545,7 @@ export default function TemporaryEmployees() {
                                       className="mt-2"
                                       onClick={() => field.onChange('')}
                                     >
-                                      Remover foto
+                                      {t('temporaryEmployees.photoUpload.remove')}
                                     </Button>
                                   </div>
                                 </div>

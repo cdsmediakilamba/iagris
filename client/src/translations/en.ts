@@ -178,7 +178,9 @@ export const en = {
     submit: 'Submit',
     back: 'Back',
     language: 'Language',
-    saveChanges: 'Save Changes'
+    saveChanges: 'Save Changes',
+    accessDenied: 'Access Denied',
+    insufficientPermissions: 'You do not have sufficient permissions to access this page. Only Super Admin and Farm Admin can manage temporary employees.'
   },
   validation: {
     required: 'This field is required',
@@ -711,7 +713,16 @@ export const en = {
       name: 'Enter full name',
       contact: 'Phone or email',
       workSector: 'Ex: Agriculture, Livestock, Maintenance',
-      diseases: 'Describe pre-existing diseases if any'
+      diseases: 'Describe pre-existing diseases if any',
+      nationality: 'Select nationality',
+      bloodType: 'Select blood type'
+    },
+    photoUpload: {
+      selectFile: 'Click here to select a photo',
+      formats: 'Formats: JPG, PNG, GIF (max 5MB)',
+      uploading: 'Uploading photo...',
+      loaded: '✓ Photo loaded',
+      remove: 'Remove photo'
     },
     validation: {
       nameRequired: 'Name is required',
