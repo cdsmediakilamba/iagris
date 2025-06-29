@@ -822,6 +822,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
+  // Crop Costs routes
+  app.get("/api/farms/:farmId/crop-costs", 
+    checkModuleAccess(SystemModule.CROPS, AccessLevel.READ_ONLY), 
+    async (req, res) => {
+      try {
+        const farmId = parseInt(req.params.farmId, 10);
+        const cropCosts = await storage.getCropCostsByFarm(farmId);
+        res.json(cropCosts);
+      } catch (error) {
+        console.error("Error fetching crop costs:", error);
+        res.status(500).json({ message: "Failed to fetch crop costs" });
+      }
+    }
+  );
+
+  app.get("/api/crops/:cropId/costs", 
+    checkModuleAccess(SystemModule.CROPS, AccessLevel.READ_ONLY), 
+    async (req, res) => {
+      try {
+        const cropId = parseInt(req.params.cropId, 10);
+        
+        // Verificar se a plantação existe e o usuário tem acesso
+        const crop = await storage.getCrop(cropId);
+        if (!crop) {
+          return res.status(404).json({ message: "Plantação não encontrada" });
+        }
+        
+        // Verificar acesso à fazenda
+        if (!await hasAccessToFarm(req.user, crop.farmId)) {
+          return res.status(403).json({ message: "Acesso negado à fazenda" });
+        }
+        
+        const cropCosts = await storage.getCropCostsByCrop(cropId);
+        res.json(cropCosts);
+      } catch (error) {
+        console.error("Error fetching costs for crop:", error);
+        res.status(500).json({ message: "Failed to fetch costs for crop" });
+      }
+    }
+  );
+
+  app.post("/api/crops/:cropId/costs", 
+    checkModuleAccess(SystemModule.CROPS, AccessLevel.FULL), 
+    async (req, res) => {
+      try {
+        const cropId = parseInt(req.params.cropId, 10);
+        
+        // Verificar se a plantação existe
+        const crop = await storage.getCrop(cropId);
+        if (!crop) {
+          return res.status(404).json({ message: "Plantação não encontrada" });
+        }
+        
+        // Verificar acesso à fazenda
+        if (!await hasAccessToFarm(req.user, crop.farmId)) {
+          return res.status(403).json({ message: "Acesso negado à fazenda" });
+        }
+        
+        // Validar dados obrigatórios
+        if (!req.body.description || !req.body.amount || !req.body.date || !req.body.category) {
+          return res.status(400).json({ 
+            message: "Campos obrigatórios ausentes", 
+            requiredFields: ["description", "amount", "date", "category"] 
+          });
+        }
+        
+        // Validar valor
+        const amount = parseFloat(req.body.amount);
+        if (isNaN(amount) || amount <= 0) {
+          return res.status(400).json({ 
+            message: "Valor deve ser um número positivo" 
+          });
+        }
+        
+        // Criar dados do custo
+        const costData = {
+          cropId: cropId,
+          description: req.body.description,
+          amount: amount,
+          date: new Date(req.body.date),
+          category: req.body.category,
+          farmId: crop.farmId,
+          paymentMethod: req.body.paymentMethod || null,
+          documentNumber: req.body.documentNumber || null,
+          supplier: req.body.supplier || null,
+          notes: req.body.notes || null,
+          createdBy: req.user!.id
+        };
+        
+        console.log("Creating crop cost with data:", costData);
+        const newCost = await storage.createCropCost(costData);
+        
+        console.log("Crop cost created successfully:", newCost);
+        res.status(201).json(newCost);
+      } catch (error) {
+        console.error("Error creating crop cost:", error);
+        res.status(500).json({ 
+          message: "Failed to create crop cost", 
+          error: error instanceof Error ? error.message : String(error) 
+        });
+      }
+    }
+  );
+
   // Inventory routes
   app.get("/api/farms/:farmId/inventory", 
     checkModuleAccess(SystemModule.INVENTORY, AccessLevel.READ_ONLY), 

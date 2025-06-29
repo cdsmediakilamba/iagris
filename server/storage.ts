@@ -176,6 +176,7 @@ export class MemStorage implements IStorage {
   private userPermissions: Map<number, UserPermission>;
   private animalVaccinations: Map<number, AnimalVaccination>;
   private costItems: Map<number, Cost>;
+  private cropCostItems: Map<number, CropCost>;
   
   sessionStore: any; // Use any para evitar problemas com tipos
   
@@ -193,6 +194,7 @@ export class MemStorage implements IStorage {
   private userPermissionId = 1;
   private vaccinationId = 1;
   private costId = 1;
+  private cropCostId = 1;
   
   // Maps para acompanhar os contadores diários de registro animal
   private dailyAnimalCounters: Map<string, number> = new Map();
@@ -211,6 +213,7 @@ export class MemStorage implements IStorage {
     this.userPermissions = new Map();
     this.animalVaccinations = new Map();
     this.costItems = new Map();
+    this.cropCostItems = new Map();
     
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000 // Clear expired sessions every 24h
@@ -845,6 +848,47 @@ export class MemStorage implements IStorage {
     const updatedCrop = { ...crop, ...cropData };
     this.crops.set(id, updatedCrop);
     return updatedCrop;
+  }
+
+  // Crop Cost operations
+  async getCropCost(id: number): Promise<CropCost | undefined> {
+    return this.cropCostItems.get(id);
+  }
+
+  async getCropCostsByCrop(cropId: number): Promise<CropCost[]> {
+    return Array.from(this.cropCostItems.values()).filter(
+      (cost) => cost.cropId === cropId
+    );
+  }
+
+  async getCropCostsByFarm(farmId: number): Promise<CropCost[]> {
+    return Array.from(this.cropCostItems.values()).filter(
+      (cost) => cost.farmId === farmId
+    );
+  }
+
+  async createCropCost(insertCost: InsertCropCost): Promise<CropCost> {
+    const id = this.cropCostId++;
+    const cost: CropCost = { 
+      ...insertCost, 
+      id, 
+      createdAt: new Date() 
+    };
+    this.cropCostItems.set(id, cost);
+    return cost;
+  }
+
+  async updateCropCost(id: number, costData: Partial<CropCost>): Promise<CropCost | undefined> {
+    const cost = this.cropCostItems.get(id);
+    if (!cost) return undefined;
+    
+    const updatedCost = { ...cost, ...costData };
+    this.cropCostItems.set(id, updatedCost);
+    return updatedCost;
+  }
+
+  async deleteCropCost(id: number): Promise<boolean> {
+    return this.cropCostItems.delete(id);
   }
 
   // Inventory operations

@@ -1,5 +1,5 @@
 import {
-  users, farms, animals, species, crops, inventory, tasks, goals, userFarms, userPermissions, 
+  users, farms, animals, species, crops, cropCosts, inventory, tasks, goals, userFarms, userPermissions, 
   animalVaccinations, inventoryTransactions, removedAnimals, costs, temporaryEmployees, purchaseRequests, calendarEvents,
   type InsertUser, type InsertFarm, type InsertAnimal, type InsertCrop, 
   type InsertInventory, type InsertTask, type InsertGoal, type User, type Farm, 
@@ -7,7 +7,7 @@ import {
   type AnimalVaccination, type InsertAnimalVaccination, type UserFarm, type InsertUserFarm,
   type UserPermission, type InsertUserPermission, type InventoryTransaction, type InsertInventoryTransaction,
   type RemovedAnimal, type InsertRemovedAnimal, type Cost, type InsertCost, type InsertSpecies,
-  type TemporaryEmployee, type InsertTemporaryEmployee, type PurchaseRequest, type InsertPurchaseRequest,
+  type CropCost, type InsertCropCost, type TemporaryEmployee, type InsertTemporaryEmployee, type PurchaseRequest, type InsertPurchaseRequest,
   type CalendarEvent, type InsertCalendarEvent
 } from "@shared/schema";
 import { db } from "./db";
@@ -336,6 +336,44 @@ export class DatabaseStorage implements IStorage {
       .where(eq(crops.id, id))
       .returning();
     return updatedCrop || undefined;
+  }
+
+  // Crop Cost operations
+  async getCropCost(id: number): Promise<CropCost | undefined> {
+    const [cost] = await db.select().from(cropCosts).where(eq(cropCosts.id, id));
+    return cost || undefined;
+  }
+
+  async getCropCostsByCrop(cropId: number): Promise<CropCost[]> {
+    return await db.select().from(cropCosts).where(eq(cropCosts.cropId, cropId));
+  }
+
+  async getCropCostsByFarm(farmId: number): Promise<CropCost[]> {
+    return await db.select().from(cropCosts).where(eq(cropCosts.farmId, farmId));
+  }
+
+  async createCropCost(costData: InsertCropCost): Promise<CropCost> {
+    const [cost] = await db.insert(cropCosts).values(costData).returning();
+    return cost;
+  }
+
+  async updateCropCost(id: number, costData: Partial<CropCost>): Promise<CropCost | undefined> {
+    const [updatedCost] = await db
+      .update(cropCosts)
+      .set(costData)
+      .where(eq(cropCosts.id, id))
+      .returning();
+    return updatedCost || undefined;
+  }
+
+  async deleteCropCost(id: number): Promise<boolean> {
+    try {
+      const result = await db.delete(cropCosts).where(eq(cropCosts.id, id));
+      return result.rowCount !== null && result.rowCount !== undefined && result.rowCount > 0;
+    } catch (error) {
+      console.error("Error deleting crop cost:", error);
+      return false;
+    }
   }
 
   // Inventory operations
