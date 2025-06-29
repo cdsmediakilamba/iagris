@@ -96,7 +96,7 @@ export default function TemporaryEmployees() {
 
   const createMutation = useMutation({
     mutationFn: (data: InsertTemporaryEmployee) => 
-      apiRequest('/api/temporary-employees', { method: 'POST', body: data }),
+      apiRequest('/api/temporary-employees', { method: 'POST', data }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/temporary-employees'] });
       toast({
@@ -115,7 +115,7 @@ export default function TemporaryEmployees() {
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<TemporaryEmployee> }) =>
-      apiRequest(`/api/temporary-employees/${id}`, { method: 'PATCH', body: data }),
+      apiRequest(`/api/temporary-employees/${id}`, { method: 'PATCH', data }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/temporary-employees'] });
       toast({
@@ -354,7 +354,7 @@ export default function TemporaryEmployees() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>{t('temporaryEmployees.bloodType')} {t('temporaryEmployees.optional')}</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} defaultValue={field.value || undefined}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select blood type" />
@@ -407,7 +407,8 @@ export default function TemporaryEmployees() {
                         <FormControl>
                           <Textarea 
                             placeholder={t('temporaryEmployees.placeholders.diseases')}
-                            {...field} 
+                            {...field}
+                            value={field.value || ''}
                           />
                         </FormControl>
                         <FormMessage />
