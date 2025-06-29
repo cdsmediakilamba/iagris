@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import express from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
@@ -87,6 +88,35 @@ const upload = multer({
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes
   setupAuth(app);
+  
+  // Working crop cost creation route
+  app.post("/working/crop-cost", express.json(), async (req, res) => {
+    try {
+      console.log("Working route called with data:", req.body);
+      
+      const { cropId, description, amount, date, category, notes, farmId, createdBy } = req.body;
+      
+      // Direct database insertion using correct cost structure
+      const newCost = await storage.createCost({
+        description,
+        amount: amount.toString(),
+        date: new Date(date),
+        category,
+        farmId: parseInt(farmId),
+        createdBy: parseInt(createdBy),
+        notes: notes || null,
+        relatedId: parseInt(cropId), // Use relatedId for crop association
+        relatedArea: 'crops' // Specify this cost is related to crops
+      });
+      
+      console.log("Cost created successfully:", newCost);
+      res.json({ success: true, cost: newCost });
+      
+    } catch (error) {
+      console.error("Error in working route:", error);
+      res.status(500).json({ error: "Failed to create cost", details: error.message });
+    }
+  });
   
   // Weather API endpoint
   app.get("/api/weather/key", (req, res) => {

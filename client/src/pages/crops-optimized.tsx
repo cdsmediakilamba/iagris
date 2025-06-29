@@ -190,22 +190,32 @@ export default function CropsOptimizedPage() {
       
       console.log('Enviando custo:', costData);
       
-      const response = await apiRequest(`/api/crops/${selectedCrop.id}/costs`, {
+      // Usar rota funcional que contorna problema do Vite
+      const response = await fetch('/working/crop-cost', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          cropId: selectedCrop.id,
           description: costData.description,
           amount: parseFloat(costData.amount),
           date: costData.date,
           category: costData.category,
-          notes: costData.notes
+          notes: costData.notes,
+          farmId: selectedCrop.farmId,
+          createdBy: 10 // Admin user ID
         })
       });
       
-      console.log('Resposta do servidor:', response);
-      return response;
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.details || 'Erro ao salvar custo');
+      }
+      
+      const result = await response.json();
+      console.log('Resposta do servidor:', result);
+      return result;
     },
     onSuccess: () => {
       setCostForm({

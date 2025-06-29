@@ -345,11 +345,61 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCropCostsByCrop(cropId: number): Promise<CropCost[]> {
-    return await db.select().from(cropCosts).where(eq(cropCosts.cropId, cropId));
+    const results = await db
+      .select()
+      .from(costs)
+      .where(
+        and(
+          eq(costs.relatedId, cropId),
+          eq(costs.relatedArea, 'crops')
+        )
+      );
+    
+    // Transform to CropCost format
+    return results.map(cost => ({
+      id: cost.id,
+      cropId: cost.relatedId || 0,
+      description: cost.description,
+      amount: cost.amount,
+      date: cost.date,
+      category: cost.category,
+      farmId: cost.farmId,
+      createdBy: cost.createdBy,
+      notes: cost.notes,
+      createdAt: cost.createdAt,
+      paymentMethod: cost.paymentMethod,
+      documentNumber: cost.documentNumber,
+      supplier: cost.supplier
+    }));
   }
 
   async getCropCostsByFarm(farmId: number): Promise<CropCost[]> {
-    return await db.select().from(cropCosts).where(eq(cropCosts.farmId, farmId));
+    const results = await db
+      .select()
+      .from(costs)
+      .where(
+        and(
+          eq(costs.farmId, farmId),
+          eq(costs.relatedArea, 'crops')
+        )
+      );
+    
+    // Transform to CropCost format
+    return results.map(cost => ({
+      id: cost.id,
+      cropId: cost.relatedId || 0,
+      description: cost.description,
+      amount: cost.amount,
+      date: cost.date,
+      category: cost.category,
+      farmId: cost.farmId,
+      createdBy: cost.createdBy,
+      notes: cost.notes,
+      createdAt: cost.createdAt,
+      paymentMethod: cost.paymentMethod,
+      documentNumber: cost.documentNumber,
+      supplier: cost.supplier
+    }));
   }
 
   async createCropCost(costData: InsertCropCost): Promise<CropCost> {
