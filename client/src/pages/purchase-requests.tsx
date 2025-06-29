@@ -62,7 +62,7 @@ export default function PurchaseRequests() {
 
   // Query para buscar solicitações
   const { data: requests = [], isLoading } = useQuery<PurchaseRequest[]>({
-    queryKey: ["/api/farms", selectedFarmId, "purchase-requests"],
+    queryKey: [`/api/farms/${selectedFarmId}/purchase-requests`],
     enabled: !!selectedFarmId,
   });
 
@@ -79,7 +79,7 @@ export default function PurchaseRequests() {
         data: data,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/farms", selectedFarmId, "purchase-requests"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/farms/${selectedFarmId}/purchase-requests`] });
       setIsCreateDialogOpen(false);
       toast({ title: "Solicitação criada com sucesso!" });
     },
@@ -95,7 +95,7 @@ export default function PurchaseRequests() {
         data: data,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/farms", selectedFarmId, "purchase-requests"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/farms/${selectedFarmId}/purchase-requests`] });
       setIsEditDialogOpen(false);
       setIsAndamentoDialogOpen(false);
       setIsFinalizarDialogOpen(false);
@@ -112,7 +112,7 @@ export default function PurchaseRequests() {
         method: "DELETE",
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/farms", selectedFarmId, "purchase-requests"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/farms/${selectedFarmId}/purchase-requests`] });
       toast({ title: "Solicitação excluída com sucesso!" });
     },
     onError: () => {
