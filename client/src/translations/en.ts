@@ -688,6 +688,7 @@ export const en = {
     optional: '(Optional)',
     contractExpiring: 'Contract expiring soon',
     daysRemaining: '{days} days remaining',
+    days: 'days',
     countries: {
       angola: 'Angola',
       portugal: 'Portugal',

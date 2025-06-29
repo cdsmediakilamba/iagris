@@ -618,7 +618,7 @@ export default function TemporaryEmployees() {
                     <div className="absolute top-2 right-2">
                       <Badge variant="destructive" className="flex items-center gap-1">
                         <AlertTriangle className="h-3 w-3" />
-                        {contractStatus.days} days
+                        {contractStatus.days} {t('temporaryEmployees.days')}
                       </Badge>
                     </div>
                   )}

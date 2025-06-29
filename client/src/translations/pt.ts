@@ -806,6 +806,7 @@ export const pt = {
     optional: '(Opcional)',
     contractExpiring: 'Contrato expirando em breve',
     daysRemaining: '{days} dias restantes',
+    days: 'dias',
     countries: {
       angola: 'Angola',
       portugal: 'Portugal',
