@@ -278,6 +278,23 @@ export const costs = pgTable("costs", {
   createdAt: timestamp("created_at").defaultNow(),   // Data de criação do registro
 });
 
+// Crop Costs table schema - Sistema de custos específicos para plantações
+export const cropCosts = pgTable("crop_costs", {
+  id: serial("id").primaryKey(),
+  cropId: integer("crop_id").notNull(),              // FK para a plantação
+  description: text("description").notNull(),        // Descrição do custo (ex: Adubo, Sementes)
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(), // Valor do custo
+  date: timestamp("date").notNull(),                 // Data do custo
+  category: text("category").notNull(),              // Categoria do custo (usar enum CostCategory)
+  farmId: integer("farm_id").notNull(),              // Fazenda relacionada
+  paymentMethod: text("payment_method"),             // Método de pagamento
+  documentNumber: text("document_number"),           // Número do documento fiscal
+  supplier: text("supplier"),                        // Fornecedor
+  notes: text("notes"),                              // Observações adicionais
+  createdBy: integer("created_by").notNull(),        // Usuário que registrou o custo
+  createdAt: timestamp("created_at").defaultNow(),   // Data de criação do registro
+});
+
 // Animal Vaccination table schema - Registro de vacinações dos animais
 export const animalVaccinations = pgTable("animal_vaccinations", {
   id: serial("id").primaryKey(),
@@ -463,6 +480,11 @@ export const insertCostSchema = createInsertSchema(costs).omit({
   createdAt: true,
 });
 
+export const insertCropCostSchema = createInsertSchema(cropCosts).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertRemovedAnimalSchema = createInsertSchema(removedAnimals).omit({
   id: true,
   createdAt: true,
@@ -522,6 +544,9 @@ export type AnimalVaccination = typeof animalVaccinations.$inferSelect;
 
 export type InsertCost = z.infer<typeof insertCostSchema>;
 export type Cost = typeof costs.$inferSelect;
+
+export type InsertCropCost = z.infer<typeof insertCropCostSchema>;
+export type CropCost = typeof cropCosts.$inferSelect;
 
 export type InsertRemovedAnimal = z.infer<typeof insertRemovedAnimalSchema>;
 export type RemovedAnimal = typeof removedAnimals.$inferSelect;

@@ -11,7 +11,7 @@ import Animals from "@/pages/animals";
 import AnimalsNew from "@/pages/animals-new";
 import AnimalDetails from "@/pages/animal-details";
 import RemovedAnimals from "@/pages/removed-animals";
-import CropsBasic from "@/pages/crops-basic";
+import CropsOptimized from "@/pages/crops-optimized";
 import Inventory from "@/pages/inventory";
 import InventoryTransactions from "@/pages/inventory-transactions";
 import Goals from "@/pages/goals";
@@ -42,7 +42,7 @@ function Router() {
       <ProtectedRoute path="/animals-new" component={AnimalsNew} />
       <ProtectedRoute path="/animals-new/:id" component={AnimalDetails} />
       <ProtectedRoute path="/animals-removed" component={RemovedAnimals} />
-      <ProtectedRoute path="/crops" component={CropsBasic} />
+      <ProtectedRoute path="/crops" component={CropsOptimized} />
       <ProtectedRoute path="/inventory" component={Inventory} />
       <ProtectedRoute path="/inventory-transactions" component={InventoryTransactions} />
       <ProtectedRoute path="/farms/:farmId/goals" component={Goals} />

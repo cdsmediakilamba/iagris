@@ -3,6 +3,7 @@ import { farms, type Farm, type InsertFarm } from "@shared/schema";
 import { animals, type Animal, type InsertAnimal } from "@shared/schema";
 import { species, type Species, type InsertSpecies } from "@shared/schema";
 import { crops, type Crop, type InsertCrop } from "@shared/schema";
+import { cropCosts, type CropCost, type InsertCropCost } from "@shared/schema";
 import { inventory, type Inventory, type InsertInventory } from "@shared/schema";
 import { inventoryTransactions, type InventoryTransaction, type InsertInventoryTransaction } from "@shared/schema";
 import { tasks, type Task, type InsertTask } from "@shared/schema";
@@ -82,6 +83,14 @@ export interface IStorage {
   getCropsByFarm(farmId: number): Promise<Crop[]>;
   createCrop(crop: InsertCrop): Promise<Crop>;
   updateCrop(id: number, crop: Partial<Crop>): Promise<Crop | undefined>;
+  
+  // Crop Cost operations
+  getCropCost(id: number): Promise<CropCost | undefined>;
+  getCropCostsByCrop(cropId: number): Promise<CropCost[]>;
+  getCropCostsByFarm(farmId: number): Promise<CropCost[]>;
+  createCropCost(cropCost: InsertCropCost): Promise<CropCost>;
+  updateCropCost(id: number, cropCost: Partial<CropCost>): Promise<CropCost | undefined>;
+  deleteCropCost(id: number): Promise<boolean>;
   
   // Inventory operations
   getInventoryItem(id: number): Promise<Inventory | undefined>;
