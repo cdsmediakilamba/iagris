@@ -12,6 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGr
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SimpleCropsCalendar } from '@/components/calendar/SimpleCropsCalendar';
 import { 
   Plus, 
   Leaf, 
@@ -78,6 +80,7 @@ export default function CropsOptimizedPage() {
   const [isViewDetailsDialogOpen, setIsViewDetailsDialogOpen] = useState(false);
   const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] = useState(false);
   const [selectedCrop, setSelectedCrop] = useState<Crop | null>(null);
+  const [activeTab, setActiveTab] = useState('list');
   
   // Estados do formulário de plantação
   const [cropForm, setCropForm] = useState({
@@ -504,7 +507,21 @@ export default function CropsOptimizedPage() {
           </CollapsibleContent>
         </Collapsible>
         
-        {/* Cards das plantações */}
+        {/* Tabs for List and Calendar */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
+            <TabsTrigger value="list" className="flex items-center gap-2">
+              <Leaf className="h-4 w-4" />
+              Lista de Plantações
+            </TabsTrigger>
+            <TabsTrigger value="calendar" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Calendário
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="list" className="space-y-6 mt-6">
+            {/* Cards das plantações */}
         {loadingCrops ? (
           <div className="flex justify-center items-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -612,6 +629,24 @@ export default function CropsOptimizedPage() {
             {filteredCrops.length} plantações encontradas
           </div>
         )}
+          </TabsContent>
+
+          <TabsContent value="calendar" className="space-y-6 mt-6">
+            {selectedFarmId ? (
+              <SimpleCropsCalendar selectedFarmId={selectedFarmId} />
+            ) : (
+              <div className="text-center py-10">
+                <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-1">
+                  Calendário de Plantações
+                </h3>
+                <p className="text-gray-500">
+                  Selecione uma fazenda para ver o calendário de eventos
+                </p>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
       
       {/* Modal de adicionar plantação */}
