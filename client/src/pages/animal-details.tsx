@@ -434,146 +434,149 @@ const AnimalDetails: React.FC = () => {
                       </DialogHeader>
                       <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmitVaccination)} className="space-y-4">
-                          {/* Vaccination date */}
-                          <FormField
-                            control={form.control}
-                            name="applicationDate"
-                            render={({ field }) => (
-                              <FormItem className="flex flex-col">
-                                <FormLabel>{t("vaccination.date")}</FormLabel>
-                                <Popover>
-                                  <PopoverTrigger asChild>
-                                    <FormControl>
-                                      <Button
-                                        variant={"outline"}
-                                        className="w-full pl-3 text-left font-normal"
-                                      >
-                                        {field.value ? (
-                                          formatDateSimple(field.value, language)
-                                        ) : (
-                                          <span>{t("common.selectDate")}</span>
-                                        )}
-                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                      </Button>
-                                    </FormControl>
-                                  </PopoverTrigger>
-                                  <PopoverContent className="w-auto p-0" align="start">
-                                    <Calendar
-                                      mode="single"
-                                      selected={field.value}
-                                      onSelect={field.onChange}
-                                      disabled={(date) =>
-                                        date < new Date("1900-01-01") || date > new Date("2100-01-01")
-                                      }
-                                      initialFocus
-                                    />
-                                  </PopoverContent>
-                                </Popover>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
+                          {/* Linha 1: Data da Vacinação | Tipo da Vacina (meio a meio) */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <FormField
+                              control={form.control}
+                              name="applicationDate"
+                              render={({ field }) => (
+                                <FormItem className="flex flex-col">
+                                  <FormLabel>{t("vaccination.date")}</FormLabel>
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <FormControl>
+                                        <Button
+                                          variant={"outline"}
+                                          className="w-full pl-3 text-left font-normal"
+                                        >
+                                          {field.value ? (
+                                            formatDateSimple(field.value, language)
+                                          ) : (
+                                            <span>Selecionar data</span>
+                                          )}
+                                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                        </Button>
+                                      </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                      <Calendar
+                                        mode="single"
+                                        selected={field.value}
+                                        onSelect={field.onChange}
+                                        disabled={(date) =>
+                                          date < new Date("1900-01-01") || date > new Date("2100-01-01")
+                                        }
+                                        initialFocus
+                                      />
+                                    </PopoverContent>
+                                  </Popover>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
 
-                          {/* Vaccine Name */}
-                          <FormField
-                            control={form.control}
-                            name="vaccineName"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>{t("vaccination.type")}</FormLabel>
-                                <FormControl>
-                                  <Input {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          {/* Status */}
-                          <FormField
-                            control={form.control}
-                            name="status"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>{t("vaccination.status.label")}</FormLabel>
-                                <Select 
-                                  onValueChange={field.onChange} 
-                                  defaultValue={field.value}
-                                >
+                            <FormField
+                              control={form.control}
+                              name="vaccineName"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>{t("vaccination.type")}</FormLabel>
                                   <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder={t("common.select")} />
-                                    </SelectTrigger>
+                                    <Input {...field} placeholder="Nome da vacina" />
                                   </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value={VaccinationStatus.SCHEDULED}>
-                                      {t("vaccination.status.scheduled")}
-                                    </SelectItem>
-                                    <SelectItem value={VaccinationStatus.COMPLETED}>
-                                      {t("vaccination.status.completed")}
-                                    </SelectItem>
-                                    <SelectItem value={VaccinationStatus.MISSED}>
-                                      {t("vaccination.status.missed")}
-                                    </SelectItem>
-                                    <SelectItem value={VaccinationStatus.CANCELLED}>
-                                      {t("vaccination.status.cancelled")}
-                                    </SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
 
-                          {/* Batch Number */}
-                          <FormField
-                            control={form.control}
-                            name="batchNumber"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>{t("vaccination.batchNumber")}</FormLabel>
-                                <FormControl>
-                                  <Input 
-                                    {...field} 
-                                    value={field.value || ''} 
-                                    onChange={(e) => field.onChange(e.target.value || null)}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
+                          {/* Linha 2: Status | Lote | Dose (terços da largura) */}
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <FormField
+                              control={form.control}
+                              name="status"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>{t("vaccination.status.label")}</FormLabel>
+                                  <Select 
+                                    onValueChange={field.onChange} 
+                                    defaultValue={field.value}
+                                  >
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Status" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value={VaccinationStatus.SCHEDULED}>
+                                        {t("vaccination.status.scheduled")}
+                                      </SelectItem>
+                                      <SelectItem value={VaccinationStatus.COMPLETED}>
+                                        {t("vaccination.status.completed")}
+                                      </SelectItem>
+                                      <SelectItem value={VaccinationStatus.MISSED}>
+                                        {t("vaccination.status.missed")}
+                                      </SelectItem>
+                                      <SelectItem value={VaccinationStatus.CANCELLED}>
+                                        {t("vaccination.status.cancelled")}
+                                      </SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
 
-                          {/* Dose Number */}
-                          <FormField
-                            control={form.control}
-                            name="doseNumber"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>{t("vaccination.doseNumber")}</FormLabel>
-                                <FormControl>
-                                  <Input 
-                                    type="number" 
-                                    {...field} 
-                                    value={field.value === null ? '' : field.value}
-                                    onChange={(e) => {
-                                      const value = e.target.value === '' ? null : parseInt(e.target.value);
-                                      field.onChange(value);
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
+                            <FormField
+                              control={form.control}
+                              name="batchNumber"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>{t("vaccination.batchNumber")} <span className="text-muted-foreground">(opcional)</span></FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      {...field} 
+                                      value={field.value || ''} 
+                                      placeholder="Número do lote"
+                                      onChange={(e) => field.onChange(e.target.value || null)}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
 
-                          {/* Next Scheduled Date */}
+                            <FormField
+                              control={form.control}
+                              name="doseNumber"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>{t("vaccination.doseNumber")}</FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      type="number" 
+                                      placeholder="Nº da dose"
+                                      {...field} 
+                                      value={field.value === null ? '' : field.value}
+                                      onChange={(e) => {
+                                        const value = e.target.value === '' ? null : parseInt(e.target.value);
+                                        field.onChange(value);
+                                      }}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          {/* Linha 3: Próxima Data (campo único) */}
                           <FormField
                             control={form.control}
                             name="nextApplicationDate"
                             render={({ field }) => (
                               <FormItem className="flex flex-col">
-                                <FormLabel>{t("vaccination.nextDate")}</FormLabel>
+                                <FormLabel>{t("vaccination.nextDate")} <span className="text-muted-foreground">(opcional)</span></FormLabel>
                                 <Popover>
                                   <PopoverTrigger asChild>
                                     <FormControl>
@@ -584,7 +587,7 @@ const AnimalDetails: React.FC = () => {
                                         {field.value ? (
                                           formatDateSimple(field.value, language)
                                         ) : (
-                                          <span>{t("common.optional")}</span>
+                                          <span>Data da próxima aplicação</span>
                                         )}
                                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                                       </Button>
@@ -607,13 +610,13 @@ const AnimalDetails: React.FC = () => {
                             )}
                           />
 
-                          {/* Notes */}
+                          {/* Linha 4: Observações (campo único) */}
                           <FormField
                             control={form.control}
                             name="notes"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>{t("common.notes")}</FormLabel>
+                                <FormLabel>{t("common.notes")} <span className="text-muted-foreground">(opcional)</span></FormLabel>
                                 <FormControl>
                                   <Textarea 
                                     name={field.name}
@@ -621,6 +624,8 @@ const AnimalDetails: React.FC = () => {
                                     ref={field.ref}
                                     disabled={field.disabled}
                                     value={field.value || ''} 
+                                    placeholder="Observações sobre a vacinação"
+                                    className="min-h-[80px]"
                                     onChange={(e) => field.onChange(e.target.value || null)}
                                   />
                                 </FormControl>
@@ -629,7 +634,14 @@ const AnimalDetails: React.FC = () => {
                             )}
                           />
 
-                          <DialogFooter>
+                          <DialogFooter className="gap-2">
+                            <Button 
+                              type="button"
+                              variant="outline"
+                              onClick={() => form.reset()}
+                            >
+                              Cancelar
+                            </Button>
                             <Button 
                               type="submit" 
                               disabled={createVaccinationMutation.isPending}
@@ -740,142 +752,144 @@ const AnimalDetails: React.FC = () => {
           </DialogHeader>
           <Form {...editForm}>
             <form onSubmit={editForm.handleSubmit(onSubmitEditVaccination)} className="space-y-4">
-              {/* Vaccination date */}
-              <FormField
-                control={editForm.control}
-                name="applicationDate"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>{t("vaccination.date")}</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className="w-full pl-3 text-left font-normal"
-                          >
-                            {field.value ? (
-                              formatDateSimple(field.value, language)
-                            ) : (
-                              <span>{t("common.selectDate")}</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          disabled={(date) =>
-                            date < new Date("1900-01-01") || date > new Date("2100-01-01")
-                          }
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* Linha 1: Data da Vacinação | Tipo da Vacina (meio a meio) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <FormField
+                  control={editForm.control}
+                  name="applicationDate"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>{t("vaccination.date")}</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className="w-full pl-3 text-left font-normal"
+                            >
+                              {field.value ? (
+                                formatDateSimple(field.value, language)
+                              ) : (
+                                <span>Selecionar data</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={(date) =>
+                              date < new Date("1900-01-01") || date > new Date("2100-01-01")
+                            }
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              {/* Vaccine Name */}
-              <FormField
-                control={editForm.control}
-                name="vaccineName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("vaccination.type")}</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Status */}
-              <FormField
-                control={editForm.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("vaccination.status.label")}</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
-                      defaultValue={field.value}
-                    >
+                <FormField
+                  control={editForm.control}
+                  name="vaccineName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("vaccination.type")}</FormLabel>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t("common.select")} />
-                        </SelectTrigger>
+                        <Input {...field} placeholder="Nome da vacina" />
                       </FormControl>
-                      <SelectContent>
-                        <SelectItem value={VaccinationStatus.SCHEDULED}>
-                          {t("vaccination.status.scheduled")}
-                        </SelectItem>
-                        <SelectItem value={VaccinationStatus.COMPLETED}>
-                          {t("vaccination.status.completed")}
-                        </SelectItem>
-                        <SelectItem value={VaccinationStatus.MISSED}>
-                          {t("vaccination.status.missed")}
-                        </SelectItem>
-                        <SelectItem value={VaccinationStatus.CANCELLED}>
-                          {t("vaccination.status.cancelled")}
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-              {/* Batch Number */}
-              <FormField
-                control={editForm.control}
-                name="batchNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("vaccination.batchNumber")}</FormLabel>
-                    <FormControl>
-                      <Input {...field} value={field.value || ''} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* Linha 2: Status | Lote | Dose (terços da largura) */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <FormField
+                  control={editForm.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("vaccination.status.label")}</FormLabel>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Status" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value={VaccinationStatus.SCHEDULED}>
+                            {t("vaccination.status.scheduled")}
+                          </SelectItem>
+                          <SelectItem value={VaccinationStatus.COMPLETED}>
+                            {t("vaccination.status.completed")}
+                          </SelectItem>
+                          <SelectItem value={VaccinationStatus.MISSED}>
+                            {t("vaccination.status.missed")}
+                          </SelectItem>
+                          <SelectItem value={VaccinationStatus.CANCELLED}>
+                            {t("vaccination.status.cancelled")}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              {/* Dose Number */}
-              <FormField
-                control={editForm.control}
-                name="doseNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("vaccination.doseNumber")}</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        {...field} 
-                        value={field.value === null ? '' : field.value}
-                        onChange={(e) => {
-                          const value = e.target.value === '' ? null : parseInt(e.target.value);
-                          field.onChange(value);
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={editForm.control}
+                  name="batchNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("vaccination.batchNumber")} <span className="text-muted-foreground">(opcional)</span></FormLabel>
+                      <FormControl>
+                        <Input {...field} value={field.value || ''} placeholder="Número do lote" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              {/* Next Scheduled Date */}
+                <FormField
+                  control={editForm.control}
+                  name="doseNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("vaccination.doseNumber")}</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          placeholder="Nº da dose"
+                          {...field} 
+                          value={field.value === null ? '' : field.value}
+                          onChange={(e) => {
+                            const value = e.target.value === '' ? null : parseInt(e.target.value);
+                            field.onChange(value);
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Linha 3: Próxima Data (campo único) */}
               <FormField
                 control={editForm.control}
                 name="nextApplicationDate"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>{t("vaccination.nextDate")}</FormLabel>
+                    <FormLabel>{t("vaccination.nextDate")} <span className="text-muted-foreground">(opcional)</span></FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -886,7 +900,7 @@ const AnimalDetails: React.FC = () => {
                             {field.value ? (
                               formatDateSimple(field.value, language)
                             ) : (
-                              <span>{t("common.optional")}</span>
+                              <span>Data da próxima aplicação</span>
                             )}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
@@ -909,22 +923,34 @@ const AnimalDetails: React.FC = () => {
                 )}
               />
 
-              {/* Notes */}
+              {/* Linha 4: Observações (campo único) */}
               <FormField
                 control={editForm.control}
                 name="notes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("common.notes")}</FormLabel>
+                    <FormLabel>{t("common.notes")} <span className="text-muted-foreground">(opcional)</span></FormLabel>
                     <FormControl>
-                      <Textarea {...field} value={field.value || ''} />
+                      <Textarea 
+                        {...field} 
+                        value={field.value || ''} 
+                        placeholder="Observações sobre a vacinação"
+                        className="min-h-[80px]"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <DialogFooter>
+              <DialogFooter className="gap-2">
+                <Button 
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsEditVaccinationOpen(false)}
+                >
+                  Cancelar
+                </Button>
                 <Button 
                   type="submit" 
                   disabled={updateVaccinationMutation.isPending}
