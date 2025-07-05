@@ -57,6 +57,12 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -72,7 +78,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CalendarComponent from '@/components/calendar/CalendarComponent';
-import { HelpCircle, MoreVertical, Loader2, Plus, Search, ChevronLeft, ChevronRight, Edit, Trash2, Eye, Archive, Calendar, PawPrint } from 'lucide-react';
+import { HelpCircle, MoreVertical, Loader2, Plus, Search, ChevronLeft, ChevronRight, Edit, Trash2, Eye, Archive, Calendar, PawPrint, Settings } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Link } from 'wouter';
 
@@ -99,6 +105,21 @@ const animalFormSchema = z.object({
 
 type AnimalFormValues = z.infer<typeof animalFormSchema>;
 
+// Column configuration
+type ColumnKey = 'registrationCode' | 'name' | 'species' | 'breed' | 'gender' | 'birthDate' | 'weight' | 'healthStatus';
+
+interface ColumnConfig {
+  key: ColumnKey;
+  label: string;
+  accessor: (animal: Animal, speciesList: Species[]) => React.ReactNode;
+}
+
+// Default visible columns
+const DEFAULT_VISIBLE_COLUMNS: ColumnKey[] = ['registrationCode', 'name', 'species', 'breed', 'gender', 'birthDate', 'weight', 'healthStatus'];
+
+// Local storage key for column preferences
+const COLUMN_PREFERENCES_KEY = 'animal-table-columns';
+
 export default function NewAnimalsPage() {
   const { t, language } = useLanguage();
   const { toast } = useToast();
@@ -120,6 +141,16 @@ export default function NewAnimalsPage() {
     status: 'all',
     gender: 'all',
     searchTerm: '',
+  });
+
+  // Estado para gerenciar colunas visíveis
+  const [visibleColumns, setVisibleColumns] = useState<ColumnKey[]>(() => {
+    try {
+      const saved = localStorage.getItem(COLUMN_PREFERENCES_KEY);
+      return saved ? JSON.parse(saved) : DEFAULT_VISIBLE_COLUMNS;
+    } catch {
+      return DEFAULT_VISIBLE_COLUMNS;
+    }
   });
 
   // Load farms
@@ -327,6 +358,81 @@ export default function NewAnimalsPage() {
       fatherId: null,
     };
   };
+
+  // Função para alternar visibilidade de uma coluna
+  const toggleColumn = (columnKey: ColumnKey) => {
+    setVisibleColumns(prev => {
+      const newColumns = prev.includes(columnKey)
+        ? prev.filter(key => key !== columnKey)
+        : [...prev, columnKey];
+      
+      // Salvar no localStorage
+      localStorage.setItem(COLUMN_PREFERENCES_KEY, JSON.stringify(newColumns));
+      return newColumns;
+    });
+  };
+
+  // Configuração das colunas
+  const columnConfig: ColumnConfig[] = [
+    {
+      key: 'registrationCode',
+      label: t('animals.registrationCode'),
+      accessor: (animal) => animal.registrationCode
+    },
+    {
+      key: 'name',
+      label: t('common.name'),
+      accessor: (animal) => animal.name || '-'
+    },
+    {
+      key: 'species',
+      label: t('animals.species'),
+      accessor: (animal, speciesList) => {
+        const species = speciesList.find(s => s.id === animal.speciesId);
+        return species ? (t(`animals.speciesTypes.${species.name}`) || species.name) : '-';
+      }
+    },
+    {
+      key: 'breed',
+      label: t('animals.breed'),
+      accessor: (animal) => animal.breed
+    },
+    {
+      key: 'gender',
+      label: t('animals.gender'),
+      accessor: (animal) => 
+        animal.gender === 'male' 
+          ? t('animals.genders.male') 
+          : t('animals.genders.female')
+    },
+    {
+      key: 'birthDate',
+      label: t('animals.birthDate'),
+      accessor: (animal) => 
+        animal.birthDate 
+          ? formatDate(new Date(animal.birthDate), 'dd/MM/yyyy', language) 
+          : '-'
+    },
+    {
+      key: 'weight',
+      label: t('animals.weight'),
+      accessor: (animal) => animal.weight ? `${animal.weight} kg` : '-'
+    },
+    {
+      key: 'healthStatus',
+      label: t('animals.healthStatus'),
+      accessor: (animal) => (
+        <Badge
+          variant={animal.status === 'healthy' ? 'default' : 
+                  animal.status === 'sick' || animal.status === 'quarantine' ? 'destructive' : 
+                  animal.status === 'pregnant' || animal.status === 'lactating' ? 'secondary' : 
+                  'outline'}
+        >
+          {t(`animals.statuses.${animal.status}`)}
+        </Badge>
+      )
+    }
+  ];
 
   // Populate edit form when an animal is selected for editing
   useEffect(() => {
@@ -1055,6 +1161,41 @@ export default function NewAnimalsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                {/* Botão de configuração das colunas */}
+                <div className="flex justify-end mb-4">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className="h-8">
+                        <Settings className="h-4 w-4 mr-2" />
+                        {t('common.configureColumns') || 'Configurar Colunas'}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-56" align="end">
+                      <div className="space-y-2">
+                        <h4 className="font-medium text-sm">
+                          {t('common.selectColumns') || 'Selecionar Colunas'}
+                        </h4>
+                        <div className="space-y-2">
+                          {columnConfig.map((column) => (
+                            <div key={column.key} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={column.key}
+                                checked={visibleColumns.includes(column.key)}
+                                onCheckedChange={() => toggleColumn(column.key)}
+                              />
+                              <label
+                                htmlFor={column.key}
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                              >
+                                {column.label}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
             {isLoadingAnimals ? (
               <div className="flex justify-center items-center p-8">
                 <Loader2 className="h-8 w-8 animate-spin" />
@@ -1068,56 +1209,30 @@ export default function NewAnimalsPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>{t('animals.registrationCode')}</TableHead>
-                      <TableHead>{t('common.name')}</TableHead>
-                      <TableHead>{t('animals.species')}</TableHead>
-                      <TableHead>{t('animals.breed')}</TableHead>
-                      <TableHead>{t('animals.gender')}</TableHead>
-                      <TableHead>{t('animals.birthDate')}</TableHead>
-                      <TableHead>{t('animals.weight')}</TableHead>
-                      <TableHead>{t('animals.healthStatus')}</TableHead>
+                      {/* Renderizar cabeçalhos apenas para colunas visíveis */}
+                      {columnConfig
+                        .filter(column => visibleColumns.includes(column.key))
+                        .map(column => (
+                          <TableHead key={column.key}>{column.label}</TableHead>
+                        ))}
                       <TableHead></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {paginatedAnimals.map((animal) => {
-                      const species = speciesList.find(s => s.id === animal.speciesId);
-                      
                       return (
                         <TableRow key={animal.id}>
-                          <TableCell className="font-medium">
-                            {animal.registrationCode}
-                          </TableCell>
-                          <TableCell>{animal.name || '-'}</TableCell>
-                          <TableCell>
-                            {species ? 
-                              t(`animals.speciesTypes.${species.name}`) || species.name 
-                              : '-'}
-                          </TableCell>
-                          <TableCell>{animal.breed}</TableCell>
-                          <TableCell>
-                            {animal.gender === 'male' 
-                              ? t('animals.genders.male') 
-                              : t('animals.genders.female')}
-                          </TableCell>
-                          <TableCell>
-                            {animal.birthDate 
-                              ? formatDate(new Date(animal.birthDate), 'dd/MM/yyyy', language) 
-                              : '-'}
-                          </TableCell>
-                          <TableCell>
-                            {animal.weight ? `${animal.weight} kg` : '-'}
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              variant={animal.status === 'healthy' ? 'default' : 
-                                      animal.status === 'sick' || animal.status === 'quarantine' ? 'destructive' : 
-                                      animal.status === 'pregnant' || animal.status === 'lactating' ? 'secondary' : 
-                                      'outline'}
-                            >
-                              {t(`animals.statuses.${animal.status}`)}
-                            </Badge>
-                          </TableCell>
+                          {/* Renderizar células apenas para colunas visíveis */}
+                          {columnConfig
+                            .filter(column => visibleColumns.includes(column.key))
+                            .map(column => (
+                              <TableCell 
+                                key={column.key} 
+                                className={column.key === 'registrationCode' ? 'font-medium' : ''}
+                              >
+                                {column.accessor(animal, speciesList)}
+                              </TableCell>
+                            ))}
                           <TableCell>
                             <div className="flex items-center space-x-2">
                               {/* Botão Ver Detalhes */}
