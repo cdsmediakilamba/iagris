@@ -1167,13 +1167,13 @@ export default function NewAnimalsPage() {
                     <PopoverTrigger asChild>
                       <Button variant="outline" size="sm" className="h-8">
                         <Settings className="h-4 w-4 mr-2" />
-                        {t('common.configureColumns') || 'Configurar Colunas'}
+                        Configurar Colunas
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-56" align="end">
                       <div className="space-y-2">
                         <h4 className="font-medium text-sm">
-                          {t('common.selectColumns') || 'Selecionar Colunas'}
+                          Selecionar Colunas
                         </h4>
                         <div className="space-y-2">
                           {columnConfig.map((column) => (
