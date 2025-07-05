@@ -161,6 +161,7 @@ export const pt = {
     back: 'Voltar',
     optional: 'Opcional',
     selectDate: 'Selecione uma data',
+    selectFarmToView: 'Selecione uma fazenda para visualizar',
     notSpecified: 'Não especificado',
     notes: 'Observações',
     saving: 'Salvando...',

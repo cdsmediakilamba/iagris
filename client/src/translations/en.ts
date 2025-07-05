@@ -155,6 +155,7 @@ export const en = {
     system: 'System',
     optional: 'Optional',
     selectDate: 'Select a date',
+    selectFarmToView: 'Select a farm to view',
     notSpecified: 'Not specified',
     saving: 'Saving...',
     view: 'View',
