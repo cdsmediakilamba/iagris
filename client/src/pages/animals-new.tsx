@@ -840,6 +840,7 @@ export default function NewAnimalsPage() {
                 </DialogHeader>
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    {/* Linha 1: Nome (campo único) */}
                     <FormField
                       control={form.control}
                       name="name"
@@ -847,40 +848,42 @@ export default function NewAnimalsPage() {
                         <FormItem>
                           <FormLabel>{t('common.name')}</FormLabel>
                           <FormControl>
-                            <Input {...field} value={field.value || ''} />
+                            <Input {...field} value={field.value || ''} placeholder="Nome do animal (opcional)" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    <FormField
-                      control={form.control}
-                      name="speciesId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t('animals.species')}</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value ? field.value.toString() : undefined}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder={t('animals.selectSpecies')} />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {speciesList.map((species) => (
-                                <SelectItem key={species.id} value={species.id.toString()}>
-                                  {species.name} ({species.abbreviation})
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+                    {/* Linha 2: Espécie | Raça | Gênero (terços da largura) */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <FormField
+                        control={form.control}
+                        name="speciesId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{t('animals.species')}</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value ? field.value.toString() : undefined}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder={t('animals.selectSpecies')} />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {speciesList.map((species) => (
+                                  <SelectItem key={species.id} value={species.id.toString()}>
+                                    {species.name} ({species.abbreviation})
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                       <FormField
                         control={form.control}
                         name="breed"
@@ -888,7 +891,7 @@ export default function NewAnimalsPage() {
                           <FormItem>
                             <FormLabel>{t('animals.breed')}</FormLabel>
                             <FormControl>
-                              <Input {...field} value={field.value || ''} />
+                              <Input {...field} value={field.value || ''} placeholder="Raça do animal" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -906,7 +909,7 @@ export default function NewAnimalsPage() {
                             >
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder={t('animals.gender')} />
+                                  <SelectValue placeholder="Selecionar gênero" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
@@ -919,7 +922,9 @@ export default function NewAnimalsPage() {
                         )}
                       />
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+                    {/* Linha 3: Data de Nascimento | Peso (meio a meio) */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <FormField
                         control={form.control}
                         name="birthDate"
@@ -946,6 +951,7 @@ export default function NewAnimalsPage() {
                               <Input 
                                 type="number" 
                                 step="0.01"
+                                placeholder="Peso em kg"
                                 {...field}
                                 value={field.value === undefined ? '' : field.value}
                               />
@@ -956,7 +962,9 @@ export default function NewAnimalsPage() {
                         )}
                       />
                     </div>
-                    <div>
+
+                    {/* Linha 4: Estado de Saúde | Mãe | Pai (terços da largura) */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                       <FormField
                         control={form.control}
                         name="status"
@@ -969,7 +977,7 @@ export default function NewAnimalsPage() {
                             >
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder={t('animals.healthStatus')} />
+                                  <SelectValue placeholder="Estado de saúde" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
@@ -986,16 +994,14 @@ export default function NewAnimalsPage() {
                           </FormItem>
                         )}
                       />
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <FormField
                         control={form.control}
                         name="motherInfo"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{t('animals.mother')}</FormLabel>
+                            <FormLabel>{t('animals.mother')} <span className="text-muted-foreground">(opcional)</span></FormLabel>
                             <FormControl>
-                              <Input {...field} value={field.value || ''} />
+                              <Input {...field} value={field.value || ''} placeholder="Informação da mãe" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -1006,29 +1012,37 @@ export default function NewAnimalsPage() {
                         name="fatherInfo"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{t('animals.father')}</FormLabel>
+                            <FormLabel>{t('animals.father')} <span className="text-muted-foreground">(opcional)</span></FormLabel>
                             <FormControl>
-                              <Input {...field} value={field.value || ''} />
+                              <Input {...field} value={field.value || ''} placeholder="Informação do pai" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
                     </div>
+
+                    {/* Linha 5: Observações (campo único) */}
                     <FormField
                       control={form.control}
                       name="observations"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('common.observations')}</FormLabel>
+                          <FormLabel>{t('common.observations')} <span className="text-muted-foreground">(opcional)</span></FormLabel>
                           <FormControl>
-                            <Textarea {...field} value={field.value || ''} />
+                            <Textarea 
+                              {...field} 
+                              value={field.value || ''} 
+                              placeholder="Observações adicionais sobre o animal"
+                              className="min-h-[80px]"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    <DialogFooter>
+
+                    <DialogFooter className="gap-2">
                       <DialogClose asChild>
                         <Button variant="outline">{t('common.cancel')}</Button>
                       </DialogClose>
