@@ -45,10 +45,10 @@ export default function Dashboard() {
     enabled: !!farmId,
   });
 
-  // Inventory query
+  // Inventory query (low stock includes both critical and low stock items)
   const { data: criticalInventory, isLoading: isLoadingInventory } = useQuery<Inventory[]>({
-    queryKey: ['critical-inventory', farmId],
-    queryFn: () => fetch(`/api/farms/${farmId}/inventory/critical`).then(res => res.json()),
+    queryKey: ['low-stock-inventory', farmId],
+    queryFn: () => fetch(`/api/farms/${farmId}/inventory/low-stock`).then(res => res.json()),
     enabled: !!farmId,
   });
 

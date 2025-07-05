@@ -94,7 +94,7 @@ export default function InventoryAlert({ items, isLoading = false, onOrder }: In
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
             <Package className="h-5 w-5 mr-2 text-red-500" />
-            {t('dashboard.criticalInventory')}
+            {t('dashboard.lowStockInventory')}
           </CardTitle>
           <Button 
             variant="ghost" 

@@ -223,6 +223,7 @@ export const en = {
     animalHealth: 'Animal Health Status',
     weather: 'Weather',
     criticalInventory: 'Critical Inventory',
+    lowStockInventory: 'Low Stock',
     upcomingHarvests: 'Upcoming Harvests',
     progress: 'Progress',
     order: 'Order',

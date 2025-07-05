@@ -987,6 +987,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
+  app.get("/api/farms/:farmId/inventory/low-stock", 
+    checkModuleAccess(SystemModule.INVENTORY, AccessLevel.READ_ONLY), 
+    async (req, res) => {
+      try {
+        const farmId = parseInt(req.params.farmId, 10);
+        const lowStockItems = await storage.getLowStockInventory(farmId);
+        res.json(lowStockItems);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch low stock inventory" });
+      }
+    }
+  );
+
   app.post("/api/farms/:farmId/inventory", 
     checkModuleAccess(SystemModule.INVENTORY, AccessLevel.FULL), 
     async (req, res) => {

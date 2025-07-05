@@ -231,6 +231,7 @@ export const pt = {
     weather: 'Clima',
     selectCity: 'Selecione uma cidade',
     criticalInventory: 'Inventário Crítico',
+    lowStockInventory: 'Estoque Baixo',
     upcomingHarvests: 'Próximas Colheitas',
     progress: 'Progresso',
     order: 'Encomendar',

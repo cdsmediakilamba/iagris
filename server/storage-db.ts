@@ -459,6 +459,27 @@ export class DatabaseStorage implements IStorage {
     );
   }
 
+  async getLowStockInventory(farmId: number): Promise<Inventory[]> {
+    // Fetch all inventory items for the farm
+    const items = await db
+      .select()
+      .from(inventory)
+      .where(eq(inventory.farmId, farmId));
+
+    // Filter for items with low stock (below minimum or below 25% above minimum)
+    return items.filter(item => {
+      if (!item.minimumLevel) return false;
+      
+      const quantity = Number(item.quantity) || 0;
+      const minimumLevel = Number(item.minimumLevel) || 0;
+      
+      // Include items that are:
+      // - Below minimum level (critical)
+      // - Up to 25% above minimum level (low stock)
+      return quantity <= minimumLevel * 1.25;
+    });
+  }
+
   async createInventoryItem(itemData: InsertInventory): Promise<Inventory> {
     try {
       console.log("Creating inventory item with data:", itemData);

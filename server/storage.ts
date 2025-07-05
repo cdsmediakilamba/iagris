@@ -96,6 +96,7 @@ export interface IStorage {
   getInventoryItem(id: number): Promise<Inventory | undefined>;
   getInventoryByFarm(farmId: number): Promise<Inventory[]>;
   getCriticalInventory(farmId: number): Promise<Inventory[]>;
+  getLowStockInventory(farmId: number): Promise<Inventory[]>;
   createInventoryItem(item: InsertInventory): Promise<Inventory>;
   updateInventoryItem(id: number, item: Partial<Inventory>): Promise<Inventory | undefined>;
   
@@ -907,6 +908,22 @@ export class MemStorage implements IStorage {
       (item) => item.farmId === farmId && 
                 item.minimumLevel && 
                 item.quantity <= item.minimumLevel
+    );
+  }
+
+  async getLowStockInventory(farmId: number): Promise<Inventory[]> {
+    return Array.from(this.inventoryItems.values()).filter(
+      (item) => {
+        if (item.farmId !== farmId || !item.minimumLevel) return false;
+        
+        const quantity = Number(item.quantity) || 0;
+        const minimumLevel = Number(item.minimumLevel) || 0;
+        
+        // Include items that are:
+        // - Below minimum level (critical)
+        // - Up to 25% above minimum level (low stock)
+        return quantity <= minimumLevel * 1.25;
+      }
     );
   }
   
