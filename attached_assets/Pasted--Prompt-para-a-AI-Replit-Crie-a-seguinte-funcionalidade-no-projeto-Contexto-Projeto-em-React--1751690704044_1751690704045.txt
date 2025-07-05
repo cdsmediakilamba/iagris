@@ -1,0 +1,70 @@
+🎯 Prompt para a AI Replit
+Crie a seguinte funcionalidade no projeto:
+
+Contexto:
+Projeto em React + TypeScript com Tailwind CSS, Radix UI, React Query, React Hook Form + Zod, Vite, Wouter.
+
+Página animals-new exibe uma tabela com os animais cadastrados por fazenda selecionada.
+
+Backend em Node.js + Express + PostgreSQL usando Drizzle ORM.
+
+O projeto já possui o seletor de fazendas, exibindo os animais da fazenda selecionada.
+
+✅ Objetivo:
+Implementar um seletor de colunas para a tabela de listagem de animais, permitindo ao usuário escolher quais colunas deseja exibir.
+
+📌 Requisitos:
+1️⃣ Abrir um popover (Radix UI) ou modal acessado por um ícone de "Configurar colunas" na tabela.
+2️⃣ Mostrar uma lista de checkboxes com as colunas disponíveis:
+
+Código de Registro
+
+Nome
+
+Espécie
+
+Raça
+
+Gênero
+
+Data de Nascimento
+
+Peso (kg)
+
+Estado de Saúde
+
+3️⃣ Permitir ao usuário marcar/desmarcar colunas para exibição dinâmica.
+
+4️⃣ As colunas exibidas na tabela devem atualizar imediatamente sem recarregar a página.
+
+5️⃣ Persistência das preferências:
+
+Usar localStorage com chave animal-table-columns para armazenar preferências.
+
+A preferência deve ser global para todas as fazendas, simplificando o MVP.
+
+6️⃣ Manter o estilo atual da tabela (Tailwind) e a responsividade.
+
+7️⃣ O estado inicial deve mostrar todas as colunas ativas.
+
+8️⃣ Garantir tipagem consistente em TypeScript para as colunas, evitando erros de renderização.
+
+9️⃣ A função de renderização das colunas na tabela deve utilizar o array de colunas ativas armazenado no estado.
+
+🛠️ Tecnologias e stacks a utilizar:
+React + TypeScript
+
+Tailwind CSS
+
+Radix UI para popover/modal
+
+Persistência com localStorage
+
+Manter compatibilidade com React Query (nenhum fetch adicional necessário)
+
+🚦 Critérios de aceitação:
+✅ O usuário consegue abrir o seletor de colunas.
+✅ O usuário consegue marcar/desmarcar colunas e visualizar o efeito imediatamente.
+✅ A preferência permanece ao recarregar a página.
+✅ Nenhum erro TypeScript ou quebra visual na tabela.
+✅ Funciona em todas as fazendas, mantendo o filtro atual intacto.
