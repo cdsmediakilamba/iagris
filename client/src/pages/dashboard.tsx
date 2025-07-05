@@ -47,9 +47,12 @@ export default function Dashboard() {
 
   // Inventory query
   const { data: criticalInventory, isLoading: isLoadingInventory } = useQuery<Inventory[]>({
-    queryKey: ['/api/farms', farmId, 'inventory/critical'],
+    queryKey: ['critical-inventory', farmId],
+    queryFn: () => fetch(`/api/farms/${farmId}/inventory/critical`).then(res => res.json()),
     enabled: !!farmId,
   });
+
+
 
   // Mock weather data - in a real app, this would come from a weather API
   const weatherData = {

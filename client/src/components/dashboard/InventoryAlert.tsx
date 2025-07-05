@@ -55,9 +55,7 @@ export default function InventoryAlert({ items, isLoading = false, onOrder }: In
   // Limit to first 5 items for better UX
   const displayItems = items.slice(0, 5);
   
-  // Debug log to see what items we're receiving
-  console.log('InventoryAlert - Items received:', items);
-  console.log('InventoryAlert - Display items:', displayItems);
+
 
   if (isLoading) {
     return (
@@ -144,14 +142,6 @@ export default function InventoryAlert({ items, isLoading = false, onOrder }: In
                     </div>
                   </div>
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="ml-3 text-primary border-primary hover:bg-primary hover:text-white transition-colors"
-                  onClick={() => onOrder && onOrder(item.id)}
-                >
-                  {t('dashboard.order')}
-                </Button>
               </div>
             </div>
           ))
