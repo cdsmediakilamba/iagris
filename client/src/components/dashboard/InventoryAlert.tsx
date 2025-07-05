@@ -54,6 +54,10 @@ export default function InventoryAlert({ items, isLoading = false, onOrder }: In
 
   // Limit to first 5 items for better UX
   const displayItems = items.slice(0, 5);
+  
+  // Debug log to see what items we're receiving
+  console.log('InventoryAlert - Items received:', items);
+  console.log('InventoryAlert - Display items:', displayItems);
 
   if (isLoading) {
     return (
@@ -116,9 +120,16 @@ export default function InventoryAlert({ items, isLoading = false, onOrder }: In
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <h4 className="font-medium text-gray-900 truncate">
-                        {item.name}
-                      </h4>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-gray-900 truncate text-base">
+                          {item.name}
+                        </h4>
+                        {item.category && (
+                          <p className="text-xs text-gray-500 capitalize">
+                            {item.category}
+                          </p>
+                        )}
+                      </div>
                       {getCriticalBadge(Number(item.quantity) || 0, Number(item.minimumLevel) || 0)}
                     </div>
                     <div className="text-sm text-gray-600">
