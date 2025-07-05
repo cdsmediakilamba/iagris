@@ -71,6 +71,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import CalendarComponent from '@/components/calendar/CalendarComponent';
 import { Eye, Loader2, PlusCircle, Search, FileText, Tag, Calendar, Weight, PawPrint, Edit, Trash2, ChevronDown } from 'lucide-react';
 
 const formSchema = insertAnimalSchema;
@@ -78,6 +80,7 @@ const formSchema = insertAnimalSchema;
 export default function AnimalsPage() {
   const { t, language } = useLanguage();
   const { toast } = useToast();
+  const [location, setLocation] = useLocation();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -1066,117 +1069,151 @@ export default function AnimalsPage() {
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('animals.title')}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoadingAnimals ? (
-            <div className="flex justify-center items-center h-64">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : filteredAnimals && filteredAnimals.length > 0 ? (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t('animals.registrationCode')}</TableHead>
-                    <TableHead>{t('animals.identificationCode')}</TableHead>
-                    <TableHead>{t('animals.species')}</TableHead>
-                    <TableHead>{t('animals.breed')}</TableHead>
-                    <TableHead>{t('animals.gender')}</TableHead>
-                    <TableHead>{t('animals.birthDate')}</TableHead>
-                    <TableHead>{t('animals.weight')}</TableHead>
-                    <TableHead>{t('animals.healthStatus')}</TableHead>
-                    <TableHead>{t('common.actions')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredAnimals.map((animal) => (
-                    <TableRow key={animal.id}>
-                      <TableCell className="font-medium flex items-center">
-                        <FileText className="h-4 w-4 mr-2 text-primary" />
-                        <span className="font-mono text-sm">{animal.registrationCode}</span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          <Tag className="h-4 w-4 mr-2 text-gray-500" />
-                          {animal.name || '-'}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          <PawPrint className="h-4 w-4 mr-2 text-gray-500" />
-                          {speciesList?.find(s => s.id === animal.speciesId)?.name || '-'}
-                        </div>
-                      </TableCell>
-                      <TableCell>{animal.breed}</TableCell>
-                      <TableCell>{animal.gender ? animal.gender === 'male' ? t('animals.genders.male') : t('animals.genders.female') : '-'}</TableCell>
-                      <TableCell>
-                        {animal.birthDate ? (
-                          <div className="flex items-center">
-                            <Calendar className="h-4 w-4 mr-2 text-gray-500" />
-                            {formatDate(new Date(animal.birthDate), 'P', language)}
-                          </div>
-                        ) : '-'}
-                      </TableCell>
-                      <TableCell>
-                        {animal.weight ? (
-                          <div className="flex items-center">
-                            <Weight className="h-4 w-4 mr-2 text-gray-500" />
-                            {animal.weight} {t('animals.weightUnit')}
-                          </div>
-                        ) : '-'}
-                      </TableCell>
-                      <TableCell>
-                        {getStatusBadge(animal.status)}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Button 
-                              variant="ghost"
-                              size="icon"
-                              className="text-blue-600"
-                              onClick={() => setLocation(`/animals/${animal.id}`)}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            onClick={() => handleEditAnimal(animal)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="text-destructive"
-                            onClick={() => handleDeleteAnimal(animal)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          ) : (
-            <div className="text-center py-10">
-              <PawPrint className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-1">{t('animals.noAnimals')}</h3>
-              <p className="text-gray-500">
-                {searchTerm 
-                  ? t('common.noSearchResults') 
-                  : t('animals.addAnimal')
-                }
-              </p>
-            </div>
+      <Tabs defaultValue="animals" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="animals" className="flex items-center gap-2">
+            <PawPrint className="h-4 w-4" />
+            {t('animals.title')}
+          </TabsTrigger>
+          <TabsTrigger value="calendar" className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            {t('calendar.title')}
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="animals" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('animals.title')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoadingAnimals ? (
+                <div className="flex justify-center items-center h-64">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : filteredAnimals && filteredAnimals.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t('animals.registrationCode')}</TableHead>
+                        <TableHead>{t('animals.identificationCode')}</TableHead>
+                        <TableHead>{t('animals.species')}</TableHead>
+                        <TableHead>{t('animals.breed')}</TableHead>
+                        <TableHead>{t('animals.gender')}</TableHead>
+                        <TableHead>{t('animals.birthDate')}</TableHead>
+                        <TableHead>{t('animals.weight')}</TableHead>
+                        <TableHead>{t('animals.healthStatus')}</TableHead>
+                        <TableHead>{t('common.actions')}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredAnimals.map((animal) => (
+                        <TableRow key={animal.id}>
+                          <TableCell className="font-medium flex items-center">
+                            <FileText className="h-4 w-4 mr-2 text-primary" />
+                            <span className="font-mono text-sm">{animal.registrationCode}</span>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center">
+                              <Tag className="h-4 w-4 mr-2 text-gray-500" />
+                              {animal.name || '-'}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center">
+                              <PawPrint className="h-4 w-4 mr-2 text-gray-500" />
+                              {speciesList?.find(s => s.id === animal.speciesId)?.name || '-'}
+                            </div>
+                          </TableCell>
+                          <TableCell>{animal.breed}</TableCell>
+                          <TableCell>{animal.gender ? animal.gender === 'male' ? t('animals.genders.male') : t('animals.genders.female') : '-'}</TableCell>
+                          <TableCell>
+                            {animal.birthDate ? (
+                              <div className="flex items-center">
+                                <Calendar className="h-4 w-4 mr-2 text-gray-500" />
+                                {formatDate(new Date(animal.birthDate), 'P', language)}
+                              </div>
+                            ) : '-'}
+                          </TableCell>
+                          <TableCell>
+                            {animal.weight ? (
+                              <div className="flex items-center">
+                                <Weight className="h-4 w-4 mr-2 text-gray-500" />
+                                {animal.weight} {t('animals.weightUnit')}
+                              </div>
+                            ) : '-'}
+                          </TableCell>
+                          <TableCell>
+                            {getStatusBadge(animal.status)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Button 
+                                  variant="ghost"
+                                  size="icon"
+                                  className="text-blue-600"
+                                  onClick={() => setLocation(`/animals/${animal.id}`)}
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={() => handleEditAnimal(animal)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="text-destructive"
+                                onClick={() => handleDeleteAnimal(animal)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <div className="text-center py-10">
+                  <PawPrint className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-1">{t('animals.noAnimals')}</h3>
+                  <p className="text-gray-500">
+                    {searchTerm 
+                      ? t('common.noSearchResults') 
+                      : t('animals.addAnimal')
+                    }
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="calendar" className="mt-6">
+          {selectedFarmId && <CalendarComponent farmId={selectedFarmId} />}
+          {!selectedFarmId && (
+            <Card>
+              <CardContent className="flex items-center justify-center h-64">
+                <div className="text-center">
+                  <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-1">
+                    {t('calendar.selectFarm')}
+                  </h3>
+                  <p className="text-gray-500">
+                    {t('common.selectFarmToView')}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           )}
-        </CardContent>
-      </Card>
+        </TabsContent>
+      </Tabs>
     </DashboardLayout>
   );
 }
