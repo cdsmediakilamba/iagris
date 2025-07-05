@@ -70,7 +70,9 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { HelpCircle, MoreVertical, Loader2, Plus, Search, ChevronLeft, ChevronRight, Edit, Trash2, Eye, Archive } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import CalendarComponent from '@/components/calendar/CalendarComponent';
+import { HelpCircle, MoreVertical, Loader2, Plus, Search, ChevronLeft, ChevronRight, Edit, Trash2, Eye, Archive, Calendar, PawPrint } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Link } from 'wouter';
 
@@ -1025,14 +1027,34 @@ export default function NewAnimalsPage() {
           </div>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('animals.title')}</CardTitle>
-            <CardDescription>
-              {t('common.total')}: {filteredAnimals.length}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+        {/* Tabs for Animals and Calendar */}
+        <Tabs defaultValue="animals" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-6 bg-muted rounded-lg p-1">
+            <TabsTrigger 
+              value="animals" 
+              className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+            >
+              <PawPrint className="h-4 w-4" />
+              {t('animals.title')}
+            </TabsTrigger>
+            <TabsTrigger 
+              value="calendar" 
+              className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+            >
+              <Calendar className="h-4 w-4" />
+              {t('calendar.title')}
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="animals" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('animals.title')}</CardTitle>
+                <CardDescription>
+                  {t('common.total')}: {filteredAnimals.length}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
             {isLoadingAnimals ? (
               <div className="flex justify-center items-center p-8">
                 <Loader2 className="h-8 w-8 animate-spin" />
@@ -1189,8 +1211,29 @@ export default function NewAnimalsPage() {
                 </div>
               </div>
             )}
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="calendar" className="mt-6">
+            {selectedFarmId && <CalendarComponent farmId={selectedFarmId} />}
+            {!selectedFarmId && (
+              <Card>
+                <CardContent className="flex items-center justify-center h-64">
+                  <div className="text-center">
+                    <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-1">
+                      {t('calendar.selectFarm')}
+                    </h3>
+                    <p className="text-gray-500">
+                      {t('common.selectFarmToView')}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+        </Tabs>
 
         {/* Edit Animal Dialog */}
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
