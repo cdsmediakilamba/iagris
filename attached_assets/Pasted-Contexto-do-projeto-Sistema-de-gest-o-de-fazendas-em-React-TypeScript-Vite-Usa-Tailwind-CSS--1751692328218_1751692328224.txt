@@ -1,0 +1,108 @@
+Contexto do projeto:
+Sistema de gestão de fazendas em React + TypeScript + Vite.
+
+Usa Tailwind CSS, Radix UI, React Hook Form + Zod, React Query, Wouter.
+
+Backend em Node.js + Express + PostgreSQL usando Drizzle ORM, autenticação com passport + express-session, session store com connect-pg-simple.
+
+A página animals-new exibe dados detalhados dos animais de uma fazenda, com cadastro e listagem.
+
+✅ Objetivo:
+Implementar um módulo completo de controle de vacinações dos animais na página animals-new.
+
+📌 Funcionalidade a ser criada:
+1️⃣ CRUD de Vacinações
+Criar uma aba ou seção “Vacinações” dentro da visualização do animal selecionado.
+
+Permitir cadastrar novas vacinações com os campos:
+
+Nome da Vacina
+
+Data da Aplicação
+
+Data da Próxima Dose
+
+Veterinário Responsável
+
+Observações
+
+Mostrar tabela listando as vacinações do animal, exibindo:
+
+Nome da Vacina
+
+Data da Aplicação
+
+Próxima Dose
+
+Veterinário
+
+Observações
+
+Permitir editar ou excluir vacinações via modal ou inline editing.
+
+2️⃣ Tecnologias e práticas a utilizar:
+✅ Frontend:
+
+React + TypeScript
+
+Tailwind CSS para layout responsivo.
+
+Radix UI Modal/Popover caso necessário.
+
+React Hook Form + Zod para validação de formulário de vacinação.
+
+React Query para cache e refetch automático ao adicionar/editar/excluir vacinações.
+
+Adicionar loading states e toast de sucesso/erro.
+
+✅ Backend:
+
+Criar rota GET /animals/:animalId/vaccinations para listar vacinações.
+
+Criar rota POST /animals/:animalId/vaccinations para criar vacinação.
+
+Criar rota PUT /vaccinations/:vaccinationId para editar vacinação.
+
+Criar rota DELETE /vaccinations/:vaccinationId para excluir vacinação.
+
+Utilizar Drizzle ORM com PostgreSQL.
+
+Validar os dados no backend.
+
+✅ Banco de Dados:
+Criar tabela vaccinations:
+
+sql
+Copiar
+Editar
+id UUID PK
+animal_id UUID FK
+vaccine_name TEXT
+application_date DATE
+next_dose_date DATE
+veterinarian TEXT
+notes TEXT
+created_at TIMESTAMP DEFAULT now()
+updated_at TIMESTAMP DEFAULT now()
+3️⃣ UX desejada:
+✅ Tela limpa, moderna e responsiva, sem poluir a visualização principal do animal.
+✅ Usuário consegue visualizar rapidamente as últimas vacinações e acessar histórico completo.
+✅ Cadastro rápido e fácil de nova vacinação.
+✅ Possibilidade de edição e exclusão para correção de dados.
+✅ Alertas visuais para próximas doses se a data estiver próxima (opcional, se desejar).
+
+🚦 Critérios de aceitação:
+✅ Código consistente, sem erros de tipagem TypeScript.
+✅ Visual integrado ao padrão atual do Lagris.
+✅ Funcionalidade funcionando de ponta a ponta (frontend + backend).
+✅ Compatível com o controle de autenticação e fazendas já existentes.
+✅ Performance otimizada com React Query para cache e refetch.
+✅ Usuário consegue gerenciar facilmente as vacinações de cada animal.
+
+Quando terminar, avise para revisão e possíveis incrementos como:
+
+Geração de relatórios de vacinações por fazenda.
+
+Alertas automáticos para doses próximas.
+
+Integração com notificações no painel.
