@@ -1070,12 +1070,18 @@ export default function AnimalsPage() {
       </div>
 
       <Tabs defaultValue="animals" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="animals" className="flex items-center gap-2">
+        <TabsList className="grid w-full grid-cols-2 mb-6 bg-muted rounded-lg p-1">
+          <TabsTrigger 
+            value="animals" 
+            className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+          >
             <PawPrint className="h-4 w-4" />
             {t('animals.title')}
           </TabsTrigger>
-          <TabsTrigger value="calendar" className="flex items-center gap-2">
+          <TabsTrigger 
+            value="calendar" 
+            className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+          >
             <Calendar className="h-4 w-4" />
             {t('calendar.title')}
           </TabsTrigger>
