@@ -5,7 +5,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { insertAnimalSchema, Animal, Species } from '@shared/schema';
+import { insertAnimalSchema, Animal, Species, AnimalVaccination, insertAnimalVaccinationSchema } from '@shared/schema';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { formatDate } from '@/lib/i18n';
@@ -78,7 +78,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CalendarComponent from '@/components/calendar/CalendarComponent';
-import { HelpCircle, MoreVertical, Loader2, Plus, Search, ChevronLeft, ChevronRight, Edit, Trash2, Eye, Archive, Calendar, PawPrint, Settings } from 'lucide-react';
+import { HelpCircle, MoreVertical, Loader2, Plus, Search, ChevronLeft, ChevronRight, Edit, Trash2, Eye, Archive, Calendar, PawPrint, Settings, Syringe } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Link } from 'wouter';
 
@@ -1244,6 +1244,19 @@ export default function NewAnimalsPage() {
                               >
                                 <Link href={`/animals-new/${animal.id}`}>
                                   <Eye className="h-4 w-4" />
+                                </Link>
+                              </Button>
+                              
+                              {/* Botão Vacinações */}
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                asChild
+                                title="Vacinações"
+                                className="text-blue-600 hover:text-blue-700"
+                              >
+                                <Link href={`/animals-new/${animal.id}#vaccinations`}>
+                                  <Syringe className="h-4 w-4" />
                                 </Link>
                               </Button>
                               
