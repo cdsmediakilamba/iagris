@@ -119,6 +119,7 @@ export const pt = {
     new: 'novo',
     save: 'Salvar',
     cancel: 'Cancelar',
+    error: 'Erro',
     edit: 'Editar',
     user: 'Usuário',
     transactionDetails: 'Detalhes da Transação',

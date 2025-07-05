@@ -79,8 +79,7 @@ export default function CalendarComponent({ farmId }: CalendarComponentProps) {
     mutationFn: (eventData: z.infer<typeof eventFormSchema>) =>
       apiRequest(`/api/farms/${farmId}/calendar-events`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(eventData),
+        data: eventData,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/farms/${farmId}/calendar-events`] });
@@ -103,10 +102,9 @@ export default function CalendarComponent({ farmId }: CalendarComponentProps) {
   // Update event mutation
   const updateEventMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<CalendarEvent> }) =>
-      apiRequest(`/api/farms/${farmId}/calendar-events/${id}`, {
+      apiRequest(`/api/calendar-events/${id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        data: data,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/farms/${farmId}/calendar-events`] });
@@ -129,7 +127,7 @@ export default function CalendarComponent({ farmId }: CalendarComponentProps) {
   // Delete event mutation
   const deleteEventMutation = useMutation({
     mutationFn: (eventId: number) =>
-      apiRequest(`/api/farms/${farmId}/calendar-events/${eventId}`, {
+      apiRequest(`/api/calendar-events/${eventId}`, {
         method: 'DELETE',
       }),
     onSuccess: () => {
