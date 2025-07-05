@@ -1,0 +1,96 @@
+🗂 1. Aba “Calendário”:
+Crie uma nova aba ao lado da aba de listagem de animais, chamada “Calendário”.
+
+Essa aba conterá um calendário mensal interativo, específico para cada fazenda.
+
+Quando o usuário trocar a fazenda no filtro de fazendas (já existente), o calendário deve carregar os eventos correspondentes à fazenda selecionada.
+
+📅 2. Visualização do calendário:
+O calendário deve permitir navegação entre meses.
+
+Ao passar o mouse (ou clicar) em uma data com ações registradas, o usuário deve conseguir visualizar as ações daquele dia.
+
+Mostre um indicador visual nos dias que possuem uma ou mais ações (ex: bolinhas, cor de fundo, etc.).
+
+➕ 3. Adicionar ações:
+Ao clicar em uma data no calendário:
+
+Abrir um modal ou form lateral para adicionar uma ou mais ações (ex: “Vacinação do rebanho”).
+
+Campos obrigatórios:
+
+Descrição da ação (texto)
+
+Data (pré-preenchida com a data clicada)
+
+As ações devem ser associadas à fazenda atual.
+
+O mesmo dia pode conter várias ações.
+
+🔎 4. Visualizar, editar e excluir ações:
+Ao clicar em um dia com ações:
+
+Exibir um modal ou popover com todas as ações do dia.
+
+Deve ser possível editar ou excluir ações individualmente.
+
+🧠 Comportamentos esperados:
+Cada fazenda possui seu próprio calendário.
+
+Alterar a fazenda no filtro atual deve também atualizar os dados do calendário.
+
+Utilize as tecnologias do projeto para garantir performance e usabilidade:
+
+⚙️ Tecnologias do projeto (já em uso):
+Frontend:
+
+React + TypeScript
+
+Tailwind CSS
+
+Radix UI (para modais, tabs, popovers etc.)
+
+React Hook Form + Zod
+
+React Query
+
+Vite
+
+Wouter
+
+Backend:
+
+Node.js + Express
+
+PostgreSQL
+
+Drizzle ORM
+
+@neondatabase/serverless
+
+Autenticação com passport + express-session
+
+Session store com connect-pg-simple
+
+💾 Estrutura de tabela sugerida:
+sql
+Copiar
+Editar
+CREATE TABLE calendar_events (
+  id SERIAL PRIMARY KEY,
+  farm_id UUID NOT NULL REFERENCES farms(id),
+  event_date DATE NOT NULL,
+  description TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+✅ Requisitos técnicos adicionais:
+Persistir os dados com Drizzle ORM.
+
+Buscar os eventos com React Query.
+
+Validar formulários com Zod.
+
+Reutilizar os componentes de UI já existentes (ex: abas, modais Radix).
+
+Interface responsiva (funcionar bem no mobile).
+
