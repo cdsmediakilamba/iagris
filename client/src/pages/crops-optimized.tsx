@@ -651,84 +651,98 @@ export default function CropsOptimizedPage() {
       
       {/* Modal de adicionar plantação */}
       <Dialog open={isAddCropDialogOpen} onOpenChange={setIsAddCropDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[650px]">
           <DialogHeader>
             <DialogTitle>Adicionar Nova Plantação</DialogTitle>
             <DialogDescription>
               Preencha os dados da nova plantação para a fazenda selecionada
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleCreateCrop} className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Nome da plantação *</label>
-              <Input 
-                value={cropForm.name} 
-                onChange={(e) => setCropForm({...cropForm, name: e.target.value})}
-                placeholder="Ex: Milho, Feijão, etc."
-                required
-              />
+          <form onSubmit={handleCreateCrop} className="space-y-6">
+            {/* Primeira linha: Nome e Setor */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Nome da plantação *</label>
+                <Input 
+                  value={cropForm.name} 
+                  onChange={(e) => setCropForm({...cropForm, name: e.target.value})}
+                  placeholder="Ex: Milho, Feijão, etc."
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Setor *</label>
+                <Input 
+                  value={cropForm.sector} 
+                  onChange={(e) => setCropForm({...cropForm, sector: e.target.value})}
+                  placeholder="Ex: A1, Setor Norte, etc."
+                  required
+                />
+              </div>
             </div>
             
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Setor *</label>
-              <Input 
-                value={cropForm.sector} 
-                onChange={(e) => setCropForm({...cropForm, sector: e.target.value})}
-                placeholder="Ex: A1, Setor Norte, etc."
-                required
-              />
+            {/* Segunda linha: Área e Status */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Área (m²) *</label>
+                <Input 
+                  type="number" 
+                  value={cropForm.area} 
+                  onChange={(e) => setCropForm({...cropForm, area: e.target.value})}
+                  placeholder="Ex: 1000"
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Status inicial</label>
+                <Select value={cropForm.status} onValueChange={(value) => setCropForm({...cropForm, status: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o status inicial" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CROP_STATUSES.map(status => (
+                      <SelectItem key={status.value} value={status.value}>
+                        {status.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Área (m²) *</label>
-              <Input 
-                type="number" 
-                value={cropForm.area} 
-                onChange={(e) => setCropForm({...cropForm, area: e.target.value})}
-                placeholder="Ex: 1000"
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Data de plantio</label>
-              <Input 
-                type="date" 
-                value={cropForm.plantingDate} 
-                onChange={(e) => setCropForm({...cropForm, plantingDate: e.target.value})}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Data esperada de colheita</label>
-              <Input 
-                type="date" 
-                value={cropForm.expectedHarvestDate} 
-                onChange={(e) => setCropForm({...cropForm, expectedHarvestDate: e.target.value})}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Status inicial</label>
-              <Select value={cropForm.status} onValueChange={(value) => setCropForm({...cropForm, status: value})}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {CROP_STATUSES.map(status => (
-                    <SelectItem key={status.value} value={status.value}>
-                      {status.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            {/* Terceira linha: Datas */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Data de plantio</label>
+                <Input 
+                  type="date" 
+                  value={cropForm.plantingDate} 
+                  onChange={(e) => setCropForm({...cropForm, plantingDate: e.target.value})}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Data esperada de colheita</label>
+                <Input 
+                  type="date" 
+                  value={cropForm.expectedHarvestDate} 
+                  onChange={(e) => setCropForm({...cropForm, expectedHarvestDate: e.target.value})}
+                />
+              </div>
             </div>
             
             {/* Fazenda vinculada */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Fazenda vinculada</label>
-              <div className="p-2 bg-gray-50 rounded border text-sm">
-                {currentFarm?.name} - {currentFarm?.location}
+              <div className="p-3 bg-gray-50 rounded-lg border text-sm">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-gray-500" />
+                  <span className="font-medium">{currentFarm?.name}</span>
+                  <span className="text-gray-500">•</span>
+                  <span className="text-gray-600">{currentFarm?.location}</span>
+                </div>
               </div>
             </div>
             
