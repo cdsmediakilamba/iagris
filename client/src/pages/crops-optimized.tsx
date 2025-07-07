@@ -65,8 +65,8 @@ interface CropCost {
 const CROP_STATUSES = [
   { value: "growing", label: "Em Crescimento", color: "bg-green-100 text-green-800 border-green-200" },
   { value: "harvested", label: "Colhido", color: "bg-amber-100 text-amber-800 border-amber-200" },
-  { value: "planting", label: "Plantando", color: "bg-blue-100 text-blue-800 border-blue-200" },
-  { value: "ready", label: "Pronto", color: "bg-purple-100 text-purple-800 border-purple-200" }
+  { value: "waiting", label: "Aguardando", color: "bg-blue-100 text-blue-800 border-blue-200" },
+  { value: "finished", label: "Finalizada", color: "bg-purple-100 text-purple-800 border-purple-200" }
 ];
 
 export default function CropsOptimizedPage() {
@@ -503,7 +503,7 @@ export default function CropsOptimizedPage() {
                       <SelectContent>
                         <SelectItem key="all-status" value="">Todos os status</SelectItem>
                         {CROP_STATUSES.map(status => (
-                          <SelectItem key={status.value} value={status.value}>
+                          <SelectItem key={`filter-${status.value}`} value={status.value}>
                             {status.label}
                           </SelectItem>
                         ))}
@@ -627,7 +627,7 @@ export default function CropsOptimizedPage() {
                         </SelectTrigger>
                         <SelectContent>
                           {CROP_STATUSES.map(status => (
-                            <SelectItem key={status.value} value={status.value} className="text-xs">
+                            <SelectItem key={`active-${crop.id}-${status.value}`} value={status.value} className="text-xs">
                               {status.label}
                             </SelectItem>
                           ))}
@@ -755,7 +755,7 @@ export default function CropsOptimizedPage() {
                         </SelectTrigger>
                         <SelectContent>
                           {CROP_STATUSES.map(status => (
-                            <SelectItem key={status.value} value={status.value} className="text-xs">
+                            <SelectItem key={`harvested-${crop.id}-${status.value}`} value={status.value} className="text-xs">
                               {status.label}
                             </SelectItem>
                           ))}
@@ -890,7 +890,7 @@ export default function CropsOptimizedPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {CROP_STATUSES.map(status => (
-                      <SelectItem key={status.value} value={status.value}>
+                      <SelectItem key={`modal-${status.value}`} value={status.value}>
                         {status.label}
                       </SelectItem>
                     ))}
