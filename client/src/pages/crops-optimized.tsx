@@ -80,7 +80,7 @@ export default function CropsOptimizedPage() {
   const [isViewDetailsDialogOpen, setIsViewDetailsDialogOpen] = useState(false);
   const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] = useState(false);
   const [selectedCrop, setSelectedCrop] = useState<Crop | null>(null);
-  const [activeTab, setActiveTab] = useState('list');
+  const [activeTab, setActiveTab] = useState('active');
   
   // Estados do formulário de plantação
   const [cropForm, setCropForm] = useState({
@@ -249,6 +249,32 @@ export default function CropsOptimizedPage() {
     }
   });
   
+  // Mutação para atualizar status da plantação
+  const updateCropStatus = useMutation({
+    mutationFn: async ({ cropId, status }: { cropId: number; status: string }) => {
+      if (!selectedFarmId) throw new Error('Nenhuma fazenda selecionada');
+      
+      return await apiRequest(`/api/farms/${selectedFarmId}/crops/${cropId}`, {
+        method: 'PATCH',
+        data: { status }
+      });
+    },
+    onSuccess: () => {
+      refetchCrops();
+      toast({
+        title: "Sucesso",
+        description: "Status da plantação atualizado com sucesso",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: `Erro ao atualizar status: ${error.message}`,
+        variant: "destructive",
+      });
+    }
+  });
+  
   // Funções auxiliares
   const handleCreateCrop = (e: React.FormEvent) => {
     e.preventDefault();
@@ -317,11 +343,21 @@ export default function CropsOptimizedPage() {
     }, 0);
   };
   
-  // Filtrar e ordenar plantações
+  // Filtrar plantações por aba ativa
   const getFilteredCrops = () => {
     if (!crops) return [];
     
-    return crops.filter(crop => {
+    let filteredByTab = crops;
+    
+    // Filtrar por aba
+    if (activeTab === 'active') {
+      filteredByTab = crops.filter(crop => crop.status !== 'harvested');
+    } else if (activeTab === 'harvested') {
+      filteredByTab = crops.filter(crop => crop.status === 'harvested');
+    }
+    
+    // Aplicar filtros adicionais
+    return filteredByTab.filter(crop => {
       const matchesSearch = !filters.search || 
         crop.name.toLowerCase().includes(filters.search.toLowerCase()) ||
         crop.sector.toLowerCase().includes(filters.search.toLowerCase());
@@ -507,12 +543,16 @@ export default function CropsOptimizedPage() {
           </CollapsibleContent>
         </Collapsible>
         
-        {/* Tabs for List and Calendar */}
+        {/* Tabs for Active, Harvested and Calendar */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
-            <TabsTrigger value="list" className="flex items-center gap-2">
+          <TabsList className="grid w-full grid-cols-3 max-w-[600px]">
+            <TabsTrigger value="active" className="flex items-center gap-2">
               <Leaf className="h-4 w-4" />
-              Lista de Plantações
+              Plantações Ativas
+            </TabsTrigger>
+            <TabsTrigger value="harvested" className="flex items-center gap-2">
+              <DollarSign className="h-4 w-4" />
+              Plantações Colhidas
             </TabsTrigger>
             <TabsTrigger value="calendar" className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
@@ -520,7 +560,7 @@ export default function CropsOptimizedPage() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="list" className="space-y-6 mt-6">
+          <TabsContent value="active" className="space-y-6 mt-6">
             {/* Cards das plantações */}
         {loadingCrops ? (
           <div className="flex justify-center items-center py-8">
@@ -578,6 +618,23 @@ export default function CropsOptimizedPage() {
                       </div>
                     </div>
                     
+                    {/* Seletor de status */}
+                    <div className="pt-2">
+                      <label className="text-xs font-medium text-gray-600 mb-1 block">Alterar Status:</label>
+                      <Select value={crop.status} onValueChange={(value) => updateCropStatus.mutate({ cropId: crop.id, status: value })}>
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CROP_STATUSES.map(status => (
+                            <SelectItem key={status.value} value={status.value} className="text-xs">
+                              {status.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
                     {/* Botões de ação */}
                     <div className="pt-2 flex gap-2">
                       <Button 
@@ -627,6 +684,136 @@ export default function CropsOptimizedPage() {
         {filteredCrops.length > 0 && (
           <div className="text-sm text-muted-foreground text-center">
             {filteredCrops.length} plantações encontradas
+          </div>
+        )}
+          </TabsContent>
+
+          <TabsContent value="harvested" className="space-y-6 mt-6">
+            {/* Cards das plantações colhidas */}
+        {loadingCrops ? (
+          <div className="flex justify-center items-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : filteredCrops.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredCrops.map((crop) => {
+              const statusInfo = getStatusInfo(crop.status);
+              const totalCost = getTotalCropCost(crop.id);
+              
+              return (
+                <Card key={crop.id} className="hover:shadow-md transition-shadow cursor-pointer">
+                  <CardHeader className="pb-3">
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-2">
+                        <Leaf className="h-5 w-5 text-green-600" />
+                        <CardTitle className="text-lg">{crop.name}</CardTitle>
+                      </div>
+                      <Badge className={`${statusInfo.color} border-0`}>
+                        {statusInfo.label}
+                      </Badge>
+                    </div>
+                    <CardDescription>
+                      {crop.sector} | {crop.area}m²
+                    </CardDescription>
+                  </CardHeader>
+                  
+                  <CardContent className="space-y-4">
+                    {/* Informações da plantação */}
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div>
+                        <span className="text-muted-foreground">Área:</span>
+                        <div className="font-medium">{crop.area} m²</div>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Data plantio:</span>
+                        <div className="font-medium">
+                          {crop.plantingDate ? 
+                            new Date(crop.plantingDate).toLocaleDateString('pt-BR') : 
+                            'Não informada'
+                          }
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Custos totais */}
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <Coins className="h-4 w-4 text-amber-600" />
+                        <span className="text-sm font-medium">Custos totais:</span>
+                      </div>
+                      <div className="font-semibold text-amber-600">
+                        Kz {(totalCost || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                      </div>
+                    </div>
+                    
+                    {/* Seletor de status */}
+                    <div className="pt-2">
+                      <label className="text-xs font-medium text-gray-600 mb-1 block">Alterar Status:</label>
+                      <Select value={crop.status} onValueChange={(value) => updateCropStatus.mutate({ cropId: crop.id, status: value })}>
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CROP_STATUSES.map(status => (
+                            <SelectItem key={status.value} value={status.value} className="text-xs">
+                              {status.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    {/* Botões de ação */}
+                    <div className="pt-2 flex gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        className="flex-1"
+                        onClick={() => {
+                          setSelectedCrop(crop);
+                          setIsViewDetailsDialogOpen(true);
+                        }}
+                      >
+                        <Leaf className="h-4 w-4 mr-1" />
+                        Ver detalhes
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        className="flex-1"
+                        onClick={() => {
+                          setSelectedCrop(crop);
+                          setIsAddCostDialogOpen(true);
+                        }}
+                      >
+                        <DollarSign className="h-4 w-4 mr-1" />
+                        Lançar Custo
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        ) : (
+          <Card>
+            <CardContent className="text-center py-8">
+              <DollarSign className="h-10 w-10 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-500">
+                {crops?.some(c => c.status === 'harvested') 
+                  ? 'Nenhuma plantação colhida encontrada com os filtros aplicados' 
+                  : 'Nenhuma plantação colhida ainda'}
+              </p>
+              <p className="text-sm text-gray-400 mt-1">
+                As plantações aparecerão aqui quando o status for alterado para "Colhido"
+              </p>
+            </CardContent>
+          </Card>
+        )}
+        
+        {/* Resultados encontrados */}
+        {filteredCrops.length > 0 && (
+          <div className="text-sm text-muted-foreground text-center">
+            {filteredCrops.length} plantações colhidas encontradas
           </div>
         )}
           </TabsContent>
