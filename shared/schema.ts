@@ -123,6 +123,7 @@ export const crops = pgTable("crops", {
   name: text("name").notNull(),
   sector: text("sector").notNull(),
   area: integer("area").notNull(), // In hectares
+  seedlingsCount: integer("seedlings_count"), // Number of seedlings/trees planted
   plantingDate: timestamp("planting_date"),
   expectedHarvestDate: timestamp("expected_harvest_date"),
   status: text("status").notNull().default("growing"),

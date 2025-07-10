@@ -42,6 +42,7 @@ interface Crop {
   name: string;
   sector: string;
   area: number;
+  seedlingsCount?: number;
   status: string;
   farmId: number;
   plantingDate?: string;
@@ -87,6 +88,7 @@ export default function CropsOptimizedPage() {
     name: '',
     sector: '',
     area: '',
+    seedlingsCount: '',
     plantingDate: '',
     expectedHarvestDate: '',
     status: 'growing'
@@ -166,6 +168,7 @@ export default function CropsOptimizedPage() {
         name: '',
         sector: '',
         area: '',
+        seedlingsCount: '',
         plantingDate: '',
         expectedHarvestDate: '',
         status: 'growing'
@@ -292,6 +295,7 @@ export default function CropsOptimizedPage() {
       name: cropForm.name,
       sector: cropForm.sector,
       area: parseInt(cropForm.area),
+      seedlingsCount: cropForm.seedlingsCount ? parseInt(cropForm.seedlingsCount) : null,
       status: cropForm.status,
       plantingDate: cropForm.plantingDate ? new Date(cropForm.plantingDate) : null,
       expectedHarvestDate: cropForm.expectedHarvestDate ? new Date(cropForm.expectedHarvestDate) : null,
@@ -597,6 +601,10 @@ export default function CropsOptimizedPage() {
                         <div className="font-medium">{crop.area} m²</div>
                       </div>
                       <div>
+                        <span className="text-muted-foreground">Mudas:</span>
+                        <div className="font-medium">{crop.seedlingsCount || 'Não informado'}</div>
+                      </div>
+                      <div>
                         <span className="text-muted-foreground">Data plantio:</span>
                         <div className="font-medium">
                           {crop.plantingDate ? 
@@ -723,6 +731,10 @@ export default function CropsOptimizedPage() {
                       <div>
                         <span className="text-muted-foreground">Área:</span>
                         <div className="font-medium">{crop.area} m²</div>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Mudas:</span>
+                        <div className="font-medium">{crop.seedlingsCount || 'Não informado'}</div>
                       </div>
                       <div>
                         <span className="text-muted-foreground">Data plantio:</span>
@@ -869,7 +881,7 @@ export default function CropsOptimizedPage() {
               </div>
             </div>
             
-            {/* Segunda linha: Área e Status */}
+            {/* Segunda linha: Área e Número de Mudas */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Área (m²) *</label>
@@ -882,6 +894,19 @@ export default function CropsOptimizedPage() {
                 />
               </div>
               
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Número de mudas/árvores</label>
+                <Input 
+                  type="number" 
+                  value={cropForm.seedlingsCount} 
+                  onChange={(e) => setCropForm({...cropForm, seedlingsCount: e.target.value})}
+                  placeholder="Ex: 500"
+                />
+              </div>
+            </div>
+            
+            {/* Terceira linha: Status */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Status inicial</label>
                 <Select value={cropForm.status} onValueChange={(value) => setCropForm({...cropForm, status: value})}>
@@ -1060,6 +1085,10 @@ export default function CropsOptimizedPage() {
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-500">Área:</span>
                       <span className="text-sm font-medium">{selectedCrop.area} m²</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-500">Mudas/Árvores:</span>
+                      <span className="text-sm font-medium">{selectedCrop.seedlingsCount || 'Não informado'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-500">Status:</span>
