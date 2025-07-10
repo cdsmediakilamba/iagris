@@ -749,6 +749,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           req.body.area = area;
         }
         
+        // Validar seedlingsCount se fornecido
+        if (req.body.seedlingsCount !== undefined) {
+          if (req.body.seedlingsCount === '' || req.body.seedlingsCount === null) {
+            req.body.seedlingsCount = null;
+          } else {
+            const count = Number(req.body.seedlingsCount);
+            if (isNaN(count) || count < 0) {
+              return res.status(400).json({ message: "Número de mudas deve ser um número válido" });
+            }
+            req.body.seedlingsCount = count;
+          }
+        }
+        
         // Validar status se fornecido
         const validStatuses = ['growing', 'harvested', 'finished', 'waiting'];
         if (req.body.status && !validStatuses.includes(req.body.status)) {
@@ -826,11 +839,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
         
+        // Validar seedlingsCount se fornecido
+        let seedlingsCount = null;
+        if (req.body.seedlingsCount !== undefined && req.body.seedlingsCount !== '') {
+          const count = Number(req.body.seedlingsCount);
+          if (isNaN(count) || count < 0) {
+            return res.status(400).json({ 
+              message: "Número de mudas deve ser um número válido" 
+            });
+          }
+          seedlingsCount = count;
+        }
+
         // Criar a plantação com dados validados
         const cropData = {
           name: req.body.name,
           sector: req.body.sector,
           area: area,
+          seedlingsCount: seedlingsCount,
           status: req.body.status || "growing",
           farmId: farmId,
           plantingDate: req.body.plantingDate ? new Date(req.body.plantingDate) : new Date(),
