@@ -52,6 +52,17 @@ export default function Dashboard() {
     enabled: !!farmId,
   });
 
+  // Crop costs query - for calculating total costs
+  const { data: cropCosts, isLoading: isLoadingCosts } = useQuery<Array<{amount: string}>>({
+    queryKey: ['/api/farms', farmId, 'crop-costs'],
+    enabled: !!farmId,
+  });
+
+  // Calculate total crop costs
+  const totalCropCosts = cropCosts?.reduce((total, cost) => {
+    return total + parseFloat(cost.amount || '0');
+  }, 0) || 0;
+
 
 
   // Mock weather data - in a real app, this would come from a weather API
@@ -136,11 +147,11 @@ export default function Dashboard() {
         
         <StatusCard
           title={t('dashboard.currentBalance')}
-          value={1450000}
+          value={totalCropCosts}
           icon={<DollarSign className="h-5 w-5 text-blue-500" />}
           trend={{
-            value: "-8%",
-            direction: "down",
+            value: totalCropCosts > 0 ? "+100%" : "0%",
+            direction: totalCropCosts > 0 ? "up" : "down",
             label: t('dashboard.since.lastWeek')
           }}
           isCurrency={true}
