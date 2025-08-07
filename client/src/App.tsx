@@ -20,7 +20,7 @@ import Employees from "@/pages/employees";
 import TemporaryEmployees from "@/pages/temporary-employees";
 import Settings from "@/pages/settings";
 import Admin from "@/pages/admin";
-import Calendar from "@/pages/calendar";
+
 import Reports from "@/pages/reports";
 import Sync from "@/pages/sync";
 import UserRegistration from "@/pages/user-registration";
@@ -37,7 +37,7 @@ function Router() {
   return (
     <Switch>
       <ProtectedRoute path="/" component={Dashboard} />
-      <ProtectedRoute path="/calendar" component={Calendar} />
+
       <ProtectedRoute path="/animals" component={Animals} />
       <ProtectedRoute path="/animals-new" component={AnimalsNew} />
       <ProtectedRoute path="/animals-new/:id" component={AnimalDetails} />

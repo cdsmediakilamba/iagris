@@ -53,12 +53,7 @@ export default function Sidebar({ isOpen }: SidebarProps) {
       path: '/',
       active: location === '/',
     },
-    {
-      title: t('common.calendar'),
-      icon: <Calendar className="mr-4 h-5 w-5" />,
-      path: '/calendar',
-      active: location === '/calendar',
-    },
+
     {
       title: t('common.goals'),
       icon: <Target className="mr-4 h-5 w-5" />,

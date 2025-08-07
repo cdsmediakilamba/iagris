@@ -126,6 +126,7 @@ iAgris is a comprehensive farm management system designed for agricultural opera
 
 ```
 Changelog:
+- January 08, 2025. Removed calendar.tsx page from frontend per user request - Calendar page no longer accessible via navigation menu or direct route
 - June 29, 2025. Initial setup
 ```
 
