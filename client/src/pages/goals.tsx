@@ -384,7 +384,7 @@ export default function GoalsPage() {
         <div className="flex gap-2">
           <Button 
             variant="outline"
-            onClick={() => setLocation("/dashboard")}
+            onClick={() => setLocation("/")}
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             {t('goals.backToDashboard')}
