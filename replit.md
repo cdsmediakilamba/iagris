@@ -122,10 +122,37 @@ iAgris is a comprehensive farm management system designed for agricultural opera
 - Backup and restore procedures documented
 - Connection pooling for performance optimization
 
+## Comprehensive Documentation System
+
+A complete documentation system has been created in the `docs/` directory with 12 comprehensive guides covering all aspects of the iAgris system:
+
+### Installation & Setup
+- **Installation Guide**: Complete setup instructions for Ubuntu, CentOS, Windows
+- **cPanel Installation**: Specialized guide for shared hosting environments
+- **Environment Setup**: Detailed configuration of environment variables
+- **Database Setup**: PostgreSQL configuration and schema management
+
+### Technical Documentation
+- **Architecture**: Complete system architecture overview
+- **API Documentation**: Full REST API specification with examples
+- **Development Guide**: Guidelines for developers and contributors
+
+### User & Admin Guides
+- **User Manual**: Complete guide for end users
+- **Admin Guide**: Administrative functions and user management
+- **FAQ**: Frequently asked questions and troubleshooting
+
+### Operations & Maintenance
+- **Deployment Guide**: Production deployment procedures
+- **Backup & Recovery**: Comprehensive backup strategies and recovery procedures
+- **Monitoring**: System monitoring setup with Prometheus and Grafana
+- **Updates Guide**: Safe update procedures and rollback strategies
+
 ## Changelog
 
 ```
 Changelog:
+- August 11, 2025. Created comprehensive documentation system with 12 detailed guides covering installation (including cPanel), deployment, API documentation, user manuals, admin guides, monitoring, backup/recovery, and update procedures
 - January 08, 2025. Removed calendar.tsx page from frontend per user request - Calendar page no longer accessible via navigation menu or direct route
 - June 29, 2025. Initial setup
 ```
