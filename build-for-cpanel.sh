@@ -82,8 +82,8 @@ log "🔨 Fazendo build da aplicação para produção..."
 # Definir variável de ambiente para build
 export NODE_ENV=production
 
-# Executar build
-npm run build
+# Executar build usando npx (funciona sem comandos globais)
+npx vite build && npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
 
 if [ $? -ne 0 ]; then
     error "Falha no build da aplicação!"
