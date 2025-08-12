@@ -148,10 +148,48 @@ A complete documentation system has been created in the `docs/` directory with 1
 - **Monitoring**: System monitoring setup with Prometheus and Grafana
 - **Updates Guide**: Safe update procedures and rollback strategies
 
+## Production Deployment (cPanel)
+
+O sistema iAgris foi completamente preparado para produção em ambientes cPanel com hospedagem compartilhada:
+
+### Arquivos de Produção Criados
+- **production-setup.md**: Guia completo e detalhado para deployment no cPanel
+- **INSTRUÇÕES-CPANEL.md**: Resumo executivo das instruções
+- **build-for-cpanel.sh**: Script automatizado para preparar build de produção
+- **install-cpanel.sh**: Script de instalação automatizada no servidor
+- **backup.sh**: Sistema de backup automático
+- **setup-database.js**: Script de configuração e teste do banco PostgreSQL
+- **.htaccess**: Configurações Apache otimizadas
+- **env.example**: Template de configuração para produção
+
+### Otimizações para Ambiente Compartilhado
+- Cache em memória limitado para reduzir uso de recursos
+- Garbage collection otimizado
+- Sistema de logs para arquivo
+- Compressão GZIP configurada
+- Health check endpoint (/health)
+- Configurações de segurança Apache
+- Timeouts ajustados para hospedagem compartilhada
+
+### Processo de Deployment
+1. **Preparação**: Execute `./build-for-cpanel.sh` na máquina local
+2. **Upload**: Envie arquivos para `public_html/iagris/` via cPanel
+3. **Configuração**: Configure banco PostgreSQL e arquivo `.env`
+4. **Instalação**: Execute `./install-cpanel.sh` via SSH
+5. **Verificação**: Acesse `/health` para confirmar funcionamento
+
+### Monitoramento e Manutenção
+- Endpoint de health check em `/health`
+- Logs automáticos em `logs/app.log`
+- Backup automático via `./backup.sh`
+- Limpeza automática de logs antigos
+- Configuração de cron jobs para manutenção
+
 ## Changelog
 
 ```
 Changelog:
+- Janeiro 12, 2025. Sistema completamente preparado para produção no cPanel com scripts automatizados, otimizações para ambiente compartilhado, sistema de backup, health check, e documentação completa para deployment
 - August 11, 2025. Created comprehensive documentation system with 12 detailed guides covering installation (including cPanel), deployment, API documentation, user manuals, admin guides, monitoring, backup/recovery, and update procedures
 - January 08, 2025. Removed calendar.tsx page from frontend per user request - Calendar page no longer accessible via navigation menu or direct route
 - June 29, 2025. Initial setup
